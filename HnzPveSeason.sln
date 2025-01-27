@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HnzPveSeason.Torch", "HnzPveSeason.Torch\HnzPveSeason.Torch.csproj", "{92387250-42FC-47FB-A764-11B95D4E1F0E}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Utils.Torch", "TorchUtils\Utils.Torch\Utils.Torch.shproj", "{27569BFC-809F-4253-8959-78107741620D}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Utils.General", "TorchUtils\Utils.General\Utils.General.shproj", "{4E4B3282-B361-4E86-B971-059EFF657677}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|x64 = Release|x64
+		Debug|x64 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{92387250-42FC-47FB-A764-11B95D4E1F0E}.Release|x64.ActiveCfg = Release|x64
+		{92387250-42FC-47FB-A764-11B95D4E1F0E}.Release|x64.Build.0 = Release|x64
+		{92387250-42FC-47FB-A764-11B95D4E1F0E}.Debug|x64.ActiveCfg = Debug|x64
+		{92387250-42FC-47FB-A764-11B95D4E1F0E}.Debug|x64.Build.0 = Debug|x64
+		{27569BFC-809F-4253-8959-78107741620D}.Release|x64.ActiveCfg = Release|x64
+		{27569BFC-809F-4253-8959-78107741620D}.Release|x64.Build.0 = Release|x64
+		{27569BFC-809F-4253-8959-78107741620D}.Debug|x64.ActiveCfg = Debug|x64
+		{27569BFC-809F-4253-8959-78107741620D}.Debug|x64.Build.0 = Debug|x64
+		{4E4B3282-B361-4E86-B971-059EFF657677}.Release|x64.ActiveCfg = Release|x64
+		{4E4B3282-B361-4E86-B971-059EFF657677}.Release|x64.Build.0 = Release|x64
+		{4E4B3282-B361-4E86-B971-059EFF657677}.Debug|x64.ActiveCfg = Debug|x64
+		{4E4B3282-B361-4E86-B971-059EFF657677}.Debug|x64.Build.0 = Debug|x64
+	EndGlobalSection
+EndGlobal

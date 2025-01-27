@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<PluginManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>HnZ PvE Season</Name>
+  <Guid>92387250-42FC-47FB-A764-11B95D4E1F0E</Guid>
+  <Repository>https://github.com/HnZGaming/HnzPveSeason</Repository>
+  <Version>v0.0.0</Version>
+</PluginManifest>

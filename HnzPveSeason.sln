@@ -6,6 +6,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Utils.Torch", "TorchUtils\U
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Utils.General", "TorchUtils\Utils.General\Utils.General.shproj", "{4E4B3282-B361-4E86-B971-059EFF657677}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HnzPveSeason.Mod", "HnzPveSeason.Mod\HnzPveSeason.Mod.csproj", "{859B7124-5339-45C9-A500-886EE4FDF2ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Release|x64 = Release|x64
@@ -24,5 +26,9 @@ Global
 		{4E4B3282-B361-4E86-B971-059EFF657677}.Release|x64.Build.0 = Release|x64
 		{4E4B3282-B361-4E86-B971-059EFF657677}.Debug|x64.ActiveCfg = Debug|x64
 		{4E4B3282-B361-4E86-B971-059EFF657677}.Debug|x64.Build.0 = Debug|x64
+		{859B7124-5339-45C9-A500-886EE4FDF2ED}.Release|x64.ActiveCfg = Release|x64
+		{859B7124-5339-45C9-A500-886EE4FDF2ED}.Release|x64.Build.0 = Release|x64
+		{859B7124-5339-45C9-A500-886EE4FDF2ED}.Debug|x64.ActiveCfg = Debug|x64
+		{859B7124-5339-45C9-A500-886EE4FDF2ED}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 EndGlobal

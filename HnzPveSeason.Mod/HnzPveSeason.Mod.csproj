@@ -10,6 +10,7 @@
         <AssemblyName>HnzPveSeason.Mod</AssemblyName>
         <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
+        <LangVersion>6</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
       <DebugType>pdbonly</DebugType>
@@ -129,7 +130,19 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Communication.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Poi.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiGpsCollection.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiMap.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\SessionConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Session.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\Command.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\CommandModule.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Pools\DictionaryPool.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Pools\ListPool.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Pools\SetPool.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\VRageUtils.cs" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="upload.bat" />

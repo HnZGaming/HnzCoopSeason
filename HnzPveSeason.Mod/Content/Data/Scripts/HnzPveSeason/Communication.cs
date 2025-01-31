@@ -1,6 +1,7 @@
 ﻿using ProtoBuf;
 using Sandbox.Game;
 using Sandbox.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace HnzPveSeason
@@ -29,6 +30,7 @@ namespace HnzPveSeason
         {
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(title, message));
             MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, steamId, true);
+            MyLog.Default.Info("[HnzPveSeason] screen message sent");
         }
 
         static void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
@@ -37,6 +39,7 @@ namespace HnzPveSeason
 
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
             MyAPIGateway.Utilities.ShowMissionScreen("pve", currentObjective: payload.Title, screenDescription: payload.Message);
+            MyLog.Default.Info("[HnzPveSeason] screen message received");
         }
 
         [ProtoContract]

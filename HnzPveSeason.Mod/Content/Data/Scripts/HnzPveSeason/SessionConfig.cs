@@ -23,6 +23,9 @@ namespace HnzPveSeason
         [XmlArray]
         public PoiConfig[] PlanetaryPois = { new PoiConfig() };
 
+        [XmlArray]
+        public MesStaticEncounterConfig[] Orks = { new MesStaticEncounterConfig() };
+
         public static void Load()
         {
             MyLog.Default.Info("[HnzPveSeason] config reloading");

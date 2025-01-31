@@ -8,7 +8,7 @@ co-op season
 
 - [x] POIs on planets
 - [x] POIs in space
-- [ ] ork encounter at all POIs
+- [x] ork encounter at all POIs
 - [ ] "POI release" event upon defeating orks
 - [ ] merchant encounter at safe POIs
 - [ ] merchant behavior: safezone etc

@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using HnzPveSeason.Utils;
+using Sandbox.ModAPI;
+using VRage.Game.ModAPI;
+using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -18,20 +21,24 @@ namespace HnzPveSeason
             _planetaryPois = new Dictionary<string, Poi>();
         }
 
-        public IEnumerable<Poi> GetAllPois()
+        public Poi[] GetAllPois()
         {
             return _spacePois.Values.Concat(_planetaryPois.Values).ToArray();
         }
 
         public void Unload()
         {
+            foreach (var p in _spacePois.Values) p.Unload();
             _spacePois.Clear();
+
+            foreach (var p in _planetaryPois.Values) p.Unload();
             _planetaryPois.Clear();
         }
 
         public void LoadConfig()
         {
             // space POIs
+            foreach (var p in _spacePois.Values) p.Unload();
             _spacePois.Clear();
 
             var poiCountPerAxis = SessionConfig.Instance.PoiCountPerAxis;
@@ -61,18 +68,32 @@ namespace HnzPveSeason
                     Position = position,
                 };
 
-                var poi = new Poi(poiConfig);
+                var poi = new Poi(poiConfig, SpawnEnvironment.Space, SessionConfig.Instance.Orks);
                 _spacePois[new Vector3I(x, y, z)] = poi;
             }
 
             // planetary POIs
+            foreach (var p in _planetaryPois.Values) p.Unload();
             _planetaryPois.Clear();
 
             foreach (var p in SessionConfig.Instance.PlanetaryPois)
             {
-                var poi = new Poi(p);
+                var poi = new Poi(p, SpawnEnvironment.Planet, SessionConfig.Instance.Orks);
                 _planetaryPois[p.Id] = poi;
             }
+        }
+
+        public void LoadScene()
+        {
+            var entities = new HashSet<IMyEntity>();
+            MyAPIGateway.Entities.GetEntities(entities);
+            var grids = entities.OfType<IMyCubeGrid>().ToArray();
+            foreach (var p in GetAllPois()) p.Load(grids);
+        }
+
+        public void Update()
+        {
+            foreach (var p in _spacePois.Values) p.Update();
         }
     }
 }

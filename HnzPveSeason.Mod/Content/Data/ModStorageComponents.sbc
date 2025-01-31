@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <EntityComponents>
+        <EntityComponent xsi:type="MyObjectBuilder_ModStorageComponentDefinition">
+            <Id>
+                <TypeId>ModStorageComponent</TypeId>
+                <SubtypeId>HnzPveSeason</SubtypeId>
+            </Id>
+            <RegisteredStorageGuids>
+                <guid>8e562067-5807-49a0-9d7d-108febcece97</guid>
+            </RegisteredStorageGuids>
+        </EntityComponent>
+    </EntityComponents>
+</Definitions>

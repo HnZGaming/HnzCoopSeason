@@ -170,7 +170,7 @@ namespace HnzPveSeason
             if (State != SpawningState.Success) return;
             if (!Grid.MarkedForClose && !Grid.Closed) return;
 
-            MyLog.Default.Warning($"[HnzPveSeason] MesGrid `{Id}` grid cleaned up");
+            MyLog.Default.Warning($"[HnzPveSeason] MesGrid `{Id}` grid removed externally");
             OnGridUnset?.Invoke(Grid);
             Grid = null;
             State = SpawningState.Idle;

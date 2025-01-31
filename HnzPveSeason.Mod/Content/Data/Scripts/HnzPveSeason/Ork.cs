@@ -1,4 +1,6 @@
-﻿using HnzPveSeason.Utils;
+﻿using System.Collections.Generic;
+using HnzPveSeason.Utils;
+using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
@@ -33,6 +35,8 @@ namespace HnzPveSeason
             {
                 MyLog.Default.Info($"[HnzPveSeason] ork {_poiId} recovered");
             }
+
+            _mesGrid.OnGridUnset += OnMesGridUnset;
         }
 
         public void Unload()
@@ -40,6 +44,7 @@ namespace HnzPveSeason
             _mesGrid.Despawn();
             _mesGrid.Unload();
             _mesGrid.OnGridSet -= OnMesGridSet;
+            _mesGrid.OnGridUnset -= OnMesGridUnset;
         }
 
         public void SetActiveEncounter(bool active)
@@ -56,6 +61,38 @@ namespace HnzPveSeason
         void OnMesGridSet(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzPveSeason] ork `{_poiId}` grid set");
+
+            grid.OnBlockOwnershipChanged += OnOwnershipChanged;
+        }
+
+        void OnMesGridUnset(IMyCubeGrid grid)
+        {
+            grid.OnBlockOwnershipChanged -= OnOwnershipChanged;
+        }
+
+        void OnOwnershipChanged(IMyCubeGrid grid)
+        {
+            MyLog.Default.Info($"[HnzPveSeason] ork `{_poiId}` block ownership changed");
+
+            if (IsGridControlledByAi(_mesGrid.Grid)) return;
+
+            Session.Instance.ReleasePoi(_poiId);
+        }
+
+        static bool IsGridControlledByAi(IMyCubeGrid grid)
+        {
+            var terminalSystems = MyAPIGateway.TerminalActionsHelper.GetTerminalSystemForGrid(grid);
+            var remotes = new List<IMyRemoteControl>();
+            terminalSystems.GetBlocksOfType(remotes);
+            foreach (var remote in remotes)
+            {
+                if (remote.OwnerId != 0 && MyAPIGateway.Players.TryGetIdentityId(remote.OwnerId) == null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

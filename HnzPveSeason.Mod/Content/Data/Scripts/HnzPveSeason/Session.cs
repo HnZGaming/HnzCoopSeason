@@ -150,5 +150,11 @@ namespace HnzPveSeason
             character = MyAPIGateway.Players.TryGetIdentityId(playerId)?.Character;
             return character != null;
         }
+
+        public void ReleasePoi(string id)
+        {
+            MyLog.Default.Info($"[HnzPveSeason] POI released: {id}");
+            _poiMap.ReleasePoi(id);
+        }
     }
 }

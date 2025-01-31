@@ -78,5 +78,10 @@ namespace HnzPveSeason
         {
             _ork.Update();
         }
+
+        public void Release()
+        {
+            SetState(PoiState.Released);
+        }
     }
 }

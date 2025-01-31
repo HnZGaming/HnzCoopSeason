@@ -95,5 +95,33 @@ namespace HnzPveSeason
         {
             foreach (var p in _spacePois.Values) p.Update();
         }
+
+        public void ReleasePoi(string id)
+        {
+            Poi poi;
+            if (!TryGetPoi(id, out poi))
+            {
+                MyLog.Default.Error($"[HnzPveSeason] POI not found by id: {id}");
+                return;
+            }
+
+            poi.Release();
+        }
+
+        bool TryGetPoi(string id, out Poi poi)
+        {
+            if (_planetaryPois.TryGetValue(id, out poi)) return true;
+
+            foreach (var p in _spacePois.Values)
+            {
+                if (p.Id == id)
+                {
+                    poi = p;
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

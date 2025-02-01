@@ -1,15 +1,40 @@
 ﻿using System;
-using System.Xml.Serialization;
+using HnzPveSeason.Utils;
+using ProtoBuf;
+using VRage.Utils;
 
 namespace HnzPveSeason
 {
-    [Serializable]
+    [ProtoContract]
     public sealed class PoiBuilder
     {
-        [XmlAttribute]
+        [ProtoMember(1)]
         public PoiState CurrentState;
 
-        [XmlAttribute]
-        public int OrkEncounterIndex;
+        static string GetVariableKey(string id)
+        {
+            return $"HnzPveSeason.Poi.{id}";
+        }
+
+        public static bool TryLoad(string id, out PoiBuilder builder)
+        {
+            try
+            {
+                var variableKey = GetVariableKey(id);
+                return VRageUtils.TryLoadProtobufVariable(variableKey, out builder);
+            }
+            catch (Exception e)
+            {
+                MyLog.Default.Error($"[HnzPveSeason] poi `{id}` builder failed to parse: {e}");
+                builder = null;
+                return false;
+            }
+        }
+
+        public static void Save(string id, PoiBuilder builder)
+        {
+            var variableKey = GetVariableKey(id);
+            VRageUtils.SaveProtobufVariable(variableKey, builder);
+        }
     }
 }

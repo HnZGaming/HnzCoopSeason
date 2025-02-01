@@ -1,6 +1,5 @@
 ﻿using System;
 using HnzPveSeason.Utils;
-using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
@@ -11,13 +10,11 @@ namespace HnzPveSeason
     {
         readonly PoiConfig _poiConfig;
         readonly Ork _ork;
-        readonly string _variableKey;
 
         public Poi(PoiConfig poiConfig, SpawnEnvironment environment, MesStaticEncounterConfig[] orkConfigs)
         {
             _poiConfig = poiConfig;
             _ork = new Ork(Id, orkConfigs, environment, poiConfig.Position);
-            _variableKey = $"HnzPveSeason.Poi.{Id}";
             CurrentState = PoiState.Occupied;
         }
 
@@ -30,7 +27,11 @@ namespace HnzPveSeason
             _ork.Load(grids);
 
             PoiBuilder builder;
-            if (!MyAPIGateway.Utilities.GetVariable(_variableKey, out builder))
+            if (PoiBuilder.TryLoad(Id, out builder))
+            {
+                MyLog.Default.Info($"[HnzPveSeason] poi `{Id}` recovered");
+            }
+            else
             {
                 builder = new PoiBuilder
                 {
@@ -39,7 +40,6 @@ namespace HnzPveSeason
             }
 
             SetState(builder.CurrentState, true);
-            _ork.EncounterIndex = builder.OrkEncounterIndex;
         }
 
         public void Unload() // called once
@@ -47,11 +47,11 @@ namespace HnzPveSeason
             _ork.Unload();
         }
 
-        void SetState(PoiState state, bool force = false)
+        void SetState(PoiState state, bool init = false)
         {
-            if (CurrentState == state && !force) return;
+            if (CurrentState == state && !init) return;
 
-            if (CurrentState != state)
+            if (!init)
             {
                 MyLog.Default.Info($"[HnzPveSeason] POI `{Id}` state changed from {CurrentState} to {state}");
             }
@@ -59,7 +59,10 @@ namespace HnzPveSeason
             CurrentState = state;
             _ork.SetActiveEncounter(CurrentState == PoiState.Occupied);
 
-            Save();
+            if (!init)
+            {
+                Save();
+            }
         }
 
         void Save()
@@ -67,11 +70,10 @@ namespace HnzPveSeason
             var builder = new PoiBuilder
             {
                 CurrentState = CurrentState,
-                OrkEncounterIndex = _ork.EncounterIndex,
             };
 
-            var xml = MyAPIGateway.Utilities.SerializeToXML(builder);
-            MyAPIGateway.Utilities.SetVariable(_variableKey, xml);
+            PoiBuilder.Save(Id, builder);
+            MyLog.Default.Info($"[HnzPveSeason] poi `{Id}` saved");
         }
 
         public void Update()

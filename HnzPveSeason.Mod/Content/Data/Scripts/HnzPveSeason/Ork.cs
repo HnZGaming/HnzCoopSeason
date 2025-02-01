@@ -20,12 +20,6 @@ namespace HnzPveSeason
             _mesEncounter = new MesStaticEncounter(_mesGrid, environment, position, configs);
         }
 
-        public int EncounterIndex
-        {
-            get { return _mesEncounter.ConfigIndex; }
-            set { _mesEncounter.ConfigIndex = value; }
-        }
-
         public void Load(IMyCubeGrid[] grids)
         {
             _mesGrid.Load();

@@ -11,10 +11,10 @@ namespace HnzPveSeason
         readonly PoiConfig _poiConfig;
         readonly Ork _ork;
 
-        public Poi(PoiConfig poiConfig, SpawnEnvironment environment, MesStaticEncounterConfig[] orkConfigs)
+        public Poi(PoiConfig poiConfig, MesStaticEncounterConfig[] orkConfigs)
         {
             _poiConfig = poiConfig;
-            _ork = new Ork(Id, orkConfigs, environment, poiConfig.Position);
+            _ork = new Ork(Id, orkConfigs, poiConfig.Position);
             CurrentState = PoiState.Occupied;
         }
 
@@ -49,7 +49,10 @@ namespace HnzPveSeason
 
         void SetState(PoiState state, bool init = false)
         {
-            if (CurrentState == state && !init) return;
+            if (CurrentState == state)
+            {
+                if (!init) return;
+            }
 
             if (!init)
             {

@@ -13,11 +13,11 @@ namespace HnzPveSeason
         readonly MesGrid _mesGrid;
         readonly MesStaticEncounter _mesEncounter;
 
-        public Ork(string poiId, MesStaticEncounterConfig[] configs, SpawnEnvironment environment, Vector3D position)
+        public Ork(string poiId, MesStaticEncounterConfig[] configs, Vector3D position)
         {
             _poiId = poiId;
             _mesGrid = new MesGrid($"{_poiId}-ork");
-            _mesEncounter = new MesStaticEncounter(_mesGrid, environment, position, configs);
+            _mesEncounter = new MesStaticEncounter(_mesGrid, position, configs);
         }
 
         public void Load(IMyCubeGrid[] grids)

@@ -28,9 +28,10 @@ namespace HnzPveSeason.Utils
             return sphere.Center + GetRandomUnitDirection() * randomRadius;
         }
 
-        public static Vector3D GetRandomPosition(PlaneD plane, double radius)
+        public static Vector3D GetRandomPosition(Vector3D center, Vector3D normal, double radius)
         {
-            return plane.RandomPoint() * radius + plane.D;
+            var p = new PlaneD(Vector3D.Zero, normal);
+            return p.RandomPoint() * radius + center;
         }
 
         public static int WeightedRandom(float[] weights)

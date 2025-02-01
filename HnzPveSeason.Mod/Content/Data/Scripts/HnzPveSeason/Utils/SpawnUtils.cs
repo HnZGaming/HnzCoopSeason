@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HnzPveSeason.Utils.Pools;
 using Sandbox.Game.Entities;
-using Sandbox.ModAPI;
 using VRage.Game.Entity;
+using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace HnzPveSeason.Utils
@@ -15,7 +17,8 @@ namespace HnzPveSeason.Utils
         {
             switch (environment)
             {
-                case SpawnEnvironment.Planet: return TryCalcSurfaceMatrix(sphere, clearance);
+                case SpawnEnvironment.PlanetSurface: return TryCalcSurfaceMatrix(sphere, clearance);
+                case SpawnEnvironment.PlanetOrbit: return TryCalcOrbitMatrix(sphere, clearance);
                 case SpawnEnvironment.Space: return TryCalcSpaceMatrix(sphere, clearance);
                 default: throw new InvalidOperationException($"unsupported spawn environment: {environment}");
             }
@@ -23,14 +26,14 @@ namespace HnzPveSeason.Utils
 
         static MatrixD? TryCalcSurfaceMatrix(BoundingSphereD sphere, float clearance)
         {
-            var gravity = VRageUtils.CalculateNaturalGravity(sphere.Center);
-            var spawnPlane = new PlaneD(sphere.Center, gravity);
             var planet = PlanetCollection.GetClosestPlanet(sphere.Center);
+            var planetCenter = planet.PositionComp.GetPosition();
+            var normal = sphere.Center - planetCenter;
 
             var positions = new List<Vector3D> { sphere.Center };
             for (var i = 0; i < 100; i++)
             {
-                var position = MathUtils.GetRandomPosition(spawnPlane, sphere.Radius);
+                var position = MathUtils.GetRandomPosition(sphere.Center, normal, sphere.Radius);
                 position = planet.GetClosestSurfacePointGlobal(position);
                 positions.Add(position);
             }
@@ -49,23 +52,33 @@ namespace HnzPveSeason.Utils
 
         static MatrixD? TryCalcOrbitMatrix(BoundingSphereD sphere, float clearance)
         {
-            var gravity = VRageUtils.CalculateNaturalGravity(sphere.Center);
-            var spawnPlane = new PlaneD(sphere.Center, gravity);
+            var planet = PlanetCollection.GetClosestPlanet(sphere.Center);
+            var planetCenter = planet.PositionComp.GetPosition();
+            var normal = sphere.Center - planetCenter;
 
             var positions = new List<Vector3D> { sphere.Center };
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < 5; i++)
             {
-                var position = MathUtils.GetRandomPosition(spawnPlane, sphere.Radius);
+                var position = MathUtils.GetRandomPosition(sphere.Center, normal, sphere.Radius);
                 positions.Add(position);
             }
 
             foreach (var position in positions)
             {
-                // check for clearance
-                var space = new BoundingSphereD(position, clearance);
-                if (HasAnyEntitiesInSphere<IMyEntity>(space)) continue;
+                var p = position;
 
-                return CalcMatrix(position);
+                // prevent digging into the planet surface
+                var surfacePosition = planet.GetClosestSurfacePointGlobal(position);
+                if (Vector3D.Distance(position, planetCenter) < Vector3D.Distance(surfacePosition, planetCenter))
+                {
+                    p = surfacePosition + (surfacePosition - planetCenter).Normalized() * clearance;
+                }
+
+                // check for clearance
+                var space = new BoundingSphereD(p, clearance);
+                if (HasAnyEntitiesInSphere<IMyCubeGrid>(space)) continue;
+
+                return CalcMatrix(p);
             }
 
             return null;
@@ -104,15 +117,7 @@ namespace HnzPveSeason.Utils
             try
             {
                 MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entities);
-                foreach (var entity in entities)
-                {
-                    if (entity is T)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
+                return entities.OfType<T>().Any();
             }
             finally
             {

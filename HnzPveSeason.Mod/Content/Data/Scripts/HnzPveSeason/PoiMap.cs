@@ -41,6 +41,9 @@ namespace HnzPveSeason
             foreach (var p in _spacePois.Values) p.Unload();
             _spacePois.Clear();
 
+            var spaceOrks = SessionConfig.Instance.Orks.Where(c => c.IsSpaceSpawn()).ToArray();
+            MyLog.Default.Info($"[HnzPveSeason] space orks: {spaceOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
+
             var poiCountPerAxis = SessionConfig.Instance.PoiCountPerAxis;
             var poiMapRadius = SessionConfig.Instance.PoiMapRadius;
             for (var x = 0; x < poiCountPerAxis; x++)
@@ -68,7 +71,7 @@ namespace HnzPveSeason
                     Position = position,
                 };
 
-                var poi = new Poi(poiConfig, SpawnEnvironment.Space, SessionConfig.Instance.Orks);
+                var poi = new Poi(poiConfig, spaceOrks);
                 _spacePois[new Vector3I(x, y, z)] = poi;
             }
 
@@ -76,9 +79,12 @@ namespace HnzPveSeason
             foreach (var p in _planetaryPois.Values) p.Unload();
             _planetaryPois.Clear();
 
+            var planetOrks = SessionConfig.Instance.Orks.Where(c => c.IsPlanetSpawn()).ToArray();
+            MyLog.Default.Info($"[HnzPveSeason] planet orks: {planetOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
+
             foreach (var p in SessionConfig.Instance.PlanetaryPois)
             {
-                var poi = new Poi(p, SpawnEnvironment.Planet, SessionConfig.Instance.Orks);
+                var poi = new Poi(p, planetOrks);
                 _planetaryPois[p.Id] = poi;
             }
         }
@@ -94,6 +100,7 @@ namespace HnzPveSeason
         public void Update()
         {
             foreach (var p in _spacePois.Values) p.Update();
+            foreach (var p in _planetaryPois.Values) p.Update();
         }
 
         public void ReleasePoi(string id)

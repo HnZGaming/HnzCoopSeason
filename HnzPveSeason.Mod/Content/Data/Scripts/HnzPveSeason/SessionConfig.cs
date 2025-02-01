@@ -21,9 +21,11 @@ namespace HnzPveSeason
         public float EncounterRadius = 10000;
 
         [XmlArray]
+        [XmlArrayItem("Poi")]
         public PoiConfig[] PlanetaryPois = { new PoiConfig() };
 
         [XmlArray]
+        [XmlArrayItem("Ork")]
         public MesStaticEncounterConfig[] Orks = { new MesStaticEncounterConfig() };
 
         public static void Load()

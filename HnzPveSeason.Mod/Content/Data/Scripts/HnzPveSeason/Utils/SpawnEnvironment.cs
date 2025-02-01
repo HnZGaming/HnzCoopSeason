@@ -2,7 +2,8 @@
 {
     public enum SpawnEnvironment
     {
-        Planet,
+        PlanetSurface,
+        PlanetOrbit,
         Space,
     }
 }

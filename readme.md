@@ -11,6 +11,7 @@ co-op season
 - [x] ork encounter at all POIs
 - [x] "POI release" event upon defeating orks
 - [x] POI persistency across sessions
+- [x] ork encounter on planets
 - [ ] merchant encounter at safe POIs
 - [ ] merchant behavior: safezone etc
 - [ ] acquisition contracts in merchants

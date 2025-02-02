@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
+using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
 
@@ -51,6 +53,32 @@ namespace HnzPveSeason.Utils
         {
             float _;
             return MyAPIGateway.Physics.CalculateNaturalGravityAt(point, out _);
+        }
+
+        public static bool IsGridControlledByAI(IMyCubeGrid grid)
+        {
+            var terminalSystems = MyAPIGateway.TerminalActionsHelper.GetTerminalSystemForGrid(grid);
+            var controlBlocks = new List<IMyTerminalBlock>();
+            terminalSystems.GetBlocksOfType<IMyRemoteControl>(controlBlocks);
+            terminalSystems.GetBlocksOfType<IMyCockpit>(controlBlocks);
+            foreach (var block in controlBlocks)
+            {
+                if (block.OwnerId != 0 && MyAPIGateway.Players.TryGetIdentityId(block.OwnerId) == null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static void AddTemporaryGps(string name, Color color, double discardAt, Vector3D coords)
+        {
+            var gps = MyAPIGateway.Session.GPS.Create(name, "", coords, true, true);
+            gps.GPSColor = color;
+            gps.DiscardAt = TimeSpan.FromSeconds(discardAt);
+            gps.UpdateHash();
+            MyAPIGateway.Session.GPS.AddLocalGps(gps);
         }
     }
 }

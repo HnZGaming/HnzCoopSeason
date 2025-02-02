@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" ?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <Factions>
+        <Faction Tag="MERCHANTS" Founder="The Merchant Boss">
+            <Id>
+                <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
+                <SubtypeId>Merchants</SubtypeId>
+            </Id>
+            <DisplayName>Merchants</DisplayName>
+            <Description>Merchants sell stuff.</Description>
+            <IsDefault>true</IsDefault>
+            <DefaultRelation>Neutral</DefaultRelation>
+            <AcceptHumans>false</AcceptHumans>
+            <AutoAcceptMember>false</AutoAcceptMember>
+        </Faction>
+    </Factions>
+    <SpawnGroups>
+        <SpawnGroup>
+            <Id>
+                <TypeId>SpawnGroupDefinition</TypeId>
+                <SubtypeId>Merchants-SpawnGroup-PlanetaryStation</SubtypeId>
+            </Id>
+            <Description>
+                [Modular Encounters SpawnGroup]
+
+                [RivalAiSpawn: true]
+                [UseRivalAi:true]
+                [RivalAiReplaceRemoteControl:true]
+
+                [FactionOverride:MERCHANTS]
+                [ReplenishSystems:true]
+                [ManipulationProfiles:MES-Manipulation-RivalAi]
+            </Description>
+            <IsPirate>true</IsPirate>
+            <Frequency>5.0</Frequency>
+            <Prefabs>
+                <Prefab SubtypeId="P5_ProspectingStation">
+                    <Position>
+                        <X>0.0</X>
+                        <Y>15</Y>
+                        <Z>0.0</Z>
+                    </Position>
+                    <Speed>0</Speed>
+                    <Behaviour>Merchants-Behavior-BasicInstallation</Behaviour>
+                </Prefab>
+            </Prefabs>
+        </SpawnGroup>
+    </SpawnGroups>
+    <EntityComponents>
+        <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+            <Id>
+                <TypeId>Inventory</TypeId>
+                <SubtypeId>Merchants-Behavior-Installation</SubtypeId>
+            </Id>
+            <Description>
+                [RivalAI Behavior]
+                [BehaviorName:Passive]
+            </Description>
+        </EntityComponent>
+    </EntityComponents>
+</Definitions>

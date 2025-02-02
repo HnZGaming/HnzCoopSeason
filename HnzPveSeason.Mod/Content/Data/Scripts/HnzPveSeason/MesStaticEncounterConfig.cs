@@ -11,7 +11,10 @@ namespace HnzPveSeason
         public string SpawnGroup = "Orks-SpawnGroup-Boss-KillaKrooZa";
 
         [XmlAttribute]
-        public SpawnEnvironment Environment = SpawnEnvironment.Space;
+        public bool Planetary;
+
+        [XmlAttribute]
+        public bool SnapToVoxel;
 
         [XmlAttribute]
         public float SpawnRadius = 10000;
@@ -22,15 +25,9 @@ namespace HnzPveSeason
         [XmlAttribute]
         public float Weight = 1;
 
-        public bool IsSpaceSpawn()
+        public override string ToString()
         {
-            return Environment == SpawnEnvironment.Space;
-        }
-
-        public bool IsPlanetSpawn()
-        {
-            return Environment == SpawnEnvironment.PlanetOrbit ||
-                   Environment == SpawnEnvironment.PlanetSurface;
+            return $"{nameof(SpawnGroup)}: {SpawnGroup}, {nameof(Planetary)}: {Planetary}, {nameof(SnapToVoxel)}: {SnapToVoxel}, {nameof(SpawnRadius)}: {SpawnRadius}, {nameof(ClearanceRadius)}: {ClearanceRadius}, {nameof(Weight)}: {Weight}";
         }
     }
 }

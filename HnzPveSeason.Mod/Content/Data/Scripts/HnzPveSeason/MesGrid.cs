@@ -73,7 +73,8 @@ namespace HnzPveSeason
                     nameof(HnzPveSeason)))
             {
                 State = SpawningState.Failure;
-                MyLog.Default.Error($"[HnzPveSeason] MesGrid `{Id}` failed to spawn");
+                MyLog.Default.Error($"[HnzPveSeason] MesGrid `{Id}` failed to spawn: '{spawnGroup}' at '{targetMatrix.Translation}'");
+                return;
             }
 
             _spawnGroup = spawnGroup;

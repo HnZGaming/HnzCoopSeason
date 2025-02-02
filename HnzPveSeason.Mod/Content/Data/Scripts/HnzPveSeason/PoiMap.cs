@@ -37,12 +37,27 @@ namespace HnzPveSeason
 
         public void LoadConfig()
         {
+            var spaceOrks = SessionConfig.Instance.Orks.Where(c => !c.Planetary).ToArray();
+            MyLog.Default.Info($"[HnzPveSeason] space orks: {spaceOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
+
+            var spaceMerchants = SessionConfig.Instance.Merchants.Where(c => !c.Planetary).ToArray();
+            MyLog.Default.Info($"[HnzPveSeason] space merchants: {spaceMerchants.Select(c => c.SpawnGroup).ToStringSeq()}");
+
+            var planetOrks = SessionConfig.Instance.Orks.Where(c => c.Planetary).ToArray();
+            MyLog.Default.Info($"[HnzPveSeason] planet orks: {planetOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
+
+            var planetMerchants = SessionConfig.Instance.Merchants.Where(c => c.Planetary).ToArray();
+            MyLog.Default.Info($"[HnzPveSeason] planet merchants: {planetMerchants.Select(c => c.SpawnGroup).ToStringSeq()}");
+
+            if (spaceOrks.Length == 0 || planetOrks.Length == 0 || spaceMerchants.Length == 0 || planetMerchants.Length == 0)
+            {
+                MyLog.Default.Error("[HnzPveSeason] poi map failed to reload; encounters not set");
+                return;
+            }
+
             // space POIs
             foreach (var p in _spacePois.Values) p.Unload();
             _spacePois.Clear();
-
-            var spaceOrks = SessionConfig.Instance.Orks.Where(c => c.IsSpaceSpawn()).ToArray();
-            MyLog.Default.Info($"[HnzPveSeason] space orks: {spaceOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
 
             var poiCountPerAxis = SessionConfig.Instance.PoiCountPerAxis;
             var poiMapRadius = SessionConfig.Instance.PoiMapRadius;
@@ -71,7 +86,7 @@ namespace HnzPveSeason
                     Position = position,
                 };
 
-                var poi = new Poi(poiConfig, spaceOrks);
+                var poi = new Poi(poiConfig, spaceOrks, spaceMerchants);
                 _spacePois[new Vector3I(x, y, z)] = poi;
             }
 
@@ -79,12 +94,9 @@ namespace HnzPveSeason
             foreach (var p in _planetaryPois.Values) p.Unload();
             _planetaryPois.Clear();
 
-            var planetOrks = SessionConfig.Instance.Orks.Where(c => c.IsPlanetSpawn()).ToArray();
-            MyLog.Default.Info($"[HnzPveSeason] planet orks: {planetOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
-
             foreach (var p in SessionConfig.Instance.PlanetaryPois)
             {
-                var poi = new Poi(p, planetOrks);
+                var poi = new Poi(p, planetOrks, planetMerchants);
                 _planetaryPois[p.Id] = poi;
             }
         }
@@ -108,7 +120,7 @@ namespace HnzPveSeason
             Poi poi;
             if (!TryGetPoi(id, out poi))
             {
-                MyLog.Default.Error($"[HnzPveSeason] POI not found by id: {id}");
+                MyLog.Default.Error($"[HnzPveSeason] POI not found: {id}");
                 return;
             }
 

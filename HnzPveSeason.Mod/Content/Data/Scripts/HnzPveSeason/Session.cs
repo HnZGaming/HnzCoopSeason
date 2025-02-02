@@ -39,6 +39,7 @@ namespace HnzPveSeason
             _commandModule.Load();
             _commandModule.Register(new Command("reload", MyPromoteLevel.Admin, ReloadConfig, "reload config."));
             _commandModule.Register(new Command("poi list", MyPromoteLevel.None, SendPoiList, "show the list of POIs.\n--gps: create GPS points.\n--gps-remove: remove GPS points.\n--limit N: show N POIs."));
+            _commandModule.Register(new Command("poi release", MyPromoteLevel.Moderator, (id, _) => ReleasePoi(id), "release a POI."));
 
             _poiGpsCollection = new PoiGpsCollection();
             _poiGpsCollection.Load();
@@ -153,7 +154,7 @@ namespace HnzPveSeason
 
         public void ReleasePoi(string id)
         {
-            MyLog.Default.Info($"[HnzPveSeason] POI released: {id}");
+            MyLog.Default.Info($"[HnzPveSeason] POI releasing: {id}");
             _poiMap.ReleasePoi(id);
         }
     }

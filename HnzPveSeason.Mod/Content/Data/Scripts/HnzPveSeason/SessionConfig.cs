@@ -28,6 +28,10 @@ namespace HnzPveSeason
         [XmlArrayItem("Ork")]
         public MesStaticEncounterConfig[] Orks = { new MesStaticEncounterConfig() };
 
+        [XmlArray]
+        [XmlArrayItem("Merchant")]
+        public MesStaticEncounterConfig[] Merchants = { new MesStaticEncounterConfig() };
+
         public static void Load()
         {
             MyLog.Default.Info("[HnzPveSeason] config reloading");

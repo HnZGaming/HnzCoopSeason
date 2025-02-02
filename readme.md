@@ -12,10 +12,12 @@ co-op season
 - [x] "POI release" event upon defeating orks
 - [x] POI persistency across sessions
 - [x] ork encounter on planets
-- [ ] merchant encounter at safe POIs
+- [x] planetary merchant encounter at safe POIs
+- [ ] make a merchant grid with contract/store blocks
 - [ ] merchant behavior: safezone etc
 - [ ] acquisition contracts in merchants
 - [ ] stores selling tech comps in merchants
+- [ ] space merchant encounter
 - [ ] ork invasion at random interval
 - [ ] rondamized ork encounter including bosses
 - [ ] progressive ork encounter difficulty

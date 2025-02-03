@@ -47,7 +47,7 @@ namespace HnzPveSeason
 
             if (_mesGrid.TryRecover(grids))
             {
-                MyLog.Default.Info($"[HnzPveSeason] {_gridId} recovered");
+                MyLog.Default.Info($"[HnzPveSeason] {_gridId} recovered grid from save");
             }
         }
 

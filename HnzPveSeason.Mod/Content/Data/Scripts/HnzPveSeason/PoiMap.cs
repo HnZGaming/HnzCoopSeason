@@ -86,7 +86,9 @@ namespace HnzPveSeason
                     Position = position,
                 };
 
-                var poi = new Poi(poiConfig, spaceOrks, spaceMerchants);
+                var ork = new PoiOrk(poiConfig.Id, poiConfig.Position, spaceOrks);
+                var merchant = new PoiMerchant(poiConfig.Id, poiConfig.Position, spaceMerchants);
+                var poi = new Poi(poiConfig, new IPoiObserver[] { ork, merchant });
                 _spacePois[new Vector3I(x, y, z)] = poi;
             }
 
@@ -96,7 +98,9 @@ namespace HnzPveSeason
 
             foreach (var p in SessionConfig.Instance.PlanetaryPois)
             {
-                var poi = new Poi(p, planetOrks, planetMerchants);
+                var ork = new PoiOrk(p.Id, p.Position, planetOrks);
+                var merchant = new PoiMerchant(p.Id, p.Position, planetMerchants);
+                var poi = new Poi(p, new IPoiObserver[] { ork, merchant });
                 _planetaryPois[p.Id] = poi;
             }
         }

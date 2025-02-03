@@ -1,5 +1,4 @@
 ﻿using System;
-using HnzPveSeason.Utils;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
@@ -8,37 +7,28 @@ namespace HnzPveSeason
 {
     public sealed class Poi
     {
-        readonly PoiConfig _poiConfig;
-        readonly MesStaticEncounter _ork;
-        readonly MesStaticEncounter _merchant;
+        readonly PoiConfig _config;
+        readonly IPoiObserver[] _observers;
 
-        public Poi(PoiConfig poiConfig, MesStaticEncounterConfig[] orkConfigs, MesStaticEncounterConfig[] merchantConfigs)
+        public Poi(PoiConfig config, IPoiObserver[] observers)
         {
-            _poiConfig = poiConfig;
+            _config = config;
+            _observers = observers;
             CurrentState = PoiState.Occupied;
-            _ork = new MesStaticEncounter($"{Id}-ork", orkConfigs, poiConfig.Position);
-            _merchant = new MesStaticEncounter($"{Id}-merchant", merchantConfigs, poiConfig.Position);
         }
 
-        public string Id => _poiConfig.Id;
-        public Vector3D Position => _poiConfig.Position;
+        public string Id => _config.Id;
+        public Vector3D Position => _config.Position;
         public PoiState CurrentState { get; private set; }
 
         public void Load(IMyCubeGrid[] grids) // called once
         {
-            _ork.OnSpawned += OnOrkSpawned;
-            _ork.OnDespawned += OnOrkDespawned;
-
-            _merchant.OnSpawned += OnMerchantSpawned;
-            _merchant.OnDespawned += OnMerchantDespawned;
-
-            _ork.Load(grids);
-            _merchant.Load(grids);
+            foreach (var o in _observers) o.Load(grids);
 
             PoiBuilder builder;
             if (PoiBuilder.TryLoad(Id, out builder))
             {
-                MyLog.Default.Info($"[HnzPveSeason] POI {Id} recovered");
+                MyLog.Default.Info($"[HnzPveSeason] POI {Id} recovered from save");
             }
             else
             {
@@ -50,14 +40,7 @@ namespace HnzPveSeason
 
         public void Unload() // called once
         {
-            _ork.Unload();
-            _merchant.Unload();
-
-            _ork.OnSpawned -= OnOrkSpawned;
-            _ork.OnDespawned -= OnOrkDespawned;
-
-            _merchant.OnSpawned -= OnMerchantSpawned;
-            _merchant.OnDespawned -= OnMerchantDespawned;
+            foreach (var o in _observers) o.Unload();
         }
 
         void SetState(PoiState state, bool init = false)
@@ -73,13 +56,7 @@ namespace HnzPveSeason
             }
 
             CurrentState = state;
-            _ork.SetActive(CurrentState == PoiState.Occupied);
-            _merchant.SetActive(CurrentState == PoiState.Released);
-
-            if (CurrentState == PoiState.Released)
-            {
-                _ork.Despawn();
-            }
+            foreach (var o in _observers) o.OnStateChanged(state);
 
             if (!init)
             {
@@ -91,46 +68,17 @@ namespace HnzPveSeason
         {
             var builder = new PoiBuilder { CurrentState = CurrentState };
             PoiBuilder.Save(Id, builder);
-            MyLog.Default.Info($"[HnzPveSeason] POI {Id}` saved");
+            MyLog.Default.Info($"[HnzPveSeason] POI {Id} saved");
         }
 
         public void Update()
         {
-            _ork.Update();
-            _merchant.Update();
+            foreach (var o in _observers) o.Update();
         }
 
         public void Release()
         {
             SetState(PoiState.Released);
-        }
-
-        void OnOrkSpawned(IMyCubeGrid grid)
-        {
-            grid.OnBlockOwnershipChanged += OnOrkOwnershipChanged;
-        }
-
-        void OnOrkDespawned(IMyCubeGrid grid)
-        {
-            grid.OnBlockOwnershipChanged -= OnOrkOwnershipChanged;
-        }
-
-        void OnOrkOwnershipChanged(IMyCubeGrid grid)
-        {
-            if (!VRageUtils.IsGridControlledByAI(grid))
-            {
-                Session.Instance.ReleasePoi(Id);
-            }
-        }
-
-        void OnMerchantSpawned(IMyCubeGrid grid)
-        {
-            MyLog.Default.Info($"[HnzPveSeason] POI {Id} merchant spawn");
-        }
-
-        void OnMerchantDespawned(IMyCubeGrid grid)
-        {
-            MyLog.Default.Info($"[HnzPveSeason] POI {Id} merchant despawn");
         }
     }
 }

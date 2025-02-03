@@ -1,19 +1,5 @@
-﻿<?xml version="1.0" ?>
+<?xml version="1.0" ?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <Factions>
-        <Faction Tag="MERCHANTS" Founder="The Merchant Boss">
-            <Id>
-                <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>Merchants</SubtypeId>
-            </Id>
-            <DisplayName>Merchants</DisplayName>
-            <Description>Merchants sell stuff.</Description>
-            <IsDefault>true</IsDefault>
-            <DefaultRelation>Neutral</DefaultRelation>
-            <AcceptHumans>false</AcceptHumans>
-            <AutoAcceptMember>false</AutoAcceptMember>
-        </Faction>
-    </Factions>
     <SpawnGroups>
         <SpawnGroup>
             <Id>
@@ -34,10 +20,10 @@
             <IsPirate>true</IsPirate>
             <Frequency>5.0</Frequency>
             <Prefabs>
-                <Prefab SubtypeId="P5_ProspectingStation">
+                <Prefab SubtypeId="Merchants-Prefab-PlanetaryStation">
                     <Position>
                         <X>0.0</X>
-                        <Y>15</Y>
+                        <Y>10</Y>
                         <Z>0.0</Z>
                     </Position>
                     <Speed>0</Speed>

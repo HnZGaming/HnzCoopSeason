@@ -13,7 +13,8 @@ co-op season
 - [x] POI persistency across sessions
 - [x] ork encounter on planets
 - [x] planetary merchant encounter at safe POIs
-- [ ] make a merchant grid with contract/store blocks
+- [x] make a merchant grid with a contract block
+- [x] get reference to the contract block in script
 - [ ] merchant behavior: safezone etc
 - [ ] acquisition contracts in merchants
 - [ ] stores selling tech comps in merchants

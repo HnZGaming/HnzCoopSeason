@@ -15,15 +15,19 @@ co-op season
 - [x] planetary merchant encounter at safe POIs
 - [x] make a merchant grid with a contract block
 - [x] get reference to the contract block in script
-- [ ] merchant behavior: safezone etc
-- [ ] acquisition contracts in merchants
-- [ ] stores selling tech comps in merchants
+- [ ] disable MES cleanup for merchants
+- [ ] merchants acquisition contracts
+- [ ] merchants acquisition contracts persistency across session
+- [ ] merchant safezone
+- [ ] merchant stores selling tech comps
 - [ ] space merchant encounter
 - [ ] ork invasion at random interval
 - [ ] rondamized ork encounter including bosses
 - [ ] progressive ork encounter difficulty
 - [ ] progressive tech comp tier
 - [ ] game complete event
+- [ ] respawn ship data pad with POI info
+- [ ] dedi: merchant cleanup check
 
 ### V1.5
 

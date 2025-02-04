@@ -37,9 +37,9 @@ namespace HnzPveSeason
 
             _commandModule = new CommandModule("pve");
             _commandModule.Load();
-            _commandModule.Register(new Command("reload", MyPromoteLevel.Admin, ReloadConfig, "reload config."));
-            _commandModule.Register(new Command("poi list", MyPromoteLevel.None, SendPoiList, "show the list of POIs.\n--gps: create GPS points.\n--gps-remove: remove GPS points.\n--limit N: show N POIs."));
-            _commandModule.Register(new Command("poi set", MyPromoteLevel.Moderator, SetStateViaCommand, "release a POI."));
+            _commandModule.Register(new Command("reload", false, MyPromoteLevel.Admin, ReloadConfig, "reload config."));
+            _commandModule.Register(new Command("poi list", false, MyPromoteLevel.None, SendPoiList, "show the list of POIs.\n--gps: create GPS points.\n--gps-remove: remove GPS points.\n--limit N: show N POIs."));
+            _commandModule.Register(new Command("poi set", false, MyPromoteLevel.Moderator, SetStateViaCommand, "release a POI."));
 
             _poiGpsCollection = new PoiGpsCollection();
             _poiGpsCollection.Load();

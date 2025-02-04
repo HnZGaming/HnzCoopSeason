@@ -119,7 +119,7 @@ namespace HnzPveSeason
             foreach (var p in _planetaryPois.Values) p.Update();
         }
 
-        public void ReleasePoi(string id)
+        public void SetPoiState(string id, PoiState state)
         {
             Poi poi;
             if (!TryGetPoi(id, out poi))
@@ -128,7 +128,7 @@ namespace HnzPveSeason
                 return;
             }
 
-            poi.Release();
+            poi.SetState(state);
         }
 
         bool TryGetPoi(string id, out Poi poi)

@@ -7,13 +7,13 @@ namespace HnzPveSeason
 {
     public sealed class PoiOrk : IPoiObserver
     {
-        readonly string _id;
+        readonly string _poiId;
         readonly MesStaticEncounter _encounter;
 
-        public PoiOrk(string id, Vector3D position, MesStaticEncounterConfig[] configs)
+        public PoiOrk(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
         {
-            _id = id;
-            _encounter = new MesStaticEncounter($"{id}-ork", configs, position);
+            _poiId = poiId;
+            _encounter = new MesStaticEncounter($"{poiId}-ork", configs, position);
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
@@ -47,13 +47,13 @@ namespace HnzPveSeason
 
         void OnGridSpawned(IMyCubeGrid grid)
         {
-            MyLog.Default.Info($"[HnzPveSeason] POI {_id} ork spawn");
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} ork spawn");
             grid.OnBlockOwnershipChanged += OnGridOwnershipChanged;
         }
 
         void OnGridDespawned(IMyCubeGrid grid)
         {
-            MyLog.Default.Info($"[HnzPveSeason] POI {_id} ork despawn");
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} ork despawn");
             grid.OnBlockOwnershipChanged -= OnGridOwnershipChanged;
         }
 
@@ -61,7 +61,7 @@ namespace HnzPveSeason
         {
             if (!VRageUtils.IsGridControlledByAI(grid))
             {
-                Session.Instance.ReleasePoi(_id);
+                Session.Instance.SetPoiState(_poiId, PoiState.Released);
             }
         }
     }

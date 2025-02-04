@@ -30,7 +30,7 @@ namespace HnzPveSeason.Utils
             {
                 var position = _position;
 
-                // prevent digging into the planet surface
+                // no spawning inside the voxel
                 position = planet.GetClosestSurfacePointGlobal(position);
 
                 // check for clearance
@@ -69,9 +69,9 @@ namespace HnzPveSeason.Utils
             {
                 var position = _position;
 
-                // prevent digging into the planet surface
-                var surfacePosition = planet.GetClosestSurfacePointGlobal(_position);
-                if (Vector3D.Distance(_position, planetCenter) < Vector3D.Distance(surfacePosition, planetCenter))
+                // no spawning inside the voxel
+                var surfacePosition = planet.GetClosestSurfacePointGlobal(position);
+                if (Vector3D.Distance(position, planetCenter) < Vector3D.Distance(surfacePosition, planetCenter))
                 {
                     position = surfacePosition + (surfacePosition - planetCenter).Normalized() * clearance;
                 }
@@ -80,7 +80,7 @@ namespace HnzPveSeason.Utils
                 var space = new BoundingSphereD(position, clearance);
                 if (HasAnyEntitiesInSphere<IMyCubeGrid>(space)) continue;
 
-                return CreateWorld(_position, position - planetCenter);
+                return CreateWorld(position, position - planetCenter);
             }
 
             return null;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Xml.Serialization;
-using HnzPveSeason.Utils;
 
 namespace HnzPveSeason
 {
@@ -17,17 +16,17 @@ namespace HnzPveSeason
         public bool SnapToVoxel;
 
         [XmlAttribute]
-        public float SpawnRadius = 10000;
+        public float Area = 10000;
 
         [XmlAttribute]
-        public float ClearanceRadius = 1000;
+        public float Clearance = 1000;
 
         [XmlAttribute]
         public float Weight = 1;
 
         public override string ToString()
         {
-            return $"{nameof(SpawnGroup)}: {SpawnGroup}, {nameof(Planetary)}: {Planetary}, {nameof(SnapToVoxel)}: {SnapToVoxel}, {nameof(SpawnRadius)}: {SpawnRadius}, {nameof(ClearanceRadius)}: {ClearanceRadius}, {nameof(Weight)}: {Weight}";
+            return $"{nameof(SpawnGroup)}: {SpawnGroup}, {nameof(Planetary)}: {Planetary}, {nameof(SnapToVoxel)}: {SnapToVoxel}, {nameof(Area)}: {Area}, {nameof(Clearance)}: {Clearance}, {nameof(Weight)}: {Weight}";
         }
     }
 }

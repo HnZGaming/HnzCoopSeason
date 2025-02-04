@@ -142,7 +142,6 @@
       <Compile Include="Content\Data\Scripts\HnzPveSeason\OnlineCharacterCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MesStaticEncounter.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Poi.cs" />
-      <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiBuilder.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiGpsCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiMap.cs" />

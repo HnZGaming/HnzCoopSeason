@@ -39,7 +39,7 @@ namespace HnzPveSeason
             _commandModule.Load();
             _commandModule.Register(new Command("reload", MyPromoteLevel.Admin, ReloadConfig, "reload config."));
             _commandModule.Register(new Command("poi list", MyPromoteLevel.None, SendPoiList, "show the list of POIs.\n--gps: create GPS points.\n--gps-remove: remove GPS points.\n--limit N: show N POIs."));
-            _commandModule.Register(new Command("poi release", MyPromoteLevel.Moderator, (id, _) => ReleasePoi(id), "release a POI."));
+            _commandModule.Register(new Command("poi set", MyPromoteLevel.Moderator, SetStateViaCommand, "release a POI."));
 
             _poiGpsCollection = new PoiGpsCollection();
             _poiGpsCollection.Load();
@@ -139,10 +139,23 @@ namespace HnzPveSeason
             var sb = new StringBuilder();
             foreach (var poi in pois)
             {
-                sb.AppendLine($"> {poi.Id} -- {poi.CurrentState}");
+                sb.AppendLine($"> {poi.Id} -- {poi.State}");
             }
 
             Communication.ShowScreenMessage(steamId, "Points of Interest", sb.ToString());
+        }
+
+        void SetStateViaCommand(string args, ulong steamId)
+        {
+            var parts = args.Split(' ');
+            var poiId = parts[0];
+            var state = (PoiState)Enum.Parse(typeof(PoiState), parts[1]);
+            SetPoiState(poiId, state);
+        }
+
+        public void SetPoiState(string id, PoiState state)
+        {
+            _poiMap.SetPoiState(id, state);
         }
 
         static bool TryGetCharacter(ulong steamId, out IMyCharacter character)
@@ -150,12 +163,6 @@ namespace HnzPveSeason
             var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
             character = MyAPIGateway.Players.TryGetIdentityId(playerId)?.Character;
             return character != null;
-        }
-
-        public void ReleasePoi(string id)
-        {
-            MyLog.Default.Info($"[HnzPveSeason] POI releasing: {id}");
-            _poiMap.ReleasePoi(id);
         }
     }
 }

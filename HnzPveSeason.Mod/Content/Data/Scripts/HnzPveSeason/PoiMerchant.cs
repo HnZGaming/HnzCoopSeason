@@ -8,13 +8,13 @@ namespace HnzPveSeason
 {
     public sealed class PoiMerchant : IPoiObserver
     {
-        readonly string _id;
+        readonly string _poiId;
         readonly MesStaticEncounter _encounter;
 
-        public PoiMerchant(string id, Vector3D position, MesStaticEncounterConfig[] configs)
+        public PoiMerchant(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
         {
-            _id = id;
-            _encounter = new MesStaticEncounter($"{id}-merchant", configs, position);
+            _poiId = poiId;
+            _encounter = new MesStaticEncounter($"{poiId}-merchant", configs, position);
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
@@ -45,22 +45,26 @@ namespace HnzPveSeason
 
         void OnGridSpawned(IMyCubeGrid grid)
         {
-            MyLog.Default.Info($"[HnzPveSeason] POI {_id} merchant spawn");
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant spawn");
 
             var contractBlocks = new List<IMySlimBlock>();
             grid.GetBlocks(contractBlocks, b => IsContractBlock(b));
             if (contractBlocks.Count == 0)
             {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_id} contract block not found");
+                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} contract block not found");
                 return;
             }
 
-            MyLog.Default.Info($"[HnzPveSeason] POI {_id} contract block: '{contractBlocks[0]}'");
+            if (contractBlocks.Count >= 2)
+            {
+                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} contract blocks multiple found");
+                return;
+            }
         }
 
         void OnGridDespawned(IMyCubeGrid grid)
         {
-            MyLog.Default.Info($"[HnzPveSeason] POI {_id} merchant despawn");
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant despawn");
         }
 
         static bool IsContractBlock(IMySlimBlock slimBlock)

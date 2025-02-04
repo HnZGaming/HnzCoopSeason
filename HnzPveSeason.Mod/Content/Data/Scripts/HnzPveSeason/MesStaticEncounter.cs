@@ -70,7 +70,7 @@ namespace HnzPveSeason
             if (!_encounterActive) return;
             if (_mesGrid.State != MesGrid.SpawningState.Idle) return;
 
-            var sphere = new BoundingSphereD(_position, Config.SpawnRadius);
+            var sphere = new BoundingSphereD(_position, Config.Area);
             if (!OnlineCharacterCollection.ContainsCharacter(sphere)) return;
 
             MyLog.Default.Info($"[HnzPveSeason] poi encounter `{_mesGrid.Id}` found a character nearby");
@@ -102,8 +102,8 @@ namespace HnzPveSeason
 
         MatrixD? TryCalcMatrix()
         {
-            var sphere = new BoundingSphereD(_position, Config.SpawnRadius);
-            var clearance = Config.ClearanceRadius;
+            var sphere = new BoundingSphereD(_position, Config.Area);
+            var clearance = Config.Clearance;
 
             if (Config.Planetary)
             {

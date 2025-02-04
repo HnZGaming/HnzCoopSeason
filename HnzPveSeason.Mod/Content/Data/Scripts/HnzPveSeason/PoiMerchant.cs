@@ -14,7 +14,7 @@ namespace HnzPveSeason
         public PoiMerchant(string id, Vector3D position, MesStaticEncounterConfig[] configs)
         {
             _id = id;
-            _encounter = new MesStaticEncounter(id, configs, position);
+            _encounter = new MesStaticEncounter($"{id}-merchant", configs, position);
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)

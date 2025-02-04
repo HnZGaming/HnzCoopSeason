@@ -13,7 +13,7 @@ namespace HnzPveSeason
         public PoiOrk(string id, Vector3D position, MesStaticEncounterConfig[] configs)
         {
             _id = id;
-            _encounter = new MesStaticEncounter(id, configs, position);
+            _encounter = new MesStaticEncounter($"{id}-ork", configs, position);
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)

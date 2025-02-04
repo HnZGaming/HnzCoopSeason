@@ -18,16 +18,16 @@ namespace HnzPveSeason
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
-            _encounter.OnSpawned += OnGridSpawned;
-            _encounter.OnDespawned += OnGridDespawned;
+            _encounter.OnGridSet += OnGridSet;
+            _encounter.OnGridUnset += OnGridUnset;
             _encounter.Load(grids);
         }
 
         void IPoiObserver.Unload()
         {
             _encounter.Unload();
-            _encounter.OnSpawned -= OnGridSpawned;
-            _encounter.OnDespawned -= OnGridDespawned;
+            _encounter.OnGridSet -= OnGridSet;
+            _encounter.OnGridUnset -= OnGridUnset;
         }
 
         void IPoiObserver.Update()
@@ -45,13 +45,13 @@ namespace HnzPveSeason
             }
         }
 
-        void OnGridSpawned(IMyCubeGrid grid)
+        void OnGridSet(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} ork spawn");
             grid.OnBlockOwnershipChanged += OnGridOwnershipChanged;
         }
 
-        void OnGridDespawned(IMyCubeGrid grid)
+        void OnGridUnset(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} ork despawn");
             grid.OnBlockOwnershipChanged -= OnGridOwnershipChanged;

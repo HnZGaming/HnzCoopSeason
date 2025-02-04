@@ -59,5 +59,27 @@ namespace HnzPveSeason.Utils
             gps.UpdateHash();
             MyAPIGateway.Session.GPS.AddLocalGps(gps);
         }
+
+        public static bool TryGetCharacter(ulong steamId, out IMyCharacter character)
+        {
+            var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
+            character = MyAPIGateway.Players.TryGetIdentityId(playerId)?.Character;
+            return character != null;
+        }
+
+        public static bool TryGetFaction(long blockId, out IMyFaction faction)
+        {
+            faction = null;
+
+            IMyEntity entity;
+            if (!MyAPIGateway.Entities.TryGetEntityById(blockId, out entity)) return false;
+
+            var block = entity as IMyCubeBlock;
+            if (block == null) return false;
+
+            var ownerId = block.OwnerId;
+            faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
+            return faction != null;
+        }
     }
 }

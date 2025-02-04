@@ -10,10 +10,6 @@ namespace HnzPveSeason
 {
     public sealed class MesGrid
     {
-        readonly string _prefix;
-        readonly bool _ignoreForDespawn;
-        DateTime? ignoreForDespawnStartTime;
-
         public enum SpawningState
         {
             Idle,
@@ -22,7 +18,9 @@ namespace HnzPveSeason
             Failure,
         }
 
-        string _spawnGroup;
+        readonly string _prefix;
+        readonly bool _ignoreForDespawn;
+        DateTime? ignoreForDespawnStartTime;
 
         public MesGrid(string id, string prefix, bool ignoreForDespawn)
         {
@@ -79,7 +77,6 @@ namespace HnzPveSeason
                 return;
             }
 
-            _spawnGroup = spawnGroup;
             ignoreForDespawnStartTime = null;
             State = SpawningState.Spawning;
         }
@@ -182,7 +179,6 @@ namespace HnzPveSeason
 
             NpcData npcData;
             if (!NpcData.TryGetNpcData(grid, out npcData)) return false;
-            if (npcData.SpawnGroupName != _spawnGroup) return false;
             if (npcData.Context != Id) return false;
 
             return true;

@@ -21,7 +21,7 @@ namespace HnzPveSeason
             _gridId = gridId;
             _configs = configs;
             _position = position;
-            _mesGrid = new MesGrid(gridId, prefix, ignoreForDespawn);
+            _mesGrid = new MesGrid(gridId, prefix,  ignoreForDespawn);
             ConfigIndex = CalcConfigIndex();
         }
 
@@ -29,13 +29,13 @@ namespace HnzPveSeason
 
         MesStaticEncounterConfig Config => _configs[Math.Min(ConfigIndex, _configs.Length - 1)];
 
-        public event Action<IMyCubeGrid> OnSpawned
+        public event Action<IMyCubeGrid> OnGridSet
         {
             add { _mesGrid.OnGridSet += value; }
             remove { _mesGrid.OnGridSet -= value; }
         }
 
-        public event Action<IMyCubeGrid> OnDespawned
+        public event Action<IMyCubeGrid> OnGridUnset
         {
             add { _mesGrid.OnGridUnset += value; }
             remove { _mesGrid.OnGridUnset -= value; }
@@ -47,7 +47,7 @@ namespace HnzPveSeason
 
             if (_mesGrid.TryRecover(grids))
             {
-                MyLog.Default.Info($"[HnzPveSeason] {_gridId} recovered grid from save");
+                MyLog.Default.Info($"[HnzPveSeason] encounter {_gridId} recovered grid from save");
             }
         }
 
@@ -74,12 +74,12 @@ namespace HnzPveSeason
             IMyPlayer player;
             if (!OnlineCharacterCollection.TryGetContainedPlayer(sphere, out player)) return;
 
-            MyLog.Default.Info($"[HnzPveSeason] poi encounter `{_mesGrid.Id}` player nearby: '{player.DisplayName}'");
+            MyLog.Default.Info($"[HnzPveSeason] encounter `{_mesGrid.Id}` player nearby: '{player.DisplayName}'");
 
             var matrix = TryCalcMatrix();
             if (matrix == null)
             {
-                MyLog.Default.Error($"[HnzPveSeason] poi encounter `{_mesGrid.Id}` failed to find a spawnable position: {Config}");
+                MyLog.Default.Error($"[HnzPveSeason] encounter `{_mesGrid.Id}` failed to find a spawnable position: {Config}");
                 return;
             }
 

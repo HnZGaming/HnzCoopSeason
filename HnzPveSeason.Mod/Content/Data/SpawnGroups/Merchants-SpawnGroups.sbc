@@ -23,7 +23,7 @@
                 <Prefab SubtypeId="Merchants-Prefab-PlanetaryStation">
                     <Position>
                         <X>0.0</X>
-                        <Y>10</Y>
+                        <Y>8</Y>
                         <Z>0.0</Z>
                     </Position>
                     <Speed>0</Speed>

@@ -16,8 +16,8 @@ co-op season
 - [x] make a merchant grid with a contract block
 - [x] get reference to the contract block in script
 - [x] disable MES cleanup for merchants
-- [ ] merchants acquisition contracts
-- [ ] merchants acquisition contracts persistency across session
+- [x] merchants acquisition contracts
+- [x] merchants acquisition contracts persistency across session
 - [ ] merchant safezone
 - [ ] merchant stores selling tech comps
 - [ ] space merchant encounter

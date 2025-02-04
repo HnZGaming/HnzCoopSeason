@@ -11,10 +11,6 @@ namespace HnzPveSeason.MES
     {
         static readonly Guid Key = new Guid("29FFD684-13D7-4045-BF76-CD48BF80E36A"); // copied from mes
 
-        [ProtoMember(4)]
-        // ReSharper disable once UnassignedField.Global
-        public string SpawnGroupName;
-
         [ProtoMember(42)]
         public string Context; // arbitrary user data via MESApi
 

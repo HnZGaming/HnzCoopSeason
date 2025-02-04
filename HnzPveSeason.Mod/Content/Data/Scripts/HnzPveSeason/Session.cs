@@ -119,7 +119,7 @@ namespace HnzPveSeason
             if (limitMatch.Success && int.TryParse(limitMatch.Groups[1].Value, out limit))
             {
                 IMyCharacter character;
-                if (!TryGetCharacter(steamId, out character))
+                if (!VRageUtils.TryGetCharacter(steamId, out character))
                 {
                     Communication.SendMessage(steamId, Color.Red, "No player character found.");
                     return;
@@ -156,13 +156,6 @@ namespace HnzPveSeason
         public void SetPoiState(string id, PoiState state)
         {
             _poiMap.SetPoiState(id, state);
-        }
-
-        static bool TryGetCharacter(ulong steamId, out IMyCharacter character)
-        {
-            var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
-            character = MyAPIGateway.Players.TryGetIdentityId(playerId)?.Character;
-            return character != null;
         }
     }
 }

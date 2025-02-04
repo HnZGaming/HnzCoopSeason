@@ -16,12 +16,12 @@ namespace HnzPveSeason
         readonly MesGrid _mesGrid;
         bool _encounterActive;
 
-        public MesStaticEncounter(string gridId, MesStaticEncounterConfig[] configs, Vector3D position)
+        public MesStaticEncounter(string gridId, string prefix, MesStaticEncounterConfig[] configs, Vector3D position, bool ignoreForDespawn)
         {
             _gridId = gridId;
             _configs = configs;
             _position = position;
-            _mesGrid = new MesGrid(gridId);
+            _mesGrid = new MesGrid(gridId, prefix, ignoreForDespawn);
             ConfigIndex = CalcConfigIndex();
         }
 

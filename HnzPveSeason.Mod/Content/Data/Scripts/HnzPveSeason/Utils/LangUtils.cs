@@ -11,6 +11,11 @@ namespace HnzPveSeason.Utils
             return $"[{string.Join(", ", self)}]";
         }
 
+        public static string ToStringDic<K, V>(this IReadOnlyDictionary<K, V> self)
+        {
+            return $"[{string.Join(", ", self.Select(p => $"{p.Key}: {p.Value}"))}]";
+        }
+
         public static T GetValueOrDefault<T>(this Dictionary<string, object> self, string key, T defaultValue)
         {
             object value;

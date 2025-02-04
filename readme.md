@@ -15,7 +15,7 @@ co-op season
 - [x] planetary merchant encounter at safe POIs
 - [x] make a merchant grid with a contract block
 - [x] get reference to the contract block in script
-- [ ] disable MES cleanup for merchants
+- [x] disable MES cleanup for merchants
 - [ ] merchants acquisition contracts
 - [ ] merchants acquisition contracts persistency across session
 - [ ] merchant safezone

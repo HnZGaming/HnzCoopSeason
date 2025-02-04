@@ -71,9 +71,10 @@ namespace HnzPveSeason
             if (_mesGrid.State != MesGrid.SpawningState.Idle) return;
 
             var sphere = new BoundingSphereD(_position, Config.Area);
-            if (!OnlineCharacterCollection.ContainsCharacter(sphere)) return;
+            IMyPlayer player;
+            if (!OnlineCharacterCollection.TryGetContainedPlayer(sphere, out player)) return;
 
-            MyLog.Default.Info($"[HnzPveSeason] poi encounter `{_mesGrid.Id}` found a character nearby");
+            MyLog.Default.Info($"[HnzPveSeason] poi encounter `{_mesGrid.Id}` player nearby: '{player.DisplayName}'");
 
             var matrix = TryCalcMatrix();
             if (matrix == null)

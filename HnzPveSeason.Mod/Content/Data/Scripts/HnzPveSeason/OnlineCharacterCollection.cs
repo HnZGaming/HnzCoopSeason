@@ -20,18 +20,20 @@ namespace HnzPveSeason
             MyAPIGateway.Players.GetPlayers(_players);
         }
 
-        public static bool ContainsCharacter(BoundingSphereD sphere)
+        public static bool TryGetContainedPlayer(BoundingSphereD sphere, out IMyPlayer player)
         {
-            foreach (var player in _players)
+            foreach (var p in _players)
             {
-                if (player.Character == null) continue;
-                var position = player.GetPosition();
+                if (p.Character == null) continue;
+                var position = p.GetPosition();
                 if (sphere.Contains(position) == ContainmentType.Contains)
                 {
+                    player = p;
                     return true;
                 }
             }
 
+            player = null;
             return false;
         }
     }

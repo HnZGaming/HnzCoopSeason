@@ -15,6 +15,9 @@ namespace HnzPveSeason.MES
         // ReSharper disable once UnassignedField.Global
         public string SpawnGroupName;
 
+        [ProtoMember(42)]
+        public string Context; // arbitrary user data via MESApi
+
         public static bool TryGetNpcData(IMyCubeGrid grid, out NpcData npcData)
         {
             npcData = null;

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using HnzPveSeason.MES;
-using HnzPveSeason.Utils;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
@@ -18,12 +17,7 @@ namespace HnzPveSeason
             Failure,
         }
 
-        static readonly Guid ModStorageKey = Guid.Parse("8e562067-5807-49a0-9d7d-108febcece97");
-        const float TimeoutSecs = 10;
-
         string _spawnGroup;
-        MatrixD _targetMatrix;
-        DateTime _startTime;
 
         public MesGrid(string id)
         {
@@ -64,13 +58,14 @@ namespace HnzPveSeason
                 throw new InvalidOperationException("grid already set");
             }
 
-            if (!MESApi.Instance.CustomSpawnRequest(
-                    new List<string> { spawnGroup },
-                    targetMatrix,
-                    Vector3.Zero,
-                    true,
-                    null,
-                    nameof(HnzPveSeason)))
+            if (!MESApi.Instance.CustomSpawnRequest(new MESApi.CustomSpawnRequestArgs
+                {
+                    SpawnGroups = new List<string> { spawnGroup },
+                    SpawningMatrix = targetMatrix,
+                    IgnoreSafetyCheck = true,
+                    SpawnProfileId = nameof(HnzPveSeason),
+                    Context = Id,
+                }))
             {
                 State = SpawningState.Failure;
                 MyLog.Default.Error($"[HnzPveSeason] MesGrid `{Id}` failed to spawn: '{spawnGroup}' at '{targetMatrix.Translation}'");
@@ -78,26 +73,14 @@ namespace HnzPveSeason
             }
 
             _spawnGroup = spawnGroup;
-            _startTime = DateTime.UtcNow;
-            _targetMatrix = targetMatrix;
             State = SpawningState.Spawning;
         }
 
         void OnMesAnySuccessfulSpawn(IMyCubeGrid grid)
         {
-            if (!HasMySpawnGroup(grid)) return;
+            if (!IsMyGrid(grid)) return;
 
             MyLog.Default.Info($"[HnzPveSeason] MesGrid `{Id}` spawn found");
-
-            // todo modify MES to pass ID string to the spawn method
-            var gridPos = grid.WorldMatrix.Translation;
-            if (Vector3D.Distance(gridPos, _targetMatrix.Translation) > 500)
-            {
-                MyLog.Default.Warning($"[HnzPveSeason] MesGrid `{Id}` different position");
-                return;
-            }
-
-            grid.UpdateStorageValue(ModStorageKey, Id);
             SetGrid(grid);
         }
 
@@ -151,19 +134,7 @@ namespace HnzPveSeason
 
         public void Update()
         {
-            ValidateGridSpawning();
             ValidateGridSpawned();
-        }
-
-        void ValidateGridSpawning()
-        {
-            if (State != SpawningState.Spawning) return;
-
-            var timeout = _startTime + TimeSpan.FromSeconds(TimeoutSecs) - DateTime.UtcNow;
-            if (timeout.TotalSeconds > 0) return;
-
-            MyLog.Default.Error($"[HnzPveSeason] MesGrid `{Id}` timeout");
-            State = SpawningState.Failure;
         }
 
         void ValidateGridSpawned()
@@ -177,19 +148,15 @@ namespace HnzPveSeason
             State = SpawningState.Idle;
         }
 
-        bool HasMySpawnGroup(IMyCubeGrid grid)
+        bool IsMyGrid(IMyCubeGrid grid)
         {
             if (grid == null) return false;
 
             NpcData npcData;
-            return NpcData.TryGetNpcData(grid, out npcData) && npcData.SpawnGroupName == _spawnGroup;
-        }
+            if (!NpcData.TryGetNpcData(grid, out npcData)) return false;
+            if (npcData.SpawnGroupName != _spawnGroup) return false;
+            if (npcData.Context != Id) return false;
 
-        bool IsMyGrid(IMyCubeGrid grid)
-        {
-            string existingId;
-            if (!grid.TryGetStorageValue(ModStorageKey, out existingId)) return false;
-            if (existingId != Id) return false;
             return true;
         }
     }

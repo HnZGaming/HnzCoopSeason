@@ -38,11 +38,6 @@ namespace HnzPveSeason
         void IPoiObserver.OnStateChanged(PoiState state)
         {
             _encounter.SetActive(state == PoiState.Occupied);
-
-            if (state == PoiState.Released)
-            {
-                _encounter.Despawn();
-            }
         }
 
         void OnGridSet(IMyCubeGrid grid)

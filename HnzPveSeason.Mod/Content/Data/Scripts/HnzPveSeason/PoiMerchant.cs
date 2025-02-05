@@ -62,6 +62,20 @@ namespace HnzPveSeason
         {
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant grid set");
 
+            SetUpContracts(grid);
+            SaveToSandbox();
+        }
+
+        void OnGridUnset(IMyCubeGrid grid)
+        {
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant grid unset");
+
+            DisposeContracts();
+            SaveToSandbox();
+        }
+
+        void SetUpContracts(IMyCubeGrid grid)
+        {
             // find contract blocks
             var blocks = new List<IMySlimBlock>();
             grid.GetBlocks(blocks, b => IsContractBlock(b));
@@ -71,6 +85,7 @@ namespace HnzPveSeason
                 return;
             }
 
+            // can't have multiple contract blocks
             if (blocks.Count >= 2)
             {
                 MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} contract blocks multiple found");
@@ -82,15 +97,18 @@ namespace HnzPveSeason
             var contractState = MyAPIGateway.ContractSystem.GetContractState(_contractId);
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} contract block found: {blockId}, {_contractId}, {contractState}");
 
+            // keep the existing contracts posted up
             if (contractState == MyCustomContractStateEnum.Active || contractState == MyCustomContractStateEnum.Inactive)
             {
                 MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} contract already exists");
                 return;
             }
 
+            // choose contracts to post up
             var config = SessionConfig.Instance.Contracts[0]; //todo
             _contract = new MyContractAcquisition(blockId, config.Reward, config.Collateral, config.Duration, blockId, config.ItemDefinitionId, config.ItemAmount);
 
+            // grid must be owned by a faction
             IMyFaction faction;
             if (!VRageUtils.TryGetFaction(blockId, out faction))
             {
@@ -98,6 +116,7 @@ namespace HnzPveSeason
                 return;
             }
 
+            // grid must be owned by an NPC faction
             var steamId = MyAPIGateway.Players.TryGetSteamId(faction.FounderId);
             if (steamId != 0)
             {
@@ -108,6 +127,7 @@ namespace HnzPveSeason
             // make sure merchants have money to pay
             MyAPIGateway.Players.RequestChangeBalance(faction.FounderId, _contract.MoneyReward + 1);
 
+            // post up the contract
             var result = MyAPIGateway.ContractSystem.AddContract(_contract);
             if (!result.Success)
             {
@@ -117,14 +137,10 @@ namespace HnzPveSeason
 
             _contractId = result.ContractId;
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} contract added; id: {_contractId}");
-
-            SaveToSandbox();
         }
 
-        void OnGridUnset(IMyCubeGrid grid)
+        void DisposeContracts()
         {
-            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant grid unset");
-
             if (_contractId != 0)
             {
                 MyAPIGateway.ContractSystem?.RemoveContract(_contractId);

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HnzPveSeason.Utils;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Contracts;
+using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Serialization;
 using VRage.Utils;
@@ -67,6 +69,43 @@ namespace HnzPveSeason
 
             SetUpContracts(grid);
             SetUpSafezone(grid);
+
+            // sell tech comps
+            var storeBlocks = grid.GetFatBlocks<IMyStoreBlock>().ToArray();
+            if (storeBlocks.Length == 0)
+            {
+                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} store block not found");
+                return;
+            }
+
+            if (storeBlocks.Length >= 2)
+            {
+                MyLog.Default.Warning($"[HnzPveSeason] POI {_poiId} multiple store blocks found");
+            }
+
+            var storeBlock = storeBlocks[0];
+            var items = new List<IMyStoreItem>();
+            storeBlock.GetStoreItems(items);
+            foreach (var item in items)
+            {
+                storeBlock.RemoveStoreItem(item);
+            }
+
+            foreach (var c in SessionConfig.Instance.StoreItems)
+            {
+                MyDefinitionId id;
+                if (!MyDefinitionId.TryParse(c.ItemDefinitionId, out id))
+                {
+                    MyLog.Default.Error($"[HnzPveSeason] invalid store item definition id: '{c.ItemDefinitionId}'");
+                    continue;
+                }
+
+                var item = storeBlock.CreateStoreItem(id, c.Amount, c.PricePerUnit, c.Type);
+                storeBlock.InsertStoreItem(item);
+            }
+
+            MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} store initialized");
+
             SaveToSandbox();
         }
 
@@ -93,8 +132,7 @@ namespace HnzPveSeason
             // can't have multiple contract blocks
             if (blocks.Count >= 2)
             {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} contract blocks multiple found");
-                return;
+                MyLog.Default.Warning($"[HnzPveSeason] POI {_poiId} multiple contract blocks found");
             }
 
             var block = blocks[0];

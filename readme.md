@@ -20,7 +20,7 @@ co-op season
 - [x] merchants acquisition contracts
 - [x] merchants acquisition contracts persistency across session
 - [x] merchant safezone
-- [ ] merchant stores selling tech comps
+- [x] merchant stores selling tech comps
 - [ ] space merchant encounter
 - [ ] ork invasion at random interval
 - [ ] rondamized ork encounter with weight

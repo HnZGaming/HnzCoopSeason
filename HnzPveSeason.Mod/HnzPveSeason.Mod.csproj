@@ -152,6 +152,7 @@
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiState.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\SessionConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Session.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\StoreItemConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\Command.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\CommandModule.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\LangUtils.cs" />

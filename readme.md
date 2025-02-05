@@ -18,7 +18,7 @@ co-op season
 - [x] disable MES cleanup for merchants
 - [x] merchants acquisition contracts
 - [x] merchants acquisition contracts persistency across session
-- [ ] merchant safezone
+- [x] merchant safezone
 - [ ] merchant stores selling tech comps
 - [ ] space merchant encounter
 - [ ] ork invasion at random interval

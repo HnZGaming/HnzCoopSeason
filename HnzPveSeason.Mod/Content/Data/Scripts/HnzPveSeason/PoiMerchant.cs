@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using HnzPveSeason.Utils;
+using Sandbox.Common.ObjectBuilders;
+using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Contracts;
 using VRage.Game.ModAPI;
@@ -17,6 +19,7 @@ namespace HnzPveSeason
         readonly string _variableKey;
         IMyContract _contract;
         long _contractId;
+        long _safeZoneId;
 
         public PoiMerchant(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
         {
@@ -63,6 +66,7 @@ namespace HnzPveSeason
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant grid set");
 
             SetUpContracts(grid);
+            SetUpSafezone(grid);
             SaveToSandbox();
         }
 
@@ -71,6 +75,7 @@ namespace HnzPveSeason
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant grid unset");
 
             DisposeContracts();
+            RemoveSafezone();
             SaveToSandbox();
         }
 
@@ -148,11 +153,56 @@ namespace HnzPveSeason
             }
         }
 
+        void SetUpSafezone(IMyCubeGrid grid)
+        {
+            MySafeZone safezone;
+            if (TryGetExistingSafeZone(out safezone))
+            {
+                MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} safezone already exists");
+                return;
+            }
+
+            safezone = (MySafeZone)MySessionComponentSafeZones.CrateSafeZone(
+                grid.WorldMatrix,
+                MySafeZoneShape.Sphere,
+                MySafeZoneAccess.Blacklist,
+                null, null, 50f, true, true,
+                name: $"poi-{_poiId}");
+
+            MySessionComponentSafeZones.AddSafeZone(safezone);
+            _safeZoneId = safezone.EntityId;
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} safezone created");
+        }
+
+        void RemoveSafezone()
+        {
+            MySafeZone safezone;
+            if (!TryGetExistingSafeZone(out safezone))
+            {
+                MyLog.Default.Warning($"[HnzPveSeason] POI {_poiId} safezone not found");
+                return;
+            }
+
+            MySessionComponentSafeZones.RemoveSafeZone(safezone);
+            safezone.Close();
+            MyEntities.Remove(safezone);
+
+            _safeZoneId = 0;
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} safezone removed");
+        }
+
+        bool TryGetExistingSafeZone(out MySafeZone safezone)
+        {
+            safezone = MyAPIGateway.Entities.GetEntityById(_safeZoneId) as MySafeZone;
+            return safezone != null;
+        }
+
         void SaveToSandbox()
         {
             var data = new SerializableDictionary<string, object>
             {
-                [nameof(_contractId)] = _contractId
+                [nameof(_contractId)] = _contractId,
+                [nameof(_safeZoneId)] = _safeZoneId,
             };
             MyAPIGateway.Utilities.SetVariable(_variableKey, data);
         }
@@ -162,7 +212,9 @@ namespace HnzPveSeason
             SerializableDictionary<string, object> data;
             if (MyAPIGateway.Utilities.GetVariable(_variableKey, out data))
             {
-                _contractId = data.Dictionary.GetValueOrDefault(nameof(_contractId), (long)0);
+                var dictionary = data.Dictionary;
+                _contractId = dictionary.GetValueOrDefault(nameof(_contractId), (long)0);
+                _safeZoneId = dictionary.GetValueOrDefault(nameof(_safeZoneId), (long)0);
             }
         }
 

@@ -31,7 +31,11 @@ namespace HnzPveSeason
             foreach (var o in _observers) o.Load(grids);
 
             SerializableDictionary<string, object> data;
-            if (!MyAPIGateway.Utilities.GetVariable(_variableKey, out data)) return;
+            if (!MyAPIGateway.Utilities.GetVariable(_variableKey, out data))
+            {
+                data = new SerializableDictionary<string, object>();
+            }
+
             var builder = data.Dictionary;
             var state = (PoiState)builder.GetValueOrDefault(nameof(State), (int)PoiState.Occupied);
 
@@ -50,7 +54,11 @@ namespace HnzPveSeason
                 if (!init) return;
             }
 
-            if (!init)
+            if (init)
+            {
+                MyLog.Default.Debug($"[HnzPveSeason] POI {Id} state init with {state}");
+            }
+            else
             {
                 MyLog.Default.Info($"[HnzPveSeason] POI {Id} state changing from {State} to {state}");
             }

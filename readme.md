@@ -23,6 +23,7 @@ co-op season
 - [x] merchant safezone
 - [x] merchant stores selling tech comps
 - [x] merchant encounter in space
+- [x] keep player grids intact upon npc despawn
 - [ ] ork invasion at random interval
 - [ ] merchant contracts refill with timer
 - [ ] merchant stores refill with timer

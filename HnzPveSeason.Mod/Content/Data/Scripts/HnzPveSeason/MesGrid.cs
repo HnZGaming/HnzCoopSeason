@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using HnzPveSeason.MES;
+using HnzPveSeason.Utils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -132,7 +133,22 @@ namespace HnzPveSeason
 
             if (Grid != null)
             {
-                Grid?.Close();
+                // despawn all grids except for player grids that may be attached to them
+                var grids = new List<IMyCubeGrid>();
+                Grid.GetGridGroup(GridLinkTypeEnum.Logical).GetGrids(grids);
+                foreach (var g in grids)
+                {
+                    if (!VRageUtils.IsGridControlledByAI(g))
+                    {
+                        MyLog.Default.Info($"[HnzPveSeason] MesGrid {Id} skipped despawning: '{g.DisplayName}'");
+                        NpcData.RemoveNpcData(g);
+                        continue;
+                    }
+
+                    g.Close();
+                    MyLog.Default.Info($"[HnzPveSeason] MesGrid {Id} despawned: '{g.DisplayName}'");
+                }
+
                 OnGridUnset?.Invoke(Grid);
                 Grid = null;
             }

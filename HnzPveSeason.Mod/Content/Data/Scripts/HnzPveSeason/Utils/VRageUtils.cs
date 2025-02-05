@@ -42,7 +42,7 @@ namespace HnzPveSeason.Utils
             terminalSystems.GetBlocksOfType<IMyCockpit>(controlBlocks);
             foreach (var block in controlBlocks)
             {
-                if (block.OwnerId != 0 && MyAPIGateway.Players.TryGetIdentityId(block.OwnerId) == null)
+                if (MyAPIGateway.Players.TryGetSteamId(block.OwnerId) == 0)
                 {
                     return true;
                 }

@@ -26,5 +26,10 @@ namespace HnzPveSeason.MES
             npcData = MyAPIGateway.Utilities.SerializeFromBinary<NpcData>(bytes);
             return true;
         }
+
+        public static void RemoveNpcData(IMyCubeGrid grid)
+        {
+            grid.Storage?.Remove(Key);
+        }
     }
 }

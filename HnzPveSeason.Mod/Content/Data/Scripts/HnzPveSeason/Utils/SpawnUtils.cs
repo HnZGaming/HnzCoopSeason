@@ -26,6 +26,8 @@ namespace HnzPveSeason.Utils
                 positions.Add(position);
             }
 
+            positions = positions.OrderBy(p => Vector3D.Distance(p, sphere.Center)).ToList();
+
             foreach (var _position in positions)
             {
                 var position = _position;
@@ -64,6 +66,8 @@ namespace HnzPveSeason.Utils
                 var position = MathUtils.GetRandomPositionOnPlane(sphere.Center, normal, sphere.Radius);
                 positions.Add(position);
             }
+
+            positions = positions.OrderBy(p => Vector3D.Distance(p, sphere.Center)).ToList();
 
             foreach (var _position in positions)
             {
@@ -111,6 +115,8 @@ namespace HnzPveSeason.Utils
                 var position = MathUtils.GetRandomPosition(sphere);
                 positions.Add(position);
             }
+
+            positions = positions.OrderBy(p => Vector3D.Distance(p, sphere.Center)).ToList();
 
             foreach (var position in positions)
             {

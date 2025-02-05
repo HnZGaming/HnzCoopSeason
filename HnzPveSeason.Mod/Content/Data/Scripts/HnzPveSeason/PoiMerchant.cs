@@ -16,6 +16,7 @@ namespace HnzPveSeason
 {
     public sealed class PoiMerchant : IPoiObserver
     {
+        const float SafezoneRadius = 75f;
         readonly string _poiId;
         readonly MesStaticEncounter _encounter;
         readonly string _variableKey;
@@ -168,7 +169,7 @@ namespace HnzPveSeason
                 grid.WorldMatrix,
                 MySafeZoneShape.Sphere,
                 MySafeZoneAccess.Blacklist,
-                null, null, 50f, true, true,
+                null, null, SafezoneRadius, true, true,
                 name: $"poi-{_poiId}");
 
             MySessionComponentSafeZones.AddSafeZone(safezone);

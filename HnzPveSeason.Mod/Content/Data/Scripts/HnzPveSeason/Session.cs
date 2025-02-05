@@ -37,9 +37,10 @@ namespace HnzPveSeason
 
             _commandModule = new CommandModule("pve");
             _commandModule.Load();
-            _commandModule.Register(new Command("reload", false, MyPromoteLevel.Admin, ReloadConfig, "reload config."));
-            _commandModule.Register(new Command("poi list", false, MyPromoteLevel.None, SendPoiList, "show the list of POIs.\n--gps: create GPS points.\n--gps-remove: remove GPS points.\n--limit N: show N POIs."));
-            _commandModule.Register(new Command("poi set", false, MyPromoteLevel.Moderator, SetStateViaCommand, "release a POI."));
+            _commandModule.Register(new Command("reload", false, MyPromoteLevel.Admin, Command_ReloadConfig, "reload config."));
+            _commandModule.Register(new Command("poi list", false, MyPromoteLevel.None, Command_SendPoiList, "show the list of POIs.\n--gps: create GPS points.\n--gps-remove: remove GPS points.\n--limit N: show N POIs."));
+            _commandModule.Register(new Command("poi release", false, MyPromoteLevel.Moderator, Command_ReleasePoi, "release a POI."));
+            _commandModule.Register(new Command("poi invade", false, MyPromoteLevel.Moderator, Command_InvadePoi, "invade a POI."));
 
             _poiGpsCollection = new PoiGpsCollection();
             _poiGpsCollection.Load();
@@ -99,12 +100,12 @@ namespace HnzPveSeason
             _poiMap.Update();
         }
 
-        void ReloadConfig(string args, ulong steamId)
+        void Command_ReloadConfig(string args, ulong steamId)
         {
             LoadConfig();
         }
 
-        void SendPoiList(string args, ulong steamId)
+        void Command_SendPoiList(string args, ulong steamId)
         {
             if (args.Contains("--gps-remove"))
             {
@@ -145,12 +146,14 @@ namespace HnzPveSeason
             Communication.ShowScreenMessage(steamId, "Points of Interest", sb.ToString());
         }
 
-        void SetStateViaCommand(string args, ulong steamId)
+        void Command_ReleasePoi(string args, ulong steamId)
         {
-            var parts = args.Split(' ');
-            var poiId = parts[0];
-            var state = (PoiState)Enum.Parse(typeof(PoiState), parts[1]);
-            SetPoiState(poiId, state);
+            SetPoiState(args, PoiState.Released);
+        }
+
+        void Command_InvadePoi(string args, ulong steamId)
+        {
+            SetPoiState(args, PoiState.Occupied);
         }
 
         public void SetPoiState(string id, PoiState state)

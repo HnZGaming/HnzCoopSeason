@@ -12,6 +12,7 @@ co-op season
 - [x] "POI release" event upon defeating orks
 - [x] POI persistency across sessions
 - [x] ork encounter on planets
+- [x] weighted random spawn groups
 - [x] planetary merchant encounter at safe POIs
 - [x] make a merchant grid with a contract block
 - [x] get reference to the contract block in script
@@ -21,10 +22,10 @@ co-op season
 - [x] merchants acquisition contracts persistency across session
 - [x] merchant safezone
 - [x] merchant stores selling tech comps
-- [ ] space merchant encounter
+- [x] merchant encounter in space
 - [ ] ork invasion at random interval
-- [ ] rondamized ork encounter with weight
-- [ ] merchant contract refill with timer
+- [ ] merchant contracts refill with timer
+- [ ] merchant stores refill with timer
 - [ ] progressive tech comp tier
 - [ ] game complete event
 - [ ] respawn ship data pad with POI info

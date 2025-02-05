@@ -31,6 +31,36 @@
                 </Prefab>
             </Prefabs>
         </SpawnGroup>
+        <SpawnGroup>
+            <Id>
+                <TypeId>SpawnGroupDefinition</TypeId>
+                <SubtypeId>Merchants-SpawnGroup-SpaceStation</SubtypeId>
+            </Id>
+            <Description>
+                [Modular Encounters SpawnGroup]
+
+                [RivalAiSpawn: true]
+                [UseRivalAi:true]
+                [RivalAiReplaceRemoteControl:true]
+
+                [FactionOverride:MERCHANTS]
+                [ReplenishSystems:true]
+                [ManipulationProfiles:MES-Manipulation-RivalAi]
+            </Description>
+            <IsPirate>true</IsPirate>
+            <Frequency>5.0</Frequency>
+            <Prefabs>
+                <Prefab SubtypeId="Economy_SpaceStation_1">
+                    <Position>
+                        <X>0.0</X>
+                        <Y>0</Y>
+                        <Z>0.0</Z>
+                    </Position>
+                    <Speed>0</Speed>
+                    <Behaviour>Merchants-Behavior-BasicInstallation</Behaviour>
+                </Prefab>
+            </Prefabs>
+        </SpawnGroup>
     </SpawnGroups>
     <EntityComponents>
         <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">

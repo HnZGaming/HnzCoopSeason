@@ -166,7 +166,6 @@
     <ItemGroup>
       <Content Include="Content\Data\Factions.sbc" />
       <Content Include="Content\Data\ModStorageComponents.sbc" />
-      <Content Include="Content\Data\Prefabs\Merchants-Prefab-PlanetaryStation.sbc" />
       <Content Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\readme.md" />
       <Content Include="Content\Data\Scripts\HnzPveSeason\MES\readme.md" />
       <Content Include="Content\Data\SpawnGroups\Merchants-SpawnGroups.sbc" />

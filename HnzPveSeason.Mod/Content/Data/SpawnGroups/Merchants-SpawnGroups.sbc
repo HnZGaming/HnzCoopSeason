@@ -20,10 +20,10 @@
             <IsPirate>true</IsPirate>
             <Frequency>5.0</Frequency>
             <Prefabs>
-                <Prefab SubtypeId="Merchants-Prefab-PlanetaryStation">
+                <Prefab SubtypeId="Economy_Outpost_1">
                     <Position>
                         <X>0.0</X>
-                        <Y>8</Y>
+                        <Y>17</Y>
                         <Z>0.0</Z>
                     </Position>
                     <Speed>0</Speed>

@@ -40,9 +40,9 @@ namespace HnzPveSeason
             _encounter.Load(grids);
         }
 
-        void IPoiObserver.Unload()
+        void IPoiObserver.Unload(bool sessionUnload)
         {
-            _encounter.Unload();
+            _encounter.Unload(sessionUnload);
 
             _encounter.OnGridSet -= OnGridSet;
             _encounter.OnGridUnset -= OnGridUnset;

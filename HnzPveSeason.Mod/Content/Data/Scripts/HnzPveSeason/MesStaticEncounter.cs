@@ -21,7 +21,7 @@ namespace HnzPveSeason
             _gridId = gridId;
             _configs = configs;
             _position = position;
-            _mesGrid = new MesGrid(gridId, prefix,  ignoreForDespawn);
+            _mesGrid = new MesGrid(gridId, prefix, ignoreForDespawn);
             ConfigIndex = CalcConfigIndex();
         }
 
@@ -51,9 +51,13 @@ namespace HnzPveSeason
             }
         }
 
-        public void Unload()
+        public void Unload(bool sessionUnload)
         {
-            _mesGrid.Despawn();
+            if (!sessionUnload) // otherwise fails to unload session
+            {
+                _mesGrid.Despawn();
+            }
+
             _mesGrid.Unload();
         }
 

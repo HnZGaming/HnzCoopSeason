@@ -42,9 +42,9 @@ namespace HnzPveSeason
             SetState(state, true);
         }
 
-        public void Unload() // called once
+        public void Unload(bool sessionUnload = false) // called once
         {
-            foreach (var o in _observers) o.Unload();
+            foreach (var o in _observers) o.Unload(sessionUnload);
         }
 
         public void SetState(PoiState state, bool init = false)

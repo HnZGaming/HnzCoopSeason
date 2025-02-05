@@ -28,10 +28,10 @@ namespace HnzPveSeason
 
         public void Unload()
         {
-            foreach (var p in _spacePois.Values) p.Unload();
+            foreach (var p in _spacePois.Values) p.Unload(true);
             _spacePois.Clear();
 
-            foreach (var p in _planetaryPois.Values) p.Unload();
+            foreach (var p in _planetaryPois.Values) p.Unload(true);
             _planetaryPois.Clear();
         }
 

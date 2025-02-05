@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using HnzPveSeason.Utils;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
@@ -203,19 +202,20 @@ namespace HnzPveSeason
         void SetUpStore(IMyCubeGrid grid)
         {
             // sell tech comps
-            var storeBlocks = grid.GetFatBlocks<IMyStoreBlock>().ToArray();
-            if (storeBlocks.Length == 0)
+            var blocks = new List<IMySlimBlock>();
+            grid.GetBlocks(blocks, b => b.FatBlock is IMyStoreBlock && !(b.FatBlock is IMyVendingMachine));
+            if (blocks.Count == 0)
             {
                 MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} store block not found");
                 return;
             }
 
-            if (storeBlocks.Length >= 2)
+            if (blocks.Count >= 2)
             {
                 MyLog.Default.Warning($"[HnzPveSeason] POI {_poiId} multiple store blocks found");
             }
 
-            var storeBlock = storeBlocks[0];
+            var storeBlock = (IMyStoreBlock)blocks[0].FatBlock;
             var items = new List<IMyStoreItem>();
             storeBlock.GetStoreItems(items);
             foreach (var item in items)

@@ -155,6 +155,7 @@
       <Compile Include="Content\Data\Scripts\HnzPveSeason\StoreItemConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\Command.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\CommandModule.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Interval.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\LangUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\MathUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\PlanetCollection.cs" />

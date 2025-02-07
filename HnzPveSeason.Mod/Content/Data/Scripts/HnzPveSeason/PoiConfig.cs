@@ -30,5 +30,15 @@ namespace HnzPveSeason
                 Z = value.Z;
             }
         }
+
+        public PoiConfig()
+        {
+        }
+
+        public PoiConfig(string id, Vector3D position)
+        {
+            Id = id;
+            Position = position;
+        }
     }
 }

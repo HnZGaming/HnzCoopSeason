@@ -17,6 +17,7 @@ namespace HnzPveSeason
     {
         const float SafezoneRadius = 75f;
         readonly string _poiId;
+        readonly Vector3D _position;
         readonly MesStaticEncounter _encounter;
         readonly string _variableKey;
         IMyContract _contract;
@@ -26,9 +27,12 @@ namespace HnzPveSeason
         public PoiMerchant(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
         {
             _poiId = poiId;
+            _position = position;
             _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, true);
             _variableKey = $"HnzPveSeason.PoiMerchant.{_poiId}";
         }
+
+        public DateTime LastPlayerVisitTime { get; private set; }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
@@ -51,6 +55,8 @@ namespace HnzPveSeason
         void IPoiObserver.Update()
         {
             _encounter.Update();
+
+            UpdateLastVisitedTime();
         }
 
         void IPoiObserver.OnStateChanged(PoiState state)
@@ -60,6 +66,11 @@ namespace HnzPveSeason
             if (state == PoiState.Occupied)
             {
                 _encounter.Despawn();
+            }
+
+            if (state == PoiState.Released)
+            {
+                LastPlayerVisitTime = DateTime.UtcNow;
             }
         }
 
@@ -80,6 +91,21 @@ namespace HnzPveSeason
             DisposeContracts();
             RemoveSafezone();
             SaveToSandbox();
+        }
+
+        void UpdateLastVisitedTime()
+        {
+            // every 10 seconds
+            if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 10) != 0) return;
+
+            var poi = Session.Instance.GetPoi(_poiId);
+            if (poi.State != PoiState.Released) return;
+
+            var sphere = new BoundingSphereD(_position, _encounter.Config.Area);
+            if (!OnlineCharacterCollection.ContainsPlayer(sphere)) return;
+
+            LastPlayerVisitTime = DateTime.UtcNow;
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant last visit time updated");
         }
 
         void SetUpContracts(IMyCubeGrid grid)

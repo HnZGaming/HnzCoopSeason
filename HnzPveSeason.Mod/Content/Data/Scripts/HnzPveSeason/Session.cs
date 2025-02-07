@@ -148,17 +148,31 @@ namespace HnzPveSeason
 
         void Command_ReleasePoi(string args, ulong steamId)
         {
-            SetPoiState(args, PoiState.Released);
+            Command_SetPoiState(args, PoiState.Released, steamId);
         }
 
         void Command_InvadePoi(string args, ulong steamId)
         {
-            SetPoiState(args, PoiState.Occupied);
+            Command_SetPoiState(args, PoiState.Occupied, steamId);
         }
 
-        public void SetPoiState(string id, PoiState state)
+        void Command_SetPoiState(string id, PoiState state, ulong steamId)
         {
-            _poiMap.SetPoiState(id, state);
+            var poi = GetPoi(id);
+            if (poi == null)
+            {
+                Communication.SendMessage(steamId, Color.Red, $"POI {id} not found.");
+                return;
+            }
+
+            poi.SetState(state);
+        }
+
+        public Poi GetPoi(string id)
+        {
+            Poi poi;
+            _poiMap.TryGetPoi(id, out poi);
+            return poi;
         }
     }
 }

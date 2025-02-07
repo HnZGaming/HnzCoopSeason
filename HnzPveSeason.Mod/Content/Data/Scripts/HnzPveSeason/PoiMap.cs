@@ -12,12 +12,12 @@ namespace HnzPveSeason
 {
     public sealed class PoiMap
     {
-        readonly Dictionary<Vector3I, Poi> _spacePois;
+        readonly Dictionary<string, Poi> _spacePois;
         readonly Dictionary<string, Poi> _planetaryPois;
 
         public PoiMap()
         {
-            _spacePois = new Dictionary<Vector3I, Poi>();
+            _spacePois = new Dictionary<string, Poi>();
             _planetaryPois = new Dictionary<string, Poi>();
         }
 
@@ -80,16 +80,12 @@ namespace HnzPveSeason
                     continue;
                 }
 
-                var poiConfig = new PoiConfig
-                {
-                    Id = $"{x}-{y}-{z}",
-                    Position = position,
-                };
-
-                var ork = new PoiOrk(poiConfig.Id, poiConfig.Position, spaceOrks);
-                var merchant = new PoiMerchant(poiConfig.Id, poiConfig.Position, spaceMerchants);
+                var id = $"{x}-{y}-{z}";
+                var poiConfig = new PoiConfig(id, position);
+                var ork = new PoiOrk(id, poiConfig.Position, spaceOrks);
+                var merchant = new PoiMerchant(id, poiConfig.Position, spaceMerchants);
                 var poi = new Poi(poiConfig, new IPoiObserver[] { ork, merchant });
-                _spacePois[new Vector3I(x, y, z)] = poi;
+                _spacePois[id] = poi;
             }
 
             // planetary POIs
@@ -119,31 +115,10 @@ namespace HnzPveSeason
             foreach (var p in _planetaryPois.Values) p.Update();
         }
 
-        public void SetPoiState(string id, PoiState state)
-        {
-            Poi poi;
-            if (!TryGetPoi(id, out poi))
-            {
-                MyLog.Default.Error($"[HnzPveSeason] POI not found: {id}");
-                return;
-            }
-
-            poi.SetState(state);
-        }
-
-        bool TryGetPoi(string id, out Poi poi)
+        public bool TryGetPoi(string id, out Poi poi)
         {
             if (_planetaryPois.TryGetValue(id, out poi)) return true;
-
-            foreach (var p in _spacePois.Values)
-            {
-                if (p.Id == id)
-                {
-                    poi = p;
-                    return true;
-                }
-            }
-
+            if (_spacePois.TryGetValue(id, out poi)) return true;
             return false;
         }
     }

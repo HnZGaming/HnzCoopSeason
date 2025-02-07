@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using HnzPveSeason.Utils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
@@ -25,6 +26,7 @@ namespace HnzPveSeason
         public string Id => _config.Id;
         public Vector3D Position => _config.Position;
         public PoiState State { get; private set; }
+        public IReadOnlyList<IPoiObserver> Observers => _observers;
 
         public void Load(IMyCubeGrid[] grids) // called once
         {

@@ -20,6 +20,12 @@ namespace HnzPveSeason
         [XmlElement]
         public float EncounterRadius = 10000;
 
+        [XmlElement]
+        public float RandomInvasionChance = 0.1f;
+
+        [XmlElement]
+        public int RandomInvasionInterval = 600;
+
         [XmlArray]
         [XmlArrayItem("Poi")]
         public PoiConfig[] PlanetaryPois = { new PoiConfig() };

@@ -36,5 +36,11 @@ namespace HnzPveSeason
             player = null;
             return false;
         }
+
+        public static bool ContainsPlayer(BoundingSphereD sphere)
+        {
+            IMyPlayer _;
+            return TryGetContainedPlayer(sphere, out _);
+        }
     }
 }

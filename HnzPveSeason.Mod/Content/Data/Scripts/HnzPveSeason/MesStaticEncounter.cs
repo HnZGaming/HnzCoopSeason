@@ -27,7 +27,7 @@ namespace HnzPveSeason
 
         public int ConfigIndex { get; set; }
 
-        MesStaticEncounterConfig Config => _configs[Math.Min(ConfigIndex, _configs.Length - 1)];
+        public MesStaticEncounterConfig Config => _configs[Math.Min(ConfigIndex, _configs.Length - 1)];
 
         public event Action<IMyCubeGrid> OnGridSet
         {

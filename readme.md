@@ -25,12 +25,15 @@ co-op season
 - [x] merchant encounter in space
 - [x] keep player grids intact upon npc despawn
 - [x] ork invasion at random interval
-- [ ] merchant contracts refill with timer
-- [ ] merchant stores refill with timer
-- [ ] progressive tech comp tier
-- [ ] use vanilla economy stations and store item list for merchants
-- [ ] game complete event
+- [ ] vanilla economy stations for merchants
+- [ ] vanilla economy store items for merchants
+- [ ] vanilla economy contracts for merchants
+- [ ] refill merchant contracts
+- [ ] refill merchant stores
+- [ ] progressive tech tiers
+- [ ] respawn near occupied POIs
 - [ ] respawn ship data pad with POI info
+- [ ] MOTD with recaps
 
 ### V1.5
 
@@ -46,3 +49,20 @@ co-op season
 ### V2.0
 
 tba
+
+## Notes
+
+### Reusing vanilla economy definitions
+
+- Data/ContractTypes_Economy.sbc
+  - Definitions/ContractTypes/ContractType
+    - ChancesPerFactionType
+      - ContractChance/DefintionId/SubtypeId -- Miner, Trader, Builder, etc
+- Data/Stations_Economy.sbc
+  - Definitions/Definition (MyObjectBuilder_StationsListDefinition)
+    - Id (Type=MyObjectBuilder_StationsListDefinition, SubtypeId=MiningStations)
+    - Id (Type=MyObjectBuilder_StationsListDefinition, SubtypeId=OrbitalStations)
+    - Id (Type=MyObjectBuilder_StationsListDefinition, SubtypeId=Outposts)
+    - Id (Type=MyObjectBuilder_StationsListDefinition, SubtypeId=SpaceStations)
+    - StationNames/PrefabName
+  - 

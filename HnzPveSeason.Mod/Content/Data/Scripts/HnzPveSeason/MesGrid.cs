@@ -55,7 +55,7 @@ namespace HnzPveSeason
             OnGridSet = null;
         }
 
-        public void RequestSpawn(string spawnGroup, string factionTag, MatrixD targetMatrix) // called multiple times
+        public void RequestSpawn(string spawnGroup, string mainPrefab, string factionTag, MatrixD targetMatrix) // called multiple times
         {
             MyLog.Default.Info($"[HnzPveSeason] MesGrid `{Id}` spawning");
 
@@ -70,8 +70,8 @@ namespace HnzPveSeason
                     SpawningMatrix = targetMatrix,
                     IgnoreSafetyCheck = true,
                     SpawnProfileId = nameof(HnzPveSeason),
-                    Context = Id,
                     FactionOverride = factionTag,
+                    Context = new MesGridContext(Id, mainPrefab).ToXml(),
                 }))
             {
                 State = SpawningState.Failure;
@@ -85,8 +85,8 @@ namespace HnzPveSeason
 
         void OnMesAnySuccessfulSpawn(IMyCubeGrid grid)
         {
-            if (!IsMyGrid(grid)) return;
             if (State != SpawningState.Spawning) return;
+            if (!IsMyMainGrid(grid)) return;
 
             MyLog.Default.Info($"[HnzPveSeason] MesGrid `{Id}` spawn found");
             grid.DisplayName = $"{_prefix} {grid.DisplayName}";
@@ -101,7 +101,7 @@ namespace HnzPveSeason
                 throw new InvalidOperationException("grid already set");
             }
 
-            if (!IsMyGrid(grid))
+            if (!IsMyMainGrid(grid))
             {
                 throw new InvalidOperationException($"invalid grid set; id: `{Id}`");
             }
@@ -116,7 +116,7 @@ namespace HnzPveSeason
         {
             foreach (var g in grids)
             {
-                if (IsMyGrid(g))
+                if (IsMyMainGrid(g))
                 {
                     SetGrid(g);
                     return true;
@@ -191,13 +191,17 @@ namespace HnzPveSeason
             _ignoreForDespawnStartTime = null;
         }
 
-        bool IsMyGrid(IMyCubeGrid grid)
+        bool IsMyMainGrid(IMyCubeGrid grid)
         {
             if (grid == null) return false;
 
             NpcData npcData;
             if (!NpcData.TryGetNpcData(grid, out npcData)) return false;
-            if (npcData.Context != Id) return false;
+
+            MesGridContext context;
+            if (!MesGridContext.FromXml(npcData.Context, out context)) return false;
+            if (context.Id != Id) return false;
+            if (context.MainPrefabId != npcData.OriginalPrefabId) return false;
 
             return true;
         }

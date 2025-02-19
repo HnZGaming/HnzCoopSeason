@@ -89,7 +89,7 @@ namespace HnzPveSeason
                 return;
             }
 
-            _mesGrid.RequestSpawn(Config.SpawnGroup, _factionTag, matrix.Value);
+            _mesGrid.RequestSpawn(Config.SpawnGroup, Config.MainPrefab, _factionTag, matrix.Value);
 
             ConfigIndex = CalcConfigIndex();
         }

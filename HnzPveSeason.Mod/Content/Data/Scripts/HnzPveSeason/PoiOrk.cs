@@ -17,7 +17,7 @@ namespace HnzPveSeason
         public PoiOrk(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
         {
             _poiId = poiId;
-            _encounter = new MesStaticEncounter($"{poiId}-ork", "[ORKS]", configs, position, false);
+            _encounter = new MesStaticEncounter($"{poiId}-ork", "[ORKS]", configs, position, null, false);
             _randomInvasionInterval = new Interval();
             _randomInvasionChance = new Random();
         }

@@ -14,12 +14,14 @@ namespace HnzPveSeason
         readonly MesStaticEncounterConfig[] _configs;
         readonly Vector3D _position;
         readonly MesGrid _mesGrid;
+        readonly string _factionTag;
         bool _encounterActive;
 
-        public MesStaticEncounter(string gridId, string prefix, MesStaticEncounterConfig[] configs, Vector3D position, bool ignoreForDespawn)
+        public MesStaticEncounter(string gridId, string prefix, MesStaticEncounterConfig[] configs, Vector3D position, string factionTag, bool ignoreForDespawn)
         {
             _gridId = gridId;
             _configs = configs;
+            _factionTag = factionTag;
             _position = position;
             _mesGrid = new MesGrid(gridId, prefix, ignoreForDespawn);
             ConfigIndex = CalcConfigIndex();
@@ -87,7 +89,7 @@ namespace HnzPveSeason
                 return;
             }
 
-            _mesGrid.RequestSpawn(Config.SpawnGroup, matrix.Value);
+            _mesGrid.RequestSpawn(Config.SpawnGroup, _factionTag, matrix.Value);
 
             ConfigIndex = CalcConfigIndex();
         }

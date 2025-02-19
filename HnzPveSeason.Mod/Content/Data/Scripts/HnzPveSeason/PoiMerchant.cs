@@ -24,11 +24,11 @@ namespace HnzPveSeason
         long _contractId;
         long _safeZoneId;
 
-        public PoiMerchant(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
+        public PoiMerchant(string poiId, Vector3D position, MesStaticEncounterConfig[] configs, MerchantType type)
         {
             _poiId = poiId;
             _position = position;
-            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, true);
+            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, type.ToString(), true);
             _variableKey = $"HnzPveSeason.PoiMerchant.{_poiId}";
         }
 

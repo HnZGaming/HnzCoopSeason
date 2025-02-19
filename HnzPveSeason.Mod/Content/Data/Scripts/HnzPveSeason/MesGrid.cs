@@ -21,7 +21,7 @@ namespace HnzPveSeason
 
         readonly string _prefix;
         readonly bool _ignoreForDespawn;
-        DateTime? ignoreForDespawnStartTime;
+        DateTime? _ignoreForDespawnStartTime;
 
         public MesGrid(string id, string prefix, bool ignoreForDespawn)
         {
@@ -55,7 +55,7 @@ namespace HnzPveSeason
             OnGridSet = null;
         }
 
-        public void RequestSpawn(string spawnGroup, MatrixD targetMatrix) // called multiple times
+        public void RequestSpawn(string spawnGroup, string factionTag, MatrixD targetMatrix) // called multiple times
         {
             MyLog.Default.Info($"[HnzPveSeason] MesGrid `{Id}` spawning");
 
@@ -71,6 +71,7 @@ namespace HnzPveSeason
                     IgnoreSafetyCheck = true,
                     SpawnProfileId = nameof(HnzPveSeason),
                     Context = Id,
+                    FactionOverride = factionTag,
                 }))
             {
                 State = SpawningState.Failure;
@@ -78,13 +79,14 @@ namespace HnzPveSeason
                 return;
             }
 
-            ignoreForDespawnStartTime = null;
+            _ignoreForDespawnStartTime = null;
             State = SpawningState.Spawning;
         }
 
         void OnMesAnySuccessfulSpawn(IMyCubeGrid grid)
         {
             if (!IsMyGrid(grid)) return;
+            if (State != SpawningState.Spawning) return;
 
             MyLog.Default.Info($"[HnzPveSeason] MesGrid `{Id}` spawn found");
             grid.DisplayName = $"{_prefix} {grid.DisplayName}";
@@ -104,7 +106,7 @@ namespace HnzPveSeason
                 throw new InvalidOperationException($"invalid grid set; id: `{Id}`");
             }
 
-            ignoreForDespawnStartTime = DateTime.UtcNow + TimeSpan.FromSeconds(10);
+            _ignoreForDespawnStartTime = DateTime.UtcNow + TimeSpan.FromSeconds(10);
             Grid = grid;
             State = SpawningState.Success;
             OnGridSet?.Invoke(Grid);
@@ -176,8 +178,8 @@ namespace HnzPveSeason
         void ValidateIgnoreForDespawn()
         {
             if (State != SpawningState.Success) return;
-            if (ignoreForDespawnStartTime == null) return;
-            if (ignoreForDespawnStartTime.Value > DateTime.UtcNow) return;
+            if (_ignoreForDespawnStartTime == null) return;
+            if (_ignoreForDespawnStartTime.Value > DateTime.UtcNow) return;
 
             MyLog.Default.Info($"[HnzPveSeason] MesGrid `{Id}` ignore for despawn: '{Grid.DisplayName}'");
 
@@ -186,7 +188,7 @@ namespace HnzPveSeason
                 MyLog.Default.Error($"[HnzPveSeason] failed to set ignore for despawn: '{Grid.DisplayName}', {MyAPIGateway.Session.GameplayFrameCounter}");
             }
 
-            ignoreForDespawnStartTime = null;
+            _ignoreForDespawnStartTime = null;
         }
 
         bool IsMyGrid(IMyCubeGrid grid)

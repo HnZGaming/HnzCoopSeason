@@ -1,13 +1,45 @@
 <?xml version="1.0" ?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <Factions>
-        <Faction Tag="MERCHANTS" Founder="The Merchant Boss">
+        <Faction Tag="TRADER" Founder="The Trader Boss">
             <Id>
                 <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>Merchants</SubtypeId>
+                <SubtypeId>MerchantsTrader</SubtypeId>
             </Id>
-            <DisplayName>Merchants</DisplayName>
-            <Description>Merchants sell stuff.</Description>
+            <DisplayName>Trader</DisplayName>
+            <IsDefault>true</IsDefault>
+            <DefaultRelation>Neutral</DefaultRelation>
+            <AcceptHumans>false</AcceptHumans>
+            <AutoAcceptMember>false</AutoAcceptMember>
+        </Faction>
+        <Faction Tag="BUILDER" Founder="The Builder Boss">
+            <Id>
+                <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
+                <SubtypeId>MerchantsBuilder</SubtypeId>
+            </Id>
+            <DisplayName>Builder</DisplayName>
+            <IsDefault>true</IsDefault>
+            <DefaultRelation>Neutral</DefaultRelation>
+            <AcceptHumans>false</AcceptHumans>
+            <AutoAcceptMember>false</AutoAcceptMember>
+        </Faction>
+        <Faction Tag="MINER" Founder="The Miner Boss">
+            <Id>
+                <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
+                <SubtypeId>MerchantsMiner</SubtypeId>
+            </Id>
+            <DisplayName>Miner</DisplayName>
+            <IsDefault>true</IsDefault>
+            <DefaultRelation>Neutral</DefaultRelation>
+            <AcceptHumans>false</AcceptHumans>
+            <AutoAcceptMember>false</AutoAcceptMember>
+        </Faction>
+        <Faction Tag="MILITARY" Founder="The Military Boss">
+            <Id>
+                <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
+                <SubtypeId>MerchantsMilitary</SubtypeId>
+            </Id>
+            <DisplayName>Military</DisplayName>
             <IsDefault>true</IsDefault>
             <DefaultRelation>Neutral</DefaultRelation>
             <AcceptHumans>false</AcceptHumans>

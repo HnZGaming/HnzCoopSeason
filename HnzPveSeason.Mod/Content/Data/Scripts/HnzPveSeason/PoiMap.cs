@@ -55,6 +55,8 @@ namespace HnzPveSeason
                 return;
             }
 
+            var merchantPicker = new MerchantTypePicker(0);
+
             // space POIs
             foreach (var p in _spacePois.Values) p.Unload();
             _spacePois.Clear();
@@ -83,7 +85,8 @@ namespace HnzPveSeason
                 var id = $"{x}-{y}-{z}";
                 var poiConfig = new PoiConfig(id, position);
                 var ork = new PoiOrk(id, poiConfig.Position, spaceOrks);
-                var merchant = new PoiMerchant(id, poiConfig.Position, spaceMerchants);
+                var merchantType = merchantPicker.Next();
+                var merchant = new PoiMerchant(id, poiConfig.Position, spaceMerchants, merchantType);
                 var poi = new Poi(poiConfig, new IPoiObserver[] { ork, merchant });
                 _spacePois[id] = poi;
             }
@@ -95,7 +98,8 @@ namespace HnzPveSeason
             foreach (var p in SessionConfig.Instance.PlanetaryPois)
             {
                 var ork = new PoiOrk(p.Id, p.Position, planetOrks);
-                var merchant = new PoiMerchant(p.Id, p.Position, planetMerchants);
+                var merchantType = merchantPicker.Next();
+                var merchant = new PoiMerchant(p.Id, p.Position, planetMerchants, merchantType);
                 var poi = new Poi(p, new IPoiObserver[] { ork, merchant });
                 _planetaryPois[p.Id] = poi;
             }

@@ -13,7 +13,6 @@
                 [UseRivalAi:true]
                 [RivalAiReplaceRemoteControl:true]
 
-                [FactionOverride:MERCHANTS]
                 [ReplenishSystems:true]
                 [ManipulationProfiles:MES-Manipulation-RivalAi]
             </Description>
@@ -43,7 +42,6 @@
                 [UseRivalAi:true]
                 [RivalAiReplaceRemoteControl:true]
 
-                [FactionOverride:MERCHANTS]
                 [ReplenishSystems:true]
                 [ManipulationProfiles:MES-Manipulation-RivalAi]
             </Description>

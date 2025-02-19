@@ -137,7 +137,10 @@
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsSource.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\IPoiObserver.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\ContractConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\MerchantType.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\MerchantTypePicker.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MesGrid.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\MesGridContext.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MesStaticEncounterConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MES\MESApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MES\NpcData.cs" />

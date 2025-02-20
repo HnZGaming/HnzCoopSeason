@@ -43,13 +43,18 @@ namespace HnzPveSeason
             remove { _mesGrid.OnGridUnset -= value; }
         }
 
-        public void Load(IMyCubeGrid[] grids)
+        public void Load(IMyCubeGrid[] grids, bool recover, bool clear)
         {
             _mesGrid.Load();
 
-            if (_mesGrid.TryRecover(grids))
+            if (recover && _mesGrid.TryRecover(grids))
             {
                 MyLog.Default.Info($"[HnzPveSeason] encounter {_gridId} recovered grid from save");
+            }
+
+            if (clear)
+            {
+                _mesGrid.CloseAllMyGrids(grids);
             }
         }
 

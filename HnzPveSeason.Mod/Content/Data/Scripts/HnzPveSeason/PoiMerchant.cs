@@ -41,7 +41,7 @@ namespace HnzPveSeason
 
             LoadFromSandbox();
 
-            _encounter.Load(grids);
+            _encounter.Load(grids, true, false);
         }
 
         void IPoiObserver.Unload(bool sessionUnload)

@@ -26,7 +26,7 @@ namespace HnzPveSeason
         {
             _encounter.OnGridSet += OnGridSet;
             _encounter.OnGridUnset += OnGridUnset;
-            _encounter.Load(grids);
+            _encounter.Load(grids, false, true);
 
             _randomInvasionInterval.Initialize();
         }

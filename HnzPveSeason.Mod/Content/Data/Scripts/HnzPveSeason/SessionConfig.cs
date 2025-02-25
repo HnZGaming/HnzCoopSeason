@@ -25,6 +25,9 @@ namespace HnzPveSeason
 
         [XmlElement]
         public int RandomInvasionInterval = 600;
+        
+        [XmlElement]
+        public int EconomyUpdateInterval = 600;
 
         [XmlArray]
         [XmlArrayItem("Poi")]

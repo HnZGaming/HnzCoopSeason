@@ -28,7 +28,7 @@ co-op season
 - [x] vanilla stations for merchants -- 1x for space, 1x for planetary
 - [x] merchant factions -- trader, miner, builder, military
 - [x] vanilla store items for merchants
-- [ ] refill merchant stores
+- [x] refill merchant stores
 - [ ] progressive store items
 - [ ] progressive tech tiers
 - [ ] vanilla contracts for merchants

@@ -1,22 +1,23 @@
 ﻿using System;
+using Sandbox.ModAPI;
 
 namespace HnzPveSeason.Utils
 {
     public sealed class Interval
     {
-        DateTime _last;
+        int _lastFrame;
 
         public void Initialize()
         {
-            _last = DateTime.UtcNow;
+            _lastFrame = MyAPIGateway.Session.GameplayFrameCounter;
         }
 
-        public bool Update(TimeSpan span)
+        public bool Update(int span)
         {
-            var now = DateTime.UtcNow;
-            if (now - _last > span)
+            var now = MyAPIGateway.Session.GameplayFrameCounter;
+            if (now - _lastFrame > span)
             {
-                _last = now;
+                _lastFrame = now;
                 return true;
             }
 

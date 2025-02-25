@@ -34,7 +34,7 @@ namespace HnzPveSeason
             _contractIds = new HashSet<long>();
         }
 
-        public DateTime LastPlayerVisitTime { get; private set; }
+        public int LastPlayerVisitFrame { get; private set; }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
@@ -72,7 +72,7 @@ namespace HnzPveSeason
 
             if (state == PoiState.Released)
             {
-                LastPlayerVisitTime = DateTime.UtcNow;
+                LastPlayerVisitFrame = MyAPIGateway.Session.GameplayFrameCounter;
             }
         }
 
@@ -106,7 +106,7 @@ namespace HnzPveSeason
             var sphere = new BoundingSphereD(_position, _encounter.Config.Area);
             if (!OnlineCharacterCollection.ContainsPlayer(sphere)) return;
 
-            LastPlayerVisitTime = DateTime.UtcNow;
+            LastPlayerVisitFrame = MyAPIGateway.Session.GameplayFrameCounter;
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant last visit time updated");
         }
 

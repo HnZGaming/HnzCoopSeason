@@ -25,16 +25,19 @@ co-op season
 - [x] merchant encounter in space
 - [x] keep player grids intact upon npc despawn
 - [x] ork invasion at random interval
-- [x] vanilla economy stations for merchants -- 1x for space, 1x for planetary
+- [x] vanilla stations for merchants -- 1x for space, 1x for planetary
 - [x] merchant factions -- trader, miner, builder, military
-- [ ] vanilla economy store items for merchants
-- [ ] vanilla economy contracts for merchants
-- [ ] refill merchant contracts
+- [x] vanilla store items for merchants
 - [ ] refill merchant stores
+- [ ] progressive store items
 - [ ] progressive tech tiers
+- [ ] vanilla contracts for merchants
+- [ ] refill merchant contracts
+- [ ] progressive contracts
 - [ ] respawn near occupied POIs
 - [ ] respawn ship data pad with POI info
 - [ ] MOTD with recaps
+- [ ] orks spawn in fleet, as opposed to a single spawn group
 
 ### V1.5
 
@@ -93,7 +96,7 @@ tba
     - Id (Type=MyObjectBuilder_FactionTypeDefinition, Subtype=Builder)
     - Id (Type=MyObjectBuilder_FactionTypeDefinition, Subtype=Pirate)
     - Id (Type=MyObjectBuilder_FactionTypeDefinition, Subtype=Military)
-    - ...
+- Data/FactionTypes.sbc
     - OfferList
     - OrderList
     - MaxContractCount

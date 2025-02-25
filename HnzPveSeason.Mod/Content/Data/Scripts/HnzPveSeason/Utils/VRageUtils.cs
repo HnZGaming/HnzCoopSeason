@@ -81,5 +81,32 @@ namespace HnzPveSeason.Utils
             faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
             return faction != null;
         }
+
+        public static void ClearItems(this IMyStoreBlock storeBlock)
+        {
+            // clear existing items
+            var items = new List<IMyStoreItem>();
+            storeBlock.GetStoreItems(items);
+            foreach (var item in items)
+            {
+                storeBlock.RemoveStoreItem(item);
+            }
+        }
+
+        public static bool TryGetEntityById<T>(long entityId, out T entity) where T : class, IMyEntity
+        {
+            entity = MyAPIGateway.Entities.GetEntityById(entityId) as T;
+            return entity != null;
+        }
+
+        public static bool IsContractBlock(this IMyCubeBlock block)
+        {
+            return block.BlockDefinition.SubtypeId?.IndexOf("ContractBlock", StringComparison.Ordinal) > -1;
+        }
+
+        public static bool IsStoreBlock(this IMyCubeBlock block)
+        {
+            return block is IMyStoreBlock && !(block is IMyVendingMachine);
+        }
     }
 }

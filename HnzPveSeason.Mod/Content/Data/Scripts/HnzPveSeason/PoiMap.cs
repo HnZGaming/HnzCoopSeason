@@ -55,7 +55,7 @@ namespace HnzPveSeason
                 return;
             }
 
-            var merchantPicker = new MerchantTypePicker(0);
+            var random = new Random(0);
 
             // space POIs
             foreach (var p in _spacePois.Values) p.Unload();
@@ -85,8 +85,8 @@ namespace HnzPveSeason
                 var id = $"{x}-{y}-{z}";
                 var poiConfig = new PoiConfig(id, position);
                 var ork = new PoiOrk(id, poiConfig.Position, spaceOrks);
-                var merchantType = merchantPicker.Next();
-                var merchant = new PoiMerchant(id, poiConfig.Position, spaceMerchants, merchantType);
+                var faction = Economy.Instance.GetFaction(random.Next());
+                var merchant = new PoiMerchant(id, poiConfig.Position, spaceMerchants, faction);
                 var poi = new Poi(poiConfig, new IPoiObserver[] { ork, merchant });
                 _spacePois[id] = poi;
             }
@@ -98,15 +98,12 @@ namespace HnzPveSeason
             foreach (var p in SessionConfig.Instance.PlanetaryPois)
             {
                 var ork = new PoiOrk(p.Id, p.Position, planetOrks);
-                var merchantType = merchantPicker.Next();
-                var merchant = new PoiMerchant(p.Id, p.Position, planetMerchants, merchantType);
+                var faction = Economy.Instance.GetFaction(random.Next());
+                var merchant = new PoiMerchant(p.Id, p.Position, planetMerchants, faction);
                 var poi = new Poi(p, new IPoiObserver[] { ork, merchant });
                 _planetaryPois[p.Id] = poi;
             }
-        }
-
-        public void LoadScene()
-        {
+            
             var entities = new HashSet<IMyEntity>();
             MyAPIGateway.Entities.GetEntities(entities);
             var grids = entities.OfType<IMyCubeGrid>().ToArray();

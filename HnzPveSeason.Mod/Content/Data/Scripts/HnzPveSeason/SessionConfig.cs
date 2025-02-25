@@ -42,10 +42,6 @@ namespace HnzPveSeason
         [XmlArrayItem("Contract")]
         public ContractConfig[] Contracts = { new ContractConfig() };
 
-        [XmlArray]
-        [XmlArrayItem("StoreItem")]
-        public StoreItemConfig[] StoreItems = { new StoreItemConfig() };
-
         public static void Load()
         {
             MyLog.Default.Info("[HnzPveSeason] config loading");

@@ -4,7 +4,7 @@
         <Faction Tag="TRADER" Founder="The Trader Boss">
             <Id>
                 <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>MerchantsTrader</SubtypeId>
+                <SubtypeId>Merchants_Trader</SubtypeId>
             </Id>
             <DisplayName>Trader</DisplayName>
             <IsDefault>true</IsDefault>
@@ -15,7 +15,7 @@
         <Faction Tag="BUILDER" Founder="The Builder Boss">
             <Id>
                 <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>MerchantsBuilder</SubtypeId>
+                <SubtypeId>Merchants_Builder</SubtypeId>
             </Id>
             <DisplayName>Builder</DisplayName>
             <IsDefault>true</IsDefault>
@@ -26,7 +26,7 @@
         <Faction Tag="MINER" Founder="The Miner Boss">
             <Id>
                 <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>MerchantsMiner</SubtypeId>
+                <SubtypeId>Merchants_Miner</SubtypeId>
             </Id>
             <DisplayName>Miner</DisplayName>
             <IsDefault>true</IsDefault>
@@ -37,7 +37,7 @@
         <Faction Tag="MILITARY" Founder="The Military Boss">
             <Id>
                 <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>MerchantsMilitary</SubtypeId>
+                <SubtypeId>Merchants_Military</SubtypeId>
             </Id>
             <DisplayName>Military</DisplayName>
             <IsDefault>true</IsDefault>

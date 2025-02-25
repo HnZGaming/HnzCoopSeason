@@ -209,15 +209,17 @@ namespace HnzPveSeason
 
             NpcData npcData;
             if (!NpcData.TryGetNpcData(grid, out npcData)) return false;
+            if (string.IsNullOrEmpty(npcData.Context)) return false;
 
             MesGridContext context;
             if (!MesGridContext.FromXml(npcData.Context, out context)) return false;
             if (context.Id != Id) return false;
-            if (checkMainGrid &&
-                !string.IsNullOrEmpty(context.MainPrefabId) &&
-                context.MainPrefabId != npcData.OriginalPrefabId) return false;
 
-            return true;
+            if (!checkMainGrid) return true;
+            if (string.IsNullOrEmpty(context.MainPrefabId)) return true; // `MainPrefabId` wasn't specified upon spawning
+            if (context.MainPrefabId == npcData.OriginalPrefabId) return true;
+
+            return false;
         }
     }
 }

@@ -15,6 +15,11 @@ namespace HnzPveSeason
         [XmlElement]
         public string MainPrefabId;
 
+        // serializer
+        public MesGridContext()
+        {
+        }
+
         public MesGridContext(string id, string mainPrefabId)
         {
             Id = id;

@@ -14,29 +14,29 @@ namespace HnzPveSeason
 {
     public sealed class EconomyFaction
     {
-        readonly MyFactionTypeDefinition _definition;
-        readonly IMyFaction _myFaction;
+        readonly MyFactionTypeDefinition _factionType;
+        readonly IMyFaction _faction;
 
-        public EconomyFaction(MyFactionTypeDefinition definition, IMyFaction myFaction)
+        public EconomyFaction(MyFactionTypeDefinition factionType, IMyFaction faction)
         {
-            _definition = definition;
-            _myFaction = myFaction;
+            _factionType = factionType;
+            _faction = faction;
         }
 
-        public string Tag => _myFaction.Tag;
+        public string Tag => _faction.Tag;
 
         public bool IsMyBlock(IMyCubeBlock block)
         {
             var ownerId = block.OwnerId;
             var faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
-            return faction.FactionId == _myFaction.FactionId;
+            return faction.FactionId == _faction.FactionId;
         }
 
-        public void UpdateStoreBlock(IMyStoreBlock storeBlock)
+        public void UpdateStoreItems(IMyStoreBlock storeBlock)
         {
             storeBlock.ClearItems();
 
-            foreach (var itemId in _definition.OffersList)
+            foreach (var itemId in _factionType.OffersList)
             {
                 MyPhysicalItemDefinition d;
                 if (!MyDefinitionManager.Static.TryGetDefinition(itemId, out d)) continue;
@@ -45,10 +45,10 @@ namespace HnzPveSeason
                 var item = storeBlock.CreateStoreItem(d.Id, d.MinimumOfferAmount, d.MinimalPricePerUnit, StoreItemTypes.Offer);
                 storeBlock.InsertStoreItem(item);
 
-                MyLog.Default.Debug($"[HnzPveSeason] faction {_myFaction.Tag} offer: {d.Id.SubtypeName}");
+                MyLog.Default.Debug($"[HnzPveSeason] faction {_faction.Tag} offer: {d.Id.SubtypeName}");
             }
 
-            foreach (var itemId in _definition.OrdersList)
+            foreach (var itemId in _factionType.OrdersList)
             {
                 MyPhysicalItemDefinition d;
                 if (!MyDefinitionManager.Static.TryGetDefinition(itemId, out d)) continue;
@@ -57,23 +57,23 @@ namespace HnzPveSeason
                 var item = storeBlock.CreateStoreItem(d.Id, d.MinimumOrderAmount, d.MinimalPricePerUnit, StoreItemTypes.Order);
                 storeBlock.InsertStoreItem(item);
 
-                MyLog.Default.Debug($"[HnzPveSeason] faction {_myFaction.Tag} order: {d.Id.SubtypeName}");
+                MyLog.Default.Debug($"[HnzPveSeason] faction {_faction.Tag} order: {d.Id.SubtypeName}");
             }
         }
 
-        public void UpdateContractBlock(long blockId, HashSet<long> contractIds)
+        public void UpdateContracts(long blockId, HashSet<long> contractIds)
         {
             // remove invalid contracts 
             contractIds.RemoveWhere(c => CanKeepPosted(c));
 
-            var remainingSlotCount = Math.Max(0, _definition.MaxContractCount - contractIds.Count);
+            var remainingSlotCount = Math.Max(0, _factionType.MaxContractCount - contractIds.Count);
             for (var i = 0; i < remainingSlotCount; i++)
             {
                 var contract = CreateContract(blockId);
                 if (contract == null) continue; // repair contract stuff
 
                 // make sure merchants have money to pay
-                MyAPIGateway.Players.RequestChangeBalance(_myFaction.FounderId, contract.MoneyReward + 1);
+                MyAPIGateway.Players.RequestChangeBalance(_faction.FounderId, contract.MoneyReward + 1);
 
                 // post up the contract
                 var result = MyAPIGateway.ContractSystem.AddContract(contract);
@@ -89,7 +89,7 @@ namespace HnzPveSeason
 
         IMyContract CreateContract(long blockId)
         {
-            var serializedId = new SerializableDefinitionId(_definition.Id.TypeId, _definition.Id.SubtypeName);
+            var serializedId = new SerializableDefinitionId(_factionType.Id.TypeId, _factionType.Id.SubtypeName);
             var contractTypes = MyDefinitionManager.Static.GetContractTypeDefinitions().Values.ToArray();
             var weights = new float[contractTypes.Length];
             for (var i = 0; i < contractTypes.Length; i++)

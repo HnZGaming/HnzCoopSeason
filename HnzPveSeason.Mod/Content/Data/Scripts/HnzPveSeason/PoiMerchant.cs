@@ -147,7 +147,7 @@ namespace HnzPveSeason
                 return;
             }
 
-            _faction.UpdateContractBlock(block.EntityId, _contractIds);
+            _faction.UpdateContracts(block.EntityId, _contractIds);
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} contracts updated");
         }
 
@@ -207,7 +207,7 @@ namespace HnzPveSeason
                 return;
             }
 
-            _faction.UpdateStoreBlock(storeBlock);
+            _faction.UpdateStoreItems(storeBlock);
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} store initialized");
         }
 

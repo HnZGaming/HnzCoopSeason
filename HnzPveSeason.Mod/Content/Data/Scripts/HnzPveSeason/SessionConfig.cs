@@ -41,10 +41,6 @@ namespace HnzPveSeason
         [XmlArrayItem("Merchant")]
         public MesStaticEncounterConfig[] Merchants = { new MesStaticEncounterConfig() };
 
-        [XmlArray]
-        [XmlArrayItem("Contract")]
-        public ContractConfig[] Contracts = { new ContractConfig() };
-
         public static void Load()
         {
             MyLog.Default.Info("[HnzPveSeason] config loading");

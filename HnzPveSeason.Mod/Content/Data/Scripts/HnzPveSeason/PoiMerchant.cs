@@ -20,9 +20,9 @@ namespace HnzPveSeason
         readonly MesStaticEncounter _encounter;
         readonly string _variableKey;
         readonly EconomyFaction _faction;
+        readonly Interval _economyInterval;
         HashSet<long> _contractIds;
         long _safeZoneId;
-        Interval _economyInterval;
         IMyCubeGrid _grid;
 
         public PoiMerchant(string poiId, Vector3D position, MesStaticEncounterConfig[] configs, EconomyFaction faction)
@@ -30,8 +30,7 @@ namespace HnzPveSeason
             _poiId = poiId;
             _position = position;
             _faction = faction;
-            var factionTag = _faction.Tag;
-            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, factionTag, true);
+            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, _faction.Tag, true);
             _variableKey = $"HnzPveSeason.PoiMerchant.{_poiId}";
             _contractIds = new HashSet<long>();
             _economyInterval = new Interval();
@@ -126,7 +125,7 @@ namespace HnzPveSeason
             if (!OnlineCharacterCollection.ContainsPlayer(sphere)) return;
 
             LastPlayerVisitFrame = MyAPIGateway.Session.GameplayFrameCounter;
-            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant last visit time updated");
+            MyLog.Default.Debug($"[HnzPveSeason] POI {_poiId} merchant last visit time updated");
         }
 
         void UpdateContracts()

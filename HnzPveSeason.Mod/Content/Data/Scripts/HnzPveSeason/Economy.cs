@@ -27,7 +27,7 @@ namespace HnzPveSeason
             foreach (var def in MyDefinitionManager.Static.GetAllDefinitions<MyFactionTypeDefinition>())
             {
                 var factionType = def.Id.SubtypeName;
-                var myFaction = GetMyFaction(factionType);
+                var myFaction = GetMerchantFactionByType(factionType);
                 if (myFaction == null) continue; // pirate
 
                 _factionTypes.Add(factionType);
@@ -42,7 +42,7 @@ namespace HnzPveSeason
             return _factions[factionType];
         }
 
-        static IMyFaction GetMyFaction(string type)
+        static IMyFaction GetMerchantFactionByType(string type)
         {
             switch (type)
             {

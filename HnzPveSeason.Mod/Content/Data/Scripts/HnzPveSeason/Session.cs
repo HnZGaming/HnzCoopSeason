@@ -110,7 +110,7 @@ namespace HnzPveSeason
                 return;
             }
 
-            var pois = _poiMap.GetAllPois();
+            var pois = _poiMap.AllPois;
 
             int limit;
             var limitMatch = Regex.Match(args, @"--limit (\d+)");

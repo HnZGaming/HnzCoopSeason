@@ -14,24 +14,22 @@ namespace HnzPveSeason
     {
         readonly Dictionary<string, Poi> _spacePois;
         readonly Dictionary<string, Poi> _planetaryPois;
+        readonly List<Poi> _allPois;
 
         public PoiMap()
         {
             _spacePois = new Dictionary<string, Poi>();
             _planetaryPois = new Dictionary<string, Poi>();
+            _allPois = new List<Poi>();
         }
 
-        public Poi[] GetAllPois()
-        {
-            return _spacePois.Values.Concat(_planetaryPois.Values).ToArray();
-        }
+        public IEnumerable<Poi> AllPois => _allPois;
 
         public void Unload()
         {
-            foreach (var p in _spacePois.Values) p.Unload(true);
+            foreach (var p in _allPois) p.Unload();
+            _allPois.Clear();
             _spacePois.Clear();
-
-            foreach (var p in _planetaryPois.Values) p.Unload(true);
             _planetaryPois.Clear();
         }
 
@@ -56,6 +54,8 @@ namespace HnzPveSeason
             }
 
             var random = new Random(0);
+
+            _allPois.Clear();
 
             // space POIs
             foreach (var p in _spacePois.Values) p.Unload();
@@ -89,6 +89,7 @@ namespace HnzPveSeason
                 var merchant = new PoiMerchant(id, poiConfig.Position, spaceMerchants, faction);
                 var poi = new Poi(poiConfig, new IPoiObserver[] { ork, merchant });
                 _spacePois[id] = poi;
+                _allPois.Add(poi);
             }
 
             // planetary POIs
@@ -102,18 +103,18 @@ namespace HnzPveSeason
                 var merchant = new PoiMerchant(p.Id, p.Position, planetMerchants, faction);
                 var poi = new Poi(p, new IPoiObserver[] { ork, merchant });
                 _planetaryPois[p.Id] = poi;
+                _allPois.Add(poi);
             }
-            
+
             var entities = new HashSet<IMyEntity>();
             MyAPIGateway.Entities.GetEntities(entities);
             var grids = entities.OfType<IMyCubeGrid>().ToArray();
-            foreach (var p in GetAllPois()) p.Load(grids);
+            foreach (var p in _allPois) p.Load(grids);
         }
 
         public void Update()
         {
-            foreach (var p in _spacePois.Values) p.Update();
-            foreach (var p in _planetaryPois.Values) p.Update();
+            foreach (var p in _allPois) p.Update();
         }
 
         public bool TryGetPoi(string id, out Poi poi)

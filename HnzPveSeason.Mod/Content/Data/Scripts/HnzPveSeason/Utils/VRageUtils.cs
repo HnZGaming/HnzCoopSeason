@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
+using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRage.ObjectBuilders;
 using VRageMath;
 
 namespace HnzPveSeason.Utils
@@ -26,6 +28,11 @@ namespace HnzPveSeason.Utils
             }
 
             return entity.Storage.TryGetValue(key, out value);
+        }
+
+        public static MyDefinitionId ToDefinitionId(this SerializableDefinitionId id)
+        {
+            return new MyDefinitionId(id.TypeId, id.SubtypeName);
         }
 
         public static Vector3 CalculateNaturalGravity(Vector3 point)

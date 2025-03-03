@@ -29,7 +29,6 @@ co-op season
 - [x] merchant factions -- trader, miner, builder, military
 - [x] vanilla store items for merchants
 - [x] refill merchant stores
-- [ ] progressive store items
 - [ ] progressive tech tiers
 - [ ] vanilla contracts for merchants
 - [ ] refill merchant contracts
@@ -58,55 +57,12 @@ tba
 
 ## Notes
 
-### Reusing vanilla economy definitions
-
-- station prefabs: `MyDefinitionManager.Static.GetAllDefinitions<MyStationsListDefinition>()`
-- faction types: `MyDefinitionManager.Static.GetAllDefinitions<MyFactionTypeDefinition>()`
-- contracts: `MyDefinitionManager.Static.GetContractTypeDefinitions()`
-
-- [x] List of contracts per faction type
-- [x] List of contract occurrance weight per faction
-- [x] List of economy faction types
-- [x] List of orders/offers per faction type
-- [x] Max contract count per faction type
-- [x] List of prefab names per station type
-
-- Data/ContractTypes_Economy.sbc
-  - Definitions/ContractTypes/ContractType
-    - Id/TypeId/ContractTypeDefinition
-    - Id/SubtypeId/Deliver - MyObjectBuilder_ContractTypeDeliverDefinition
-    - Id/SubtypeId/ObtainAndDeliver - MyObjectBuilder_ContractTypeObtainAndDeliverDefinition
-      - AvailableItems
-    - Id/SubtypeId/Escort - MyObjectBuilder_ContractTypeEscortDefinition
-      - PrefabsAttackDrones
-      - PrefabsEscortShips
-      - DroneBehaviors
-    - Id/SubtypeId/Find - MyObjectBuilder_ContractTypeFindDefinition
-      - PrefabSearchableGrids
-    - Id/SubtypeId/Hunt - MyObjectBuilder_ContractTypeHuntDefinition
-    - Id/SubtypeId/Repair - MyObjectBuilder_ContractTypeRepairDefinition
-      - PrefabNames
-    - ChancesPerFactionType
-      - ContractChance/DefintionId/SubtypeId
-        - Miner, Trader, Builder, etc
-- Data/Stations_Economy.sbc
-  - Definitions/Definition - MyObjectBuilder_FactionTypeDefinition
-    - Id (Type=MyObjectBuilder_FactionTypeDefinition, Subtype=Miner)
-    - Id (Type=MyObjectBuilder_FactionTypeDefinition, Subtype=Trader)
-    - Id (Type=MyObjectBuilder_FactionTypeDefinition, Subtype=Builder)
-    - Id (Type=MyObjectBuilder_FactionTypeDefinition, Subtype=Pirate)
-    - Id (Type=MyObjectBuilder_FactionTypeDefinition, Subtype=Military)
-- Data/FactionTypes.sbc
-    - OfferList
-    - OrderList
-    - MaxContractCount
-  - Definitions/Definition - MyObjectBuilder_StationsListDefinition
-    - Id (Type=MyObjectBuilder_StationsListDefinition, SubtypeId=MiningStations)
-    - Id (Type=MyObjectBuilder_StationsListDefinition, SubtypeId=OrbitalStations)
-    - Id (Type=MyObjectBuilder_StationsListDefinition, SubtypeId=Outposts)
-    - Id (Type=MyObjectBuilder_StationsListDefinition, SubtypeId=SpaceStations)
-    - StationNames/PrefabName
-
 ### Ships for sale
 
 code: `MyGenericFactionTypeStrategy.GenerateGridOffers()`
+
+### Progressive store items
+
+Progression based on:
+- number of released POIs
+- number of contracts finished

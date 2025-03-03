@@ -37,32 +37,38 @@ namespace HnzPveSeason
 
         public void UpdateStoreItems(IMyStoreBlock storeBlock)
         {
+            var allExistingItems = new List<IMyStoreItem>();
+            storeBlock.GetStoreItems(allExistingItems);
+
+            var existingOffers = new Dictionary<MyDefinitionId, int>();
+            var existingOrders = new Dictionary<MyDefinitionId, int>();
+            foreach (var item in allExistingItems)
+            {
+                if (item.Item == null) continue; // shouldn't happen
+
+                var id = item.Item.Value.ToDefinitionId();
+                var dic = item.StoreItemType == StoreItemTypes.Offer ? existingOffers : existingOrders;
+                dic[id] = item.Amount;
+            }
+
             storeBlock.ClearItems();
 
             foreach (var itemId in _factionType.OffersList)
             {
                 MyPhysicalItemDefinition d;
                 if (!MyDefinitionManager.Static.TryGetDefinition(itemId, out d)) continue;
-
                 if (!d.CanPlayerOrder) continue;
 
-                //todo progressive amount
-                var amount = (int)MathHelper.Lerp(d.MinimumOfferAmount, d.MaximumOfferAmount, MyRandom.Instance.NextDouble());
-
-                //todo progressive price
-                var pricePerUnit = 0;
-                CalculateItemMinimalPrice(d.Id, ref pricePerUnit);
-
-                if (pricePerUnit <= 0)
-                {
-                    MyLog.Default.Error($"[HnzPveSeason] invalid price: {pricePerUnit} for item {d.Id}");
-                    continue;
-                }
-
-                var item = storeBlock.CreateStoreItem(d.Id, amount, pricePerUnit, StoreItemTypes.Offer);
+                const int FillCount = 10;
+                var id = d.Id;
+                var existingAmount = existingOffers.GetValueOrDefault(id, 0);
+                var fillAmount = (int)(MathHelper.Lerp(d.MinimumOfferAmount, d.MaximumOfferAmount, MyRandom.Instance.NextDouble()) / FillCount);
+                var amount = Math.Min(existingAmount + fillAmount, d.MaximumOfferAmount);
+                var pricePerUnit = CalculateItemMinimalPrice(id);
+                var item = storeBlock.CreateStoreItem(id, amount, pricePerUnit, StoreItemTypes.Offer);
                 storeBlock.InsertStoreItem(item);
 
-                MyLog.Default.Debug($"[HnzPveSeason] faction {_faction.Tag} offer: {d.Id.SubtypeName}, {d.MinimalPricePerUnit}, {_factionType.OfferPriceStartingMultiplier}");
+                MyLog.Default.Debug($"[HnzPveSeason] UpdateStoreItems() offer; faction: {_faction.Tag}, item: {id}, amount: {amount}, existing amount: {existingAmount}, fill amount: {fillAmount}");
             }
 
             foreach (var itemId in _factionType.OrdersList)
@@ -70,11 +76,13 @@ namespace HnzPveSeason
                 MyPhysicalItemDefinition d;
                 if (!MyDefinitionManager.Static.TryGetDefinition(itemId, out d)) continue;
 
-                //todo randomize amount
-                var item = storeBlock.CreateStoreItem(d.Id, d.MinimumOrderAmount, d.MinimalPricePerUnit, StoreItemTypes.Order);
+                var initAmount = (int)MathHelper.Lerp(d.MinimumOrderAmount, d.MaximumOrderAmount, MyRandom.Instance.NextDouble());
+                var amount = existingOrders.GetValueOrDefault(itemId, initAmount);
+                var pricePerUnit = CalculateItemMinimalPrice(d.Id);
+                var item = storeBlock.CreateStoreItem(d.Id, amount, pricePerUnit, StoreItemTypes.Order);
                 storeBlock.InsertStoreItem(item);
 
-                MyLog.Default.Debug($"[HnzPveSeason] faction {_faction.Tag} order: {d.Id.SubtypeName}");
+                MyLog.Default.Debug($"[HnzPveSeason] UpdateStoreItems() order; faction: {_faction.Tag}, item: {d.Id}, amount: {amount}");
             }
         }
 
@@ -195,27 +203,25 @@ namespace HnzPveSeason
         }
 
         // copied from vanilla private code
-        static void CalculateItemMinimalPrice(MyDefinitionId itemId, ref int minimalPrice)
+        static int CalculateItemMinimalPrice(MyDefinitionId itemId)
         {
             MyPhysicalItemDefinition myPhysicalItemDefinition;
             if (MyDefinitionManager.Static.TryGetDefinition(itemId, out myPhysicalItemDefinition) && myPhysicalItemDefinition.MinimalPricePerUnit > 0)
             {
-                minimalPrice += myPhysicalItemDefinition.MinimalPricePerUnit;
-                return;
+                return myPhysicalItemDefinition.MinimalPricePerUnit;
             }
 
             MyBlueprintDefinitionBase myBlueprintDefinitionBase;
             if (!MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(itemId, out myBlueprintDefinitionBase))
             {
-                return;
+                return 0;
             }
 
             var num = myPhysicalItemDefinition.IsIngot ? 1f : MyAPIGateway.Session.AssemblerEfficiencyMultiplier;
             var num2 = 0;
             foreach (var item in myBlueprintDefinitionBase.Prerequisites)
             {
-                var num3 = 0;
-                CalculateItemMinimalPrice(item.Id, ref num3);
+                var num3 = CalculateItemMinimalPrice(item.Id);
                 var num4 = (float)item.Amount / num;
                 num2 += (int)(num3 * num4);
             }
@@ -223,17 +229,17 @@ namespace HnzPveSeason
             var num5 = myPhysicalItemDefinition.IsIngot ? MyAPIGateway.Session.RefinerySpeedMultiplier : MyAPIGateway.Session.AssemblerSpeedMultiplier;
             foreach (var item2 in myBlueprintDefinitionBase.Results)
             {
-                if (item2.Id == itemId)
-                {
-                    var num6 = (float)item2.Amount;
-                    if (num6 != 0f)
-                    {
-                        var num7 = 1f + (float)Math.Log(myBlueprintDefinitionBase.BaseProductionTimeInSeconds + 1f) / num5;
-                        minimalPrice += (int)(num2 * (1f / num6) * num7);
-                        return;
-                    }
-                }
+                if (item2.Id != itemId) continue;
+
+                var amount = (float)item2.Amount;
+                if (amount == 0f) continue;
+
+                var num7 = 1f + (float)Math.Log(myBlueprintDefinitionBase.BaseProductionTimeInSeconds + 1f) / num5;
+                var num8 = (int)(num2 * (1f / amount) * num7);
+                return num8;
             }
+
+            return 0;
         }
     }
 }

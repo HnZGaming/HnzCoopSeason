@@ -102,11 +102,21 @@ namespace HnzPveSeason
                     continue;
                 }
 
+                contract.OnContractAcquired = (id) => OnContractAcquired(contractType, id);
+                contract.OnContractSucceeded = () => OnContractSucceeded(contractType);
+                contract.OnContractFailed = () => OnContractFailed(contractType);
+
                 // make sure merchants have money to pay
                 MyAPIGateway.Players.RequestChangeBalance(_faction.FounderId, contract.MoneyReward + 1);
 
                 // post up the contract
                 var result = MyAPIGateway.ContractSystem.AddContract(contract);
+
+                // release events
+                contract.OnContractAcquired = null;
+                contract.OnContractSucceeded = null;
+                contract.OnContractFailed = null;
+
                 if (!result.Success)
                 {
                     MyLog.Default.Error($"[HnzPveSeason] failed to add contract; faction: {_faction.Tag}, block ID: {blockId}, type: {contract.GetType()}");
@@ -115,6 +125,21 @@ namespace HnzPveSeason
 
                 contractIds.Add(result.ContractId);
             }
+        }
+
+        void OnContractAcquired(MyContractTypeDefinition contract, long contractId)
+        {
+            MyLog.Default.Info($"[HnzPveSeason] contract acquired; type: {contract.Id}, id: {contractId}");
+        }
+
+        void OnContractSucceeded(MyContractTypeDefinition contract)
+        {
+            MyLog.Default.Info($"[HnzPveSeason] contract succeeded; type: {contract.Id}");
+        }
+
+        void OnContractFailed(MyContractTypeDefinition contract)
+        {
+            MyLog.Default.Info($"[HnzPveSeason] contract failed; type: {contract.Id}");
         }
 
         MyContractTypeDefinition GetRandomContractType()

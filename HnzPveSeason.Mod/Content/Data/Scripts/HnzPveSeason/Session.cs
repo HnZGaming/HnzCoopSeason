@@ -75,7 +75,6 @@ namespace HnzPveSeason
         void LoadConfig()
         {
             SessionConfig.Load();
-            Economy.Instance.Load();
             _poiMap.LoadConfig();
         }
 
@@ -170,6 +169,15 @@ namespace HnzPveSeason
             Poi poi;
             _poiMap.TryGetPoi(id, out poi);
             return poi;
+        }
+
+        public float GetProgression()
+        {
+            return _poiMap.GetProgression();
+        }
+
+        public void AddProgressionDelta(float progression)
+        {
         }
     }
 }

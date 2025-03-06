@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Sandbox.Definitions;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using VRage.Game;
@@ -114,6 +115,46 @@ namespace HnzPveSeason.Utils
         public static bool IsStoreBlock(this IMyCubeBlock block)
         {
             return block is IMyStoreBlock && !(block is IMyVendingMachine);
+        }
+
+        // copied from vanilla private code
+        public static int CalculateItemMinimalPrice(MyDefinitionId itemId)
+        {
+            MyPhysicalItemDefinition myPhysicalItemDefinition;
+            if (MyDefinitionManager.Static.TryGetDefinition(itemId, out myPhysicalItemDefinition) && myPhysicalItemDefinition.MinimalPricePerUnit > 0)
+            {
+                return myPhysicalItemDefinition.MinimalPricePerUnit;
+            }
+
+            MyBlueprintDefinitionBase myBlueprintDefinitionBase;
+            if (!MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(itemId, out myBlueprintDefinitionBase))
+            {
+                return 0;
+            }
+
+            var num = myPhysicalItemDefinition.IsIngot ? 1f : MyAPIGateway.Session.AssemblerEfficiencyMultiplier;
+            var num2 = 0;
+            foreach (var item in myBlueprintDefinitionBase.Prerequisites)
+            {
+                var num3 = CalculateItemMinimalPrice(item.Id);
+                var num4 = (float)item.Amount / num;
+                num2 += (int)(num3 * num4);
+            }
+
+            var num5 = myPhysicalItemDefinition.IsIngot ? MyAPIGateway.Session.RefinerySpeedMultiplier : MyAPIGateway.Session.AssemblerSpeedMultiplier;
+            foreach (var item2 in myBlueprintDefinitionBase.Results)
+            {
+                if (item2.Id != itemId) continue;
+
+                var amount = (float)item2.Amount;
+                if (amount == 0f) continue;
+
+                var num7 = 1f + (float)Math.Log(myBlueprintDefinitionBase.BaseProductionTimeInSeconds + 1f) / num5;
+                var num8 = (int)(num2 * (1f / amount) * num7);
+                return num8;
+            }
+
+            return 0;
         }
     }
 }

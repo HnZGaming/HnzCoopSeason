@@ -23,7 +23,7 @@ namespace HnzPveSeason
             _allPois = new List<Poi>();
         }
 
-        public IEnumerable<Poi> AllPois => _allPois;
+        public IReadOnlyList<Poi> AllPois => _allPois;
 
         public void Unload()
         {
@@ -53,7 +53,12 @@ namespace HnzPveSeason
                 return;
             }
 
-            var random = new Random(0);
+            var merchantFaction = MyAPIGateway.Session.Factions.TryGetFactionByTag("MERC");
+            if (merchantFaction == null)
+            {
+                MyLog.Default.Error("[HnzPveSeason] merchant faction not found");
+                return;
+            }
 
             _allPois.Clear();
 
@@ -85,8 +90,7 @@ namespace HnzPveSeason
                 var id = $"{x}-{y}-{z}";
                 var poiConfig = new PoiConfig(id, position);
                 var ork = new PoiOrk(id, poiConfig.Position, spaceOrks);
-                var faction = Economy.Instance.GetFaction(random.Next());
-                var merchant = new PoiMerchant(id, poiConfig.Position, spaceMerchants, faction);
+                var merchant = new PoiMerchant(id, poiConfig.Position, merchantFaction, spaceMerchants);
                 var poi = new Poi(poiConfig, new IPoiObserver[] { ork, merchant });
                 _spacePois[id] = poi;
                 _allPois.Add(poi);
@@ -99,8 +103,7 @@ namespace HnzPveSeason
             foreach (var p in SessionConfig.Instance.PlanetaryPois)
             {
                 var ork = new PoiOrk(p.Id, p.Position, planetOrks);
-                var faction = Economy.Instance.GetFaction(random.Next());
-                var merchant = new PoiMerchant(p.Id, p.Position, planetMerchants, faction);
+                var merchant = new PoiMerchant(p.Id, p.Position, merchantFaction, planetMerchants);
                 var poi = new Poi(p, new IPoiObserver[] { ork, merchant });
                 _planetaryPois[p.Id] = poi;
                 _allPois.Add(poi);
@@ -122,6 +125,20 @@ namespace HnzPveSeason
             if (_planetaryPois.TryGetValue(id, out poi)) return true;
             if (_spacePois.TryGetValue(id, out poi)) return true;
             return false;
+        }
+
+        public float GetProgression()
+        {
+            var releasedPoiCount = 0;
+            foreach (var p in _allPois)
+            {
+                if (p.State == PoiState.Released)
+                {
+                    releasedPoiCount += 1;
+                }
+            }
+
+            return releasedPoiCount / (float)_allPois.Count;
         }
     }
 }

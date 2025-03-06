@@ -1,45 +1,12 @@
 <?xml version="1.0" ?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <Factions>
-        <Faction Tag="TRADER" Founder="The Trader Boss">
+        <Faction Tag="MERC" Founder="The Marchant Boss">
             <Id>
                 <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>Merchants_Trader</SubtypeId>
+                <SubtypeId>Merchants</SubtypeId>
             </Id>
-            <DisplayName>Trader</DisplayName>
-            <IsDefault>true</IsDefault>
-            <DefaultRelation>Neutral</DefaultRelation>
-            <AcceptHumans>false</AcceptHumans>
-            <AutoAcceptMember>false</AutoAcceptMember>
-        </Faction>
-        <Faction Tag="BUILDER" Founder="The Builder Boss">
-            <Id>
-                <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>Merchants_Builder</SubtypeId>
-            </Id>
-            <DisplayName>Builder</DisplayName>
-            <IsDefault>true</IsDefault>
-            <DefaultRelation>Neutral</DefaultRelation>
-            <AcceptHumans>false</AcceptHumans>
-            <AutoAcceptMember>false</AutoAcceptMember>
-        </Faction>
-        <Faction Tag="MINER" Founder="The Miner Boss">
-            <Id>
-                <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>Merchants_Miner</SubtypeId>
-            </Id>
-            <DisplayName>Miner</DisplayName>
-            <IsDefault>true</IsDefault>
-            <DefaultRelation>Neutral</DefaultRelation>
-            <AcceptHumans>false</AcceptHumans>
-            <AutoAcceptMember>false</AutoAcceptMember>
-        </Faction>
-        <Faction Tag="MILITARY" Founder="The Military Boss">
-            <Id>
-                <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
-                <SubtypeId>Merchants_Military</SubtypeId>
-            </Id>
-            <DisplayName>Military</DisplayName>
+            <DisplayName>Merchants</DisplayName>
             <IsDefault>true</IsDefault>
             <DefaultRelation>Neutral</DefaultRelation>
             <AcceptHumans>false</AcceptHumans>

@@ -5,7 +5,10 @@ using HnzPveSeason.Utils;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
+using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.Game.ObjectBuilders.Definitions;
+using VRage.Library.Utils;
 using VRage.Serialization;
 using VRage.Utils;
 using VRageMath;
@@ -17,15 +20,15 @@ namespace HnzPveSeason
         const float SafezoneRadius = 75f;
         readonly string _poiId;
         readonly Vector3D _position;
+        readonly IMyFaction _faction;
         readonly MesStaticEncounter _encounter;
         readonly string _variableKey;
-        readonly EconomyFaction _faction;
         readonly Interval _economyInterval;
         HashSet<long> _contractIds;
         long _safeZoneId;
         IMyCubeGrid _grid;
 
-        public PoiMerchant(string poiId, Vector3D position, MesStaticEncounterConfig[] configs, EconomyFaction faction)
+        public PoiMerchant(string poiId, Vector3D position, IMyFaction faction, MesStaticEncounterConfig[] configs)
         {
             _poiId = poiId;
             _position = position;
@@ -136,18 +139,12 @@ namespace HnzPveSeason
             IMyCubeBlock block;
             if (!TryGetSingleBlock(_grid, b => b?.IsContractBlock() ?? false, out block))
             {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} invalid contract block count");
+                //MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} invalid contract block count");
                 return;
             }
 
-            if (!_faction.IsMyBlock(block))
-            {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} invalid contract block ownership");
-                return;
-            }
-
-            _faction.UpdateContracts(block.EntityId, _contractIds);
-            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} contracts updated");
+            // disable contract blocks until we implement custom contracts
+            ((IMyFunctionalBlock)block).Enabled = false;
         }
 
         void SetUpSafezone()
@@ -192,7 +189,6 @@ namespace HnzPveSeason
         {
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} update store items");
 
-            // sell tech comps
             IMyStoreBlock storeBlock;
             if (!TryGetSingleBlock(_grid, b => b?.IsStoreBlock() ?? false, out storeBlock))
             {
@@ -200,14 +196,39 @@ namespace HnzPveSeason
                 return;
             }
 
-            if (!_faction.IsMyBlock(storeBlock))
+            var allExistingItems = new List<IMyStoreItem>();
+            storeBlock.GetStoreItems(allExistingItems);
+
+            var existingOffers = new Dictionary<MyDefinitionId, int>();
+            var existingOrders = new Dictionary<MyDefinitionId, int>();
+            foreach (var item in allExistingItems)
             {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} invalid store block ownership");
-                return;
+                if (item.Item == null) continue; // shouldn't happen
+
+                var id = item.Item.Value.ToDefinitionId();
+                var dic = item.StoreItemType == StoreItemTypes.Offer ? existingOffers : existingOrders;
+                dic[id] = item.Amount;
             }
 
-            _faction.UpdateStoreItems(storeBlock);
-            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} store initialized");
+            storeBlock.ClearItems();
+
+            foreach (var c in SessionConfig.Instance.StoreItems)
+            {
+                MyDefinitionId id;
+                if (!MyDefinitionId.TryParse($"{c.Type}/{c.Subtype}", out id))
+                {
+                    MyLog.Default.Error($"[HnzPveSeason] invalid store item config: {c}");
+                    continue;
+                }
+
+                var existingAmount = existingOffers.GetValueOrDefault(id, 0);
+                var fillAmount = (int)MathHelper.Lerp(c.MinAmountPerUpdate, c.MaxAmountPerUpdate, MyRandom.Instance.NextDouble());
+                var amount = Math.Min(existingAmount + fillAmount, c.MaxAmount);
+                var item = storeBlock.CreateStoreItem(id, amount, c.PricePerUnit, StoreItemTypes.Offer);
+                storeBlock.InsertStoreItem(item);
+
+                MyLog.Default.Debug($"[HnzPveSeason] UpdateStoreItems() offer; item: {id}, origin: {existingAmount}, delta: {fillAmount}");
+            }
         }
 
         void SaveToSandbox()

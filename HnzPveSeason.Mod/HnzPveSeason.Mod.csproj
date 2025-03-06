@@ -131,8 +131,6 @@
     </ItemGroup>
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Communication.cs" />
-      <Compile Include="Content\Data\Scripts\HnzPveSeason\Economy.cs" />
-      <Compile Include="Content\Data\Scripts\HnzPveSeason\EconomyFaction.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsSerialization.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsSource.cs" />
@@ -153,6 +151,7 @@
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiState.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\SessionConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Session.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\StoreItemConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\Command.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\CommandModule.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Interval.cs" />

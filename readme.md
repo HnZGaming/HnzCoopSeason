@@ -21,20 +21,17 @@ co-op season
 - [x] merchants acquisition contracts
 - [x] merchants acquisition contracts persistency across session
 - [x] merchant safezone
-- [x] merchant stores selling tech comps
 - [x] merchant encounter in space
 - [x] keep player grids intact upon npc despawn
 - [x] ork invasion at random interval
 - [x] vanilla stations for merchants -- 1x for space, 1x for planetary
-- [x] merchant factions -- trader, miner, builder, military
-- [x] vanilla store items for merchants
+- [x] disable contract blocks
+- [x] merchant stores selling tech comps
 - [x] refill merchant stores
-- [ ] progressive tech tiers
-- [ ] vanilla contracts for merchants
-- [ ] refill merchant contracts
-- [ ] progressive contracts
-- [ ] respawn near occupied POIs
-- [ ] respawn ship data pad with POI info
+- [ ] progress display permanently on the screen
+- [ ] merchant discovery notification
+- [ ] respawn players near occupied POIs
+- [ ] replace data pad
 - [ ] MOTD with recaps
 - [ ] orks spawn in fleet, as opposed to a single spawn group
 

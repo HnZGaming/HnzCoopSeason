@@ -30,8 +30,7 @@ co-op season
 - [x] refill merchant stores
 - [x] progress bar on the screen
 - [x] merchant discovery notification
-- [ ] respawn players near occupied POIs
-- [ ] replace data pad
+- [x] replace data pad
 - [ ] MOTD with recaps
 - [ ] orks spawn in fleet, as opposed to a single spawn group
 - [ ] multiplayer tests

@@ -44,6 +44,7 @@ namespace HnzPveSeason
                 MESApi.Load();
                 FlashGpsApi.Load(nameof(HnzPveSeason).GetHashCode());
                 PlanetCollection.Load();
+                RespawnPodManipulator.Load();
             }
 
             ProgressionView.Instance.Load();
@@ -66,6 +67,7 @@ namespace HnzPveSeason
                 PlanetCollection.Unload();
                 _poiMap.Unload();
                 OnlineCharacterCollection.Unload();
+                RespawnPodManipulator.Unload();
             }
 
             ProgressionView.Instance.Unload();
@@ -149,6 +151,11 @@ namespace HnzPveSeason
         {
             var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
             MyVisualScriptLogicProvider.SendChatMessageColored(message, color, "pve", playerId);
+        }
+
+        public bool TryGetClosestPoiPosition(Vector3D position, out Vector3D closestPosition)
+        {
+            return _poiMap.TryGetClosestPosition(position, out closestPosition);
         }
     }
 }

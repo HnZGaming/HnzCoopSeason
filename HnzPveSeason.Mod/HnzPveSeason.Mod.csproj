@@ -151,6 +151,7 @@
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiOrk.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiState.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\ProgressionView.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\RespawnPodManipulator.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\SessionConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Session.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Session_Commands.cs" />

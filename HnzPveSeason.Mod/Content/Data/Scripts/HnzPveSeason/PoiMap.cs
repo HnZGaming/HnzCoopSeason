@@ -141,6 +141,22 @@ namespace HnzPveSeason
             return releasedPoiCount / (float)_allPois.Count;
         }
 
+        public bool TryGetClosestPosition(Vector3D position, out Vector3D closestPosition)
+        {
+            if (_allPois.Count == 0)
+            {
+                closestPosition = default(Vector3D);
+                return false;
+            }
+
+            closestPosition = _allPois
+                .OrderBy(p => Vector3D.Distance(p.Position, position))
+                .First()
+                .Position;
+
+            return true;
+        }
+
         public override string ToString()
         {
             return $"{nameof(AllPois)}: {AllPois.ToStringSeq()}";

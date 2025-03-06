@@ -29,6 +29,9 @@ namespace HnzPveSeason
         [XmlElement]
         public int EconomyUpdateInterval = 1200;
 
+        [XmlElement]
+        public string RespawnDatapadTextFormat = "Come here: {0}";
+
         [XmlArray]
         [XmlArrayItem("Poi")]
         public PoiConfig[] PlanetaryPois = { new PoiConfig() };

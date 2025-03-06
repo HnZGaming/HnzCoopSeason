@@ -130,10 +130,11 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-      <Compile Include="Content\Data\Scripts\HnzPveSeason\Communication.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\MissionScreenView.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsSerialization.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsSource.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\HudAPI\HudApiV2.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\IPoiObserver.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MesGrid.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MesGridContext.cs" />
@@ -144,13 +145,16 @@
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MesStaticEncounter.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Poi.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiConfig.cs" />
-      <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiGpsCollection.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiGpsView.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiMap.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiMerchant.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiOrk.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiState.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\ProgressionView.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\RespawnPodManipulator.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\SessionConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Session.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\Session_Commands.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\StoreItemConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\Command.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Utils\Commands\CommandModule.cs" />

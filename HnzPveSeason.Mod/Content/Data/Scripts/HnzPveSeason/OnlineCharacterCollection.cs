@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using HnzPveSeason.Utils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace HnzPveSeason
@@ -16,8 +19,11 @@ namespace HnzPveSeason
 
         public static void Update()
         {
-            _players.Clear();
-            MyAPIGateway.Players.GetPlayers(_players);
+            if (MyAPIGateway.Session.GameplayFrameCounter % 60 == 0)
+            {
+                _players.Clear();
+                MyAPIGateway.Players.GetPlayers(_players);
+            }
         }
 
         public static bool TryGetContainedPlayer(BoundingSphereD sphere, out IMyPlayer player)

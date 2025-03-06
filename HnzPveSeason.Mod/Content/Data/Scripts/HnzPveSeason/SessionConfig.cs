@@ -15,7 +15,7 @@ namespace HnzPveSeason
         public float PoiMapRadius = 10000000;
 
         [XmlElement]
-        public int PoiCountPerAxis = 5;
+        public int PoiCountPerAxis = 4;
 
         [XmlElement]
         public float EncounterRadius = 10000;
@@ -28,6 +28,9 @@ namespace HnzPveSeason
 
         [XmlElement]
         public int EconomyUpdateInterval = 1200;
+
+        [XmlElement]
+        public string RespawnDatapadTextFormat = "Come here: {0}";
 
         [XmlArray]
         [XmlArrayItem("Poi")]

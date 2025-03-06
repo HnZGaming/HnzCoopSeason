@@ -77,7 +77,7 @@ namespace HnzPveSeason.Utils.Commands
                 sb.AppendLine($"{command.Head}: {command.Help}");
             }
 
-            Communication.SendMessage(sender, Color.White, sb.ToString());
+            Session.SendMessage(sender, Color.White, sb.ToString());
         }
 
         void OnCommandPayloadReceived(ushort id, byte[] load, ulong steamId, bool sentFromServer)
@@ -99,13 +99,13 @@ namespace HnzPveSeason.Utils.Commands
         {
             if (!ValidateLevel(sender, command.Level))
             {
-                Communication.SendMessage(sender, Color.Red, "Insufficient promote level");
+                Session.SendMessage(sender, Color.Red, "Insufficient promote level");
                 return;
             }
 
             if (body.Contains("--help") || body.Contains("-h"))
             {
-                Communication.SendMessage(sender, Color.White, command.Help);
+                Session.SendMessage(sender, Color.White, command.Help);
                 return;
             }
 
@@ -117,7 +117,7 @@ namespace HnzPveSeason.Utils.Commands
             catch (Exception e)
             {
                 MyLog.Default.Error($"[HnzPveSeason] command {_prefix} {command.Head}: {command.Head} error: {e}");
-                Communication.SendMessage(sender, Color.Red, "Error. Please talk to administrators.");
+                Session.SendMessage(sender, Color.Red, "Error. Please talk to administrators.");
             }
         }
 

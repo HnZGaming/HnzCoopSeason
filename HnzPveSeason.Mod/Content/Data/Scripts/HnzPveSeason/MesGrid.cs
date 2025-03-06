@@ -36,7 +36,7 @@ namespace HnzPveSeason
 
         public IMyCubeGrid Grid { get; private set; }
 
-        public event Action<IMyCubeGrid> OnGridSet;
+        public event Action<IMyCubeGrid, bool> OnGridSet;
         public event Action<IMyCubeGrid> OnGridUnset;
 
         public void Load() // called once
@@ -91,10 +91,10 @@ namespace HnzPveSeason
             MyLog.Default.Info($"[HnzPveSeason] MesGrid {Id} spawn found");
             grid.DisplayName = $"{_prefix} {grid.DisplayName}";
 
-            SetGrid(grid);
+            SetGrid(grid, false);
         }
 
-        void SetGrid(IMyCubeGrid grid)
+        void SetGrid(IMyCubeGrid grid, bool recovery)
         {
             if (Grid != null)
             {
@@ -109,7 +109,7 @@ namespace HnzPveSeason
             _ignoreForDespawnStartTime = DateTime.UtcNow + TimeSpan.FromSeconds(10);
             Grid = grid;
             State = SpawningState.Success;
-            OnGridSet?.Invoke(Grid);
+            OnGridSet?.Invoke(Grid, recovery);
         }
 
         public bool TryRecover(IEnumerable<IMyCubeGrid> grids)
@@ -118,7 +118,7 @@ namespace HnzPveSeason
             {
                 if (IsMyGrid(g, true))
                 {
-                    SetGrid(g);
+                    SetGrid(g, true);
                     return true;
                 }
             }

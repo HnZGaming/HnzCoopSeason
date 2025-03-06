@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using HnzPveSeason.Utils;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
@@ -19,27 +18,19 @@ namespace HnzPveSeason
     {
         const float SafezoneRadius = 75f;
         readonly string _poiId;
-        readonly Vector3D _position;
-        readonly IMyFaction _faction;
         readonly MesStaticEncounter _encounter;
         readonly string _variableKey;
         readonly Interval _economyInterval;
-        HashSet<long> _contractIds;
         long _safeZoneId;
         IMyCubeGrid _grid;
 
         public PoiMerchant(string poiId, Vector3D position, IMyFaction faction, MesStaticEncounterConfig[] configs)
         {
             _poiId = poiId;
-            _position = position;
-            _faction = faction;
-            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, _faction.Tag, true);
+            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, faction.Tag, true);
             _variableKey = $"HnzPveSeason.PoiMerchant.{_poiId}";
-            _contractIds = new HashSet<long>();
             _economyInterval = new Interval();
         }
-
-        public int LastPlayerVisitFrame { get; private set; }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
@@ -64,8 +55,6 @@ namespace HnzPveSeason
         {
             _encounter.Update();
 
-            UpdateLastVisitedTime();
-
             // update economy
             if (_grid != null && _economyInterval.Update(SessionConfig.Instance.EconomyUpdateInterval * 60))
             {
@@ -82,14 +71,9 @@ namespace HnzPveSeason
             {
                 _encounter.Despawn();
             }
-
-            if (state == PoiState.Released)
-            {
-                LastPlayerVisitFrame = MyAPIGateway.Session.GameplayFrameCounter;
-            }
         }
 
-        void OnGridSet(IMyCubeGrid grid)
+        void OnGridSet(IMyCubeGrid grid, bool recovery)
         {
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant grid set");
             _grid = grid;
@@ -98,6 +82,11 @@ namespace HnzPveSeason
             UpdateContracts();
             SetUpSafezone();
             SaveToSandbox();
+
+            if (!recovery) // new spawn
+            {
+                Session.Instance.OnMerchantDiscovered(_poiId, grid.GetPosition());
+            }
         }
 
         void OnGridUnset(IMyCubeGrid grid)
@@ -114,21 +103,6 @@ namespace HnzPveSeason
             // DisposeContracts(); // note: let the game handle this
             RemoveSafezone();
             SaveToSandbox();
-        }
-
-        void UpdateLastVisitedTime()
-        {
-            // every 10 seconds
-            if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 10) != 0) return;
-
-            var poi = Session.Instance.GetPoi(_poiId);
-            if (poi.State != PoiState.Released) return;
-
-            var sphere = new BoundingSphereD(_position, _encounter.Config.Area);
-            if (!OnlineCharacterCollection.ContainsPlayer(sphere)) return;
-
-            LastPlayerVisitFrame = MyAPIGateway.Session.GameplayFrameCounter;
-            MyLog.Default.Debug($"[HnzPveSeason] POI {_poiId} merchant last visit time updated");
         }
 
         void UpdateContracts()
@@ -227,7 +201,7 @@ namespace HnzPveSeason
                 var item = storeBlock.CreateStoreItem(id, amount, c.PricePerUnit, StoreItemTypes.Offer);
                 storeBlock.InsertStoreItem(item);
 
-                MyLog.Default.Debug($"[HnzPveSeason] UpdateStoreItems() offer; item: {id}, origin: {existingAmount}, delta: {fillAmount}");
+                MyLog.Default.Debug("[HnzPveSeason] UpdateStoreItems() offer; item: {0}, origin: {1}, delta: {2}", id, existingAmount, amount, fillAmount);
             }
         }
 
@@ -235,7 +209,6 @@ namespace HnzPveSeason
         {
             var data = new SerializableDictionary<string, object>
             {
-                [nameof(_contractIds)] = string.Join(";", _contractIds),
                 [nameof(_safeZoneId)] = _safeZoneId,
             };
             MyAPIGateway.Utilities.SetVariable(_variableKey, data);
@@ -247,7 +220,6 @@ namespace HnzPveSeason
             if (MyAPIGateway.Utilities.GetVariable(_variableKey, out data))
             {
                 var dictionary = data.Dictionary;
-                _contractIds = dictionary.GetValueOrDefault(nameof(_contractIds), "0").Split(',').Select(long.Parse).ToSet();
                 _safeZoneId = dictionary.GetValueOrDefault(nameof(_safeZoneId), (long)0);
             }
         }
@@ -261,6 +233,11 @@ namespace HnzPveSeason
 
             block = (T)blocks[0].FatBlock;
             return true;
+        }
+
+        public override string ToString()
+        {
+            return $"Merchant({nameof(_poiId)}: {_poiId}, {nameof(_encounter)}: {_encounter})";
         }
     }
 }

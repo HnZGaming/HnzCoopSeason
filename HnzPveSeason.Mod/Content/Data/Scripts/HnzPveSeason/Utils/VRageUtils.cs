@@ -156,5 +156,11 @@ namespace HnzPveSeason.Utils
 
             return 0;
         }
+
+        public static string FormatGps(string name, Vector3D position, string colorCode)
+        {
+            // example -- GPS:1-1-2:-5000000:-5000000:0:#FF75C9F1:
+            return $"GPS:{name}:{position.X}:{position.Y}:{position.Z}:#{colorCode}";
+        }
     }
 }

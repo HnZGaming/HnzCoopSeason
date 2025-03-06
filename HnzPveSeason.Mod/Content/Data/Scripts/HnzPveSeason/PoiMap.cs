@@ -83,7 +83,7 @@ namespace HnzPveSeason
                 // under gravity
                 if (VRageUtils.CalculateNaturalGravity(position).Length() > 0)
                 {
-                    MyLog.Default.Info($"[HnzPveSeason] poi removed under gravity: {x}, {y}, {z}");
+                    MyLog.Default.Info($"[HnzPveSeason] poi removed under gravity: {x}-{y}-{z}");
                     continue;
                 }
 
@@ -122,9 +122,8 @@ namespace HnzPveSeason
 
         public bool TryGetPoi(string id, out Poi poi)
         {
-            if (_planetaryPois.TryGetValue(id, out poi)) return true;
-            if (_spacePois.TryGetValue(id, out poi)) return true;
-            return false;
+            return _planetaryPois.TryGetValue(id, out poi) ||
+                   _spacePois.TryGetValue(id, out poi);
         }
 
         public float GetProgression()
@@ -138,7 +137,29 @@ namespace HnzPveSeason
                 }
             }
 
+            MyLog.Default.Info($"[HnzPveSeason] {releasedPoiCount} / {_allPois.Count}");
             return releasedPoiCount / (float)_allPois.Count;
+        }
+
+        public bool TryGetClosestPosition(Vector3D position, out Vector3D closestPosition)
+        {
+            if (_allPois.Count == 0)
+            {
+                closestPosition = default(Vector3D);
+                return false;
+            }
+
+            closestPosition = _allPois
+                .OrderBy(p => Vector3D.Distance(p.Position, position))
+                .First()
+                .Position;
+
+            return true;
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(AllPois)}: {AllPois.ToStringSeq()}";
         }
     }
 }

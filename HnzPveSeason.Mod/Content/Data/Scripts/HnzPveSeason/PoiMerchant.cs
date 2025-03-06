@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HnzPveSeason.Utils;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using Sandbox.ModAPI.Contracts;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.Game.ObjectBuilders.Definitions;
+using VRage.Library.Utils;
 using VRage.Serialization;
 using VRage.Utils;
 using VRageMath;
@@ -18,21 +20,26 @@ namespace HnzPveSeason
         const float SafezoneRadius = 75f;
         readonly string _poiId;
         readonly Vector3D _position;
+        readonly IMyFaction _faction;
         readonly MesStaticEncounter _encounter;
         readonly string _variableKey;
-        IMyContract _contract;
-        long _contractId;
+        readonly Interval _economyInterval;
+        HashSet<long> _contractIds;
         long _safeZoneId;
+        IMyCubeGrid _grid;
 
-        public PoiMerchant(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
+        public PoiMerchant(string poiId, Vector3D position, IMyFaction faction, MesStaticEncounterConfig[] configs)
         {
             _poiId = poiId;
             _position = position;
-            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, true);
+            _faction = faction;
+            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, _faction.Tag, true);
             _variableKey = $"HnzPveSeason.PoiMerchant.{_poiId}";
+            _contractIds = new HashSet<long>();
+            _economyInterval = new Interval();
         }
 
-        public DateTime LastPlayerVisitTime { get; private set; }
+        public int LastPlayerVisitFrame { get; private set; }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
@@ -41,7 +48,8 @@ namespace HnzPveSeason
 
             LoadFromSandbox();
 
-            _encounter.Load(grids);
+            _encounter.Load(grids, true, false);
+            _economyInterval.Initialize();
         }
 
         void IPoiObserver.Unload(bool sessionUnload)
@@ -57,6 +65,13 @@ namespace HnzPveSeason
             _encounter.Update();
 
             UpdateLastVisitedTime();
+
+            // update economy
+            if (_grid != null && _economyInterval.Update(SessionConfig.Instance.EconomyUpdateInterval * 60))
+            {
+                UpdateStore();
+                UpdateContracts();
+            }
         }
 
         void IPoiObserver.OnStateChanged(PoiState state)
@@ -70,17 +85,18 @@ namespace HnzPveSeason
 
             if (state == PoiState.Released)
             {
-                LastPlayerVisitTime = DateTime.UtcNow;
+                LastPlayerVisitFrame = MyAPIGateway.Session.GameplayFrameCounter;
             }
         }
 
         void OnGridSet(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant grid set");
+            _grid = grid;
 
-            SetUpContracts(grid);
-            SetUpSafezone(grid);
-            SetUpStore(grid);
+            UpdateStore();
+            UpdateContracts();
+            SetUpSafezone();
             SaveToSandbox();
         }
 
@@ -88,7 +104,14 @@ namespace HnzPveSeason
         {
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant grid unset");
 
-            DisposeContracts();
+            if (_grid != grid)
+            {
+                throw new InvalidOperationException("unsetting grid that isn't set");
+            }
+
+            _grid = null;
+
+            // DisposeContracts(); // note: let the game handle this
             RemoveSafezone();
             SaveToSandbox();
         }
@@ -104,94 +127,37 @@ namespace HnzPveSeason
             var sphere = new BoundingSphereD(_position, _encounter.Config.Area);
             if (!OnlineCharacterCollection.ContainsPlayer(sphere)) return;
 
-            LastPlayerVisitTime = DateTime.UtcNow;
-            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} merchant last visit time updated");
+            LastPlayerVisitFrame = MyAPIGateway.Session.GameplayFrameCounter;
+            MyLog.Default.Debug($"[HnzPveSeason] POI {_poiId} merchant last visit time updated");
         }
 
-        void SetUpContracts(IMyCubeGrid grid)
+        void UpdateContracts()
         {
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} update contracts");
+
             // find contract blocks
-            var blocks = new List<IMySlimBlock>();
-            grid.GetBlocks(blocks, b => IsContractBlock(b));
-            if (blocks.Count == 0)
+            IMyCubeBlock block;
+            if (!TryGetSingleBlock(_grid, b => b?.IsContractBlock() ?? false, out block))
             {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} contract block not found");
+                //MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} invalid contract block count");
                 return;
             }
 
-            // can't have multiple contract blocks
-            if (blocks.Count >= 2)
-            {
-                MyLog.Default.Warning($"[HnzPveSeason] POI {_poiId} multiple contract blocks found");
-            }
-
-            var block = blocks[0];
-            var blockId = block.FatBlock.EntityId;
-            var contractState = MyAPIGateway.ContractSystem.GetContractState(_contractId);
-            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} contract block found: {blockId}, {_contractId}, {contractState}");
-
-            // keep the existing contracts posted up
-            if (contractState == MyCustomContractStateEnum.Active || contractState == MyCustomContractStateEnum.Inactive)
-            {
-                MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} contract already exists");
-                return;
-            }
-
-            // choose contracts to post up
-            var config = SessionConfig.Instance.Contracts[0]; //todo
-            _contract = new MyContractAcquisition(blockId, config.Reward, config.Collateral, config.Duration, blockId, config.ItemDefinitionId, config.ItemAmount);
-
-            // grid must be owned by a faction
-            IMyFaction faction;
-            if (!VRageUtils.TryGetFaction(blockId, out faction))
-            {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} contract faction not found; block id: {blockId}");
-                return;
-            }
-
-            // grid must be owned by an NPC faction
-            var steamId = MyAPIGateway.Players.TryGetSteamId(faction.FounderId);
-            if (steamId != 0)
-            {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} contract block not owned by NPC");
-                return;
-            }
-
-            // make sure merchants have money to pay
-            MyAPIGateway.Players.RequestChangeBalance(faction.FounderId, _contract.MoneyReward + 1);
-
-            // post up the contract
-            var result = MyAPIGateway.ContractSystem.AddContract(_contract);
-            if (!result.Success)
-            {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} contract failed adding to system");
-                return;
-            }
-
-            _contractId = result.ContractId;
-            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} contract added; id: {_contractId}");
+            // disable contract blocks until we implement custom contracts
+            ((IMyFunctionalBlock)block).Enabled = false;
         }
 
-        void DisposeContracts()
-        {
-            if (_contractId != 0)
-            {
-                MyAPIGateway.ContractSystem?.RemoveContract(_contractId);
-                _contractId = 0;
-            }
-        }
-
-        void SetUpSafezone(IMyCubeGrid grid)
+        void SetUpSafezone()
         {
             MySafeZone safezone;
-            if (TryGetExistingSafeZone(out safezone))
+            if (VRageUtils.TryGetEntityById(_safeZoneId, out safezone))
             {
                 MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} safezone already exists");
                 return;
             }
 
             safezone = (MySafeZone)MySessionComponentSafeZones.CrateSafeZone(
-                grid.WorldMatrix,
+                _grid.WorldMatrix,
                 MySafeZoneShape.Sphere,
                 MySafeZoneAccess.Blacklist,
                 null, null, SafezoneRadius, true, true,
@@ -205,7 +171,7 @@ namespace HnzPveSeason
         void RemoveSafezone()
         {
             MySafeZone safezone;
-            if (!TryGetExistingSafeZone(out safezone))
+            if (!VRageUtils.TryGetEntityById(_safeZoneId, out safezone))
             {
                 MyLog.Default.Warning($"[HnzPveSeason] POI {_poiId} safezone not found");
                 return;
@@ -219,57 +185,57 @@ namespace HnzPveSeason
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} safezone removed");
         }
 
-        bool TryGetExistingSafeZone(out MySafeZone safezone)
+        void UpdateStore()
         {
-            safezone = MyAPIGateway.Entities.GetEntityById(_safeZoneId) as MySafeZone;
-            return safezone != null;
-        }
+            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} update store items");
 
-        void SetUpStore(IMyCubeGrid grid)
-        {
-            // sell tech comps
-            var blocks = new List<IMySlimBlock>();
-            grid.GetBlocks(blocks, b => b.FatBlock is IMyStoreBlock && !(b.FatBlock is IMyVendingMachine));
-            if (blocks.Count == 0)
+            IMyStoreBlock storeBlock;
+            if (!TryGetSingleBlock(_grid, b => b?.IsStoreBlock() ?? false, out storeBlock))
             {
-                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} store block not found");
+                MyLog.Default.Error($"[HnzPveSeason] POI {_poiId} invalid store block count");
                 return;
             }
 
-            if (blocks.Count >= 2)
+            var allExistingItems = new List<IMyStoreItem>();
+            storeBlock.GetStoreItems(allExistingItems);
+
+            var existingOffers = new Dictionary<MyDefinitionId, int>();
+            var existingOrders = new Dictionary<MyDefinitionId, int>();
+            foreach (var item in allExistingItems)
             {
-                MyLog.Default.Warning($"[HnzPveSeason] POI {_poiId} multiple store blocks found");
+                if (item.Item == null) continue; // shouldn't happen
+
+                var id = item.Item.Value.ToDefinitionId();
+                var dic = item.StoreItemType == StoreItemTypes.Offer ? existingOffers : existingOrders;
+                dic[id] = item.Amount;
             }
 
-            var storeBlock = (IMyStoreBlock)blocks[0].FatBlock;
-            var items = new List<IMyStoreItem>();
-            storeBlock.GetStoreItems(items);
-            foreach (var item in items)
-            {
-                storeBlock.RemoveStoreItem(item);
-            }
+            storeBlock.ClearItems();
 
             foreach (var c in SessionConfig.Instance.StoreItems)
             {
                 MyDefinitionId id;
-                if (!MyDefinitionId.TryParse(c.ItemDefinitionId, out id))
+                if (!MyDefinitionId.TryParse($"{c.Type}/{c.Subtype}", out id))
                 {
-                    MyLog.Default.Error($"[HnzPveSeason] invalid store item definition id: '{c.ItemDefinitionId}'");
+                    MyLog.Default.Error($"[HnzPveSeason] invalid store item config: {c}");
                     continue;
                 }
 
-                var item = storeBlock.CreateStoreItem(id, c.Amount, c.PricePerUnit, c.Type);
+                var existingAmount = existingOffers.GetValueOrDefault(id, 0);
+                var fillAmount = (int)MathHelper.Lerp(c.MinAmountPerUpdate, c.MaxAmountPerUpdate, MyRandom.Instance.NextDouble());
+                var amount = Math.Min(existingAmount + fillAmount, c.MaxAmount);
+                var item = storeBlock.CreateStoreItem(id, amount, c.PricePerUnit, StoreItemTypes.Offer);
                 storeBlock.InsertStoreItem(item);
-            }
 
-            MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} store initialized");
+                MyLog.Default.Debug($"[HnzPveSeason] UpdateStoreItems() offer; item: {id}, origin: {existingAmount}, delta: {fillAmount}");
+            }
         }
 
         void SaveToSandbox()
         {
             var data = new SerializableDictionary<string, object>
             {
-                [nameof(_contractId)] = _contractId,
+                [nameof(_contractIds)] = string.Join(";", _contractIds),
                 [nameof(_safeZoneId)] = _safeZoneId,
             };
             MyAPIGateway.Utilities.SetVariable(_variableKey, data);
@@ -281,16 +247,20 @@ namespace HnzPveSeason
             if (MyAPIGateway.Utilities.GetVariable(_variableKey, out data))
             {
                 var dictionary = data.Dictionary;
-                _contractId = dictionary.GetValueOrDefault(nameof(_contractId), (long)0);
+                _contractIds = dictionary.GetValueOrDefault(nameof(_contractIds), "0").Split(',').Select(long.Parse).ToSet();
                 _safeZoneId = dictionary.GetValueOrDefault(nameof(_safeZoneId), (long)0);
             }
         }
 
-        static bool IsContractBlock(IMySlimBlock slimBlock)
+        static bool TryGetSingleBlock<T>(IMyCubeGrid grid, Func<IMyCubeBlock, bool> f, out T block) where T : class, IMyCubeBlock
         {
-            if (slimBlock.FatBlock == null) return false;
-            var blockSubtype = slimBlock.FatBlock.BlockDefinition.SubtypeId;
-            return blockSubtype.IndexOf("ContractBlock", StringComparison.Ordinal) > -1;
+            block = null;
+            var blocks = new List<IMySlimBlock>();
+            grid.GetBlocks(blocks, b => f(b.FatBlock));
+            if (blocks.Count != 1) return false;
+
+            block = (T)blocks[0].FatBlock;
+            return true;
         }
     }
 }

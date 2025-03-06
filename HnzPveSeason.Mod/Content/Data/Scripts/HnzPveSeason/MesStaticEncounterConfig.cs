@@ -10,6 +10,9 @@ namespace HnzPveSeason
         public string SpawnGroup = "Orks-SpawnGroup-Boss-KillaKrooZa";
 
         [XmlAttribute]
+        public string MainPrefab = ""; // in case a spawn group consists of multiple grids
+
+        [XmlAttribute]
         public bool Planetary;
 
         [XmlAttribute]

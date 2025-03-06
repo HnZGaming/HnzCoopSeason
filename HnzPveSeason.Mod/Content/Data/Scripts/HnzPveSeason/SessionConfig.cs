@@ -26,6 +26,9 @@ namespace HnzPveSeason
         [XmlElement]
         public int RandomInvasionInterval = 600;
 
+        [XmlElement]
+        public int EconomyUpdateInterval = 1200;
+
         [XmlArray]
         [XmlArrayItem("Poi")]
         public PoiConfig[] PlanetaryPois = { new PoiConfig() };
@@ -37,10 +40,6 @@ namespace HnzPveSeason
         [XmlArray]
         [XmlArrayItem("Merchant")]
         public MesStaticEncounterConfig[] Merchants = { new MesStaticEncounterConfig() };
-
-        [XmlArray]
-        [XmlArrayItem("Contract")]
-        public ContractConfig[] Contracts = { new ContractConfig() };
 
         [XmlArray]
         [XmlArrayItem("StoreItem")]

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Xml.Serialization;
-using VRage.Game.ObjectBuilders.Definitions;
 
 namespace HnzPveSeason
 {
@@ -8,15 +7,26 @@ namespace HnzPveSeason
     public sealed class StoreItemConfig
     {
         [XmlAttribute]
-        public StoreItemTypes Type = StoreItemTypes.Offer;
+        public string Type = "Component";
 
         [XmlAttribute]
-        public string ItemDefinitionId = "MyObjectBuilder_Component/Tech2x";
+        public string Subtype = "Tech2x";
 
         [XmlAttribute]
-        public int Amount = 10;
+        public int PricePerUnit = 200000;
 
         [XmlAttribute]
-        public int PricePerUnit = 10;
+        public int MinAmountPerUpdate = 5;
+
+        [XmlAttribute]
+        public int MaxAmountPerUpdate = 10;
+
+        [XmlAttribute]
+        public int MaxAmount = 100;
+
+        public override string ToString()
+        {
+            return $"{nameof(Type)}: {Type}, {nameof(Subtype)}: {Subtype}, {nameof(PricePerUnit)}: {PricePerUnit}, {nameof(MinAmountPerUpdate)}: {MinAmountPerUpdate}, {nameof(MaxAmountPerUpdate)}: {MaxAmountPerUpdate}, {nameof(MaxAmount)}: {MaxAmount}";
+        }
     }
 }

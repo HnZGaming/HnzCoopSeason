@@ -21,7 +21,7 @@ namespace HnzPveSeason
 
         readonly string _prefix;
         readonly bool _ignoreForDespawn;
-        DateTime? ignoreForDespawnStartTime;
+        DateTime? _ignoreForDespawnStartTime;
 
         public MesGrid(string id, string prefix, bool ignoreForDespawn)
         {
@@ -48,16 +48,16 @@ namespace HnzPveSeason
         {
             if (State == SpawningState.Spawning)
             {
-                MyLog.Default.Warning($"[HnzPveSeason] MesGrid `{Id}` unloading while spawning");
+                MyLog.Default.Warning($"[HnzPveSeason] MesGrid {Id} unloading while spawning");
             }
 
             MESApi.Instance.RegisterSuccessfulSpawnAction(OnMesAnySuccessfulSpawn, false);
             OnGridSet = null;
         }
 
-        public void RequestSpawn(string spawnGroup, MatrixD targetMatrix) // called multiple times
+        public void RequestSpawn(string spawnGroup, string mainPrefab, string factionTag, MatrixD targetMatrix) // called multiple times
         {
-            MyLog.Default.Info($"[HnzPveSeason] MesGrid `{Id}` spawning");
+            MyLog.Default.Info($"[HnzPveSeason] MesGrid {Id} spawning");
 
             if (Grid != null)
             {
@@ -70,23 +70,25 @@ namespace HnzPveSeason
                     SpawningMatrix = targetMatrix,
                     IgnoreSafetyCheck = true,
                     SpawnProfileId = nameof(HnzPveSeason),
-                    Context = Id,
+                    FactionOverride = factionTag,
+                    Context = new MesGridContext(Id, mainPrefab).ToXml(),
                 }))
             {
                 State = SpawningState.Failure;
-                MyLog.Default.Error($"[HnzPveSeason] MesGrid `{Id}` failed to spawn: '{spawnGroup}' at '{targetMatrix.Translation}'");
+                MyLog.Default.Error($"[HnzPveSeason] MesGrid {Id} failed to spawn: '{spawnGroup}' at '{targetMatrix.Translation}'");
                 return;
             }
 
-            ignoreForDespawnStartTime = null;
+            _ignoreForDespawnStartTime = null;
             State = SpawningState.Spawning;
         }
 
         void OnMesAnySuccessfulSpawn(IMyCubeGrid grid)
         {
-            if (!IsMyGrid(grid)) return;
+            if (State != SpawningState.Spawning) return;
+            if (!IsMyGrid(grid, true)) return;
 
-            MyLog.Default.Info($"[HnzPveSeason] MesGrid `{Id}` spawn found");
+            MyLog.Default.Info($"[HnzPveSeason] MesGrid {Id} spawn found");
             grid.DisplayName = $"{_prefix} {grid.DisplayName}";
 
             SetGrid(grid);
@@ -99,12 +101,12 @@ namespace HnzPveSeason
                 throw new InvalidOperationException("grid already set");
             }
 
-            if (!IsMyGrid(grid))
+            if (!IsMyGrid(grid, true))
             {
-                throw new InvalidOperationException($"invalid grid set; id: `{Id}`");
+                throw new InvalidOperationException($"invalid grid set; id: {Id}");
             }
 
-            ignoreForDespawnStartTime = DateTime.UtcNow + TimeSpan.FromSeconds(10);
+            _ignoreForDespawnStartTime = DateTime.UtcNow + TimeSpan.FromSeconds(10);
             Grid = grid;
             State = SpawningState.Success;
             OnGridSet?.Invoke(Grid);
@@ -114,7 +116,7 @@ namespace HnzPveSeason
         {
             foreach (var g in grids)
             {
-                if (IsMyGrid(g))
+                if (IsMyGrid(g, true))
                 {
                     SetGrid(g);
                     return true;
@@ -124,11 +126,23 @@ namespace HnzPveSeason
             return false;
         }
 
+        public void CloseAllMyGrids(IEnumerable<IMyCubeGrid> grids)
+        {
+            foreach (var g in grids)
+            {
+                if (IsMyGrid(g, false))
+                {
+                    g.Close();
+                    MyLog.Default.Info($"[HnzPveSeason] MesGrid {Id} closed on load");
+                }
+            }
+        }
+
         public void Despawn()
         {
             if (State == SpawningState.Spawning)
             {
-                MyLog.Default.Warning($"[HnzPveSeason] MesGrid `{Id}` despawning while spawning");
+                MyLog.Default.Warning($"[HnzPveSeason] MesGrid {Id} despawning while spawning");
             }
 
             if (Grid != null)
@@ -167,7 +181,7 @@ namespace HnzPveSeason
             if (State != SpawningState.Success) return;
             if (!Grid.MarkedForClose && !Grid.Closed) return;
 
-            MyLog.Default.Warning($"[HnzPveSeason] MesGrid `{Id}` grid removed externally");
+            MyLog.Default.Warning($"[HnzPveSeason] MesGrid {Id} grid removed externally");
             OnGridUnset?.Invoke(Grid);
             Grid = null;
             State = SpawningState.Idle;
@@ -176,28 +190,36 @@ namespace HnzPveSeason
         void ValidateIgnoreForDespawn()
         {
             if (State != SpawningState.Success) return;
-            if (ignoreForDespawnStartTime == null) return;
-            if (ignoreForDespawnStartTime.Value > DateTime.UtcNow) return;
+            if (_ignoreForDespawnStartTime == null) return;
+            if (_ignoreForDespawnStartTime.Value > DateTime.UtcNow) return;
 
-            MyLog.Default.Info($"[HnzPveSeason] MesGrid `{Id}` ignore for despawn: '{Grid.DisplayName}'");
+            MyLog.Default.Info($"[HnzPveSeason] MesGrid {Id} ignore for despawn: '{Grid.DisplayName}'");
 
             if (!MESApi.Instance.SetSpawnerIgnoreForDespawn(Grid, _ignoreForDespawn))
             {
                 MyLog.Default.Error($"[HnzPveSeason] failed to set ignore for despawn: '{Grid.DisplayName}', {MyAPIGateway.Session.GameplayFrameCounter}");
             }
 
-            ignoreForDespawnStartTime = null;
+            _ignoreForDespawnStartTime = null;
         }
 
-        bool IsMyGrid(IMyCubeGrid grid)
+        bool IsMyGrid(IMyCubeGrid grid, bool checkMainGrid)
         {
             if (grid == null) return false;
 
             NpcData npcData;
             if (!NpcData.TryGetNpcData(grid, out npcData)) return false;
-            if (npcData.Context != Id) return false;
+            if (string.IsNullOrEmpty(npcData.Context)) return false;
 
-            return true;
+            MesGridContext context;
+            if (!MesGridContext.FromXml(npcData.Context, out context)) return false;
+            if (context.Id != Id) return false;
+
+            if (!checkMainGrid) return true;
+            if (string.IsNullOrEmpty(context.MainPrefabId)) return true; // `MainPrefabId` wasn't specified upon spawning
+            if (context.MainPrefabId == npcData.OriginalPrefabId) return true;
+
+            return false;
         }
     }
 }

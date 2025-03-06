@@ -1,13 +1,12 @@
 <?xml version="1.0" ?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <Factions>
-        <Faction Tag="MERCHANTS" Founder="The Merchant Boss">
+        <Faction Tag="MERC" Founder="The Marchant Boss">
             <Id>
                 <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
                 <SubtypeId>Merchants</SubtypeId>
             </Id>
             <DisplayName>Merchants</DisplayName>
-            <Description>Merchants sell stuff.</Description>
             <IsDefault>true</IsDefault>
             <DefaultRelation>Neutral</DefaultRelation>
             <AcceptHumans>false</AcceptHumans>

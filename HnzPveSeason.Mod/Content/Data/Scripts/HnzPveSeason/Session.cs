@@ -50,8 +50,6 @@ namespace HnzPveSeason
                 MESApi.Load();
                 FlashGpsApi.Load(nameof(HnzPveSeason).GetHashCode());
                 PlanetCollection.Load();
-
-                LoadConfig();
             }
 
             MyLog.Default.Info("[HnzPveSeason] session loaded");
@@ -78,8 +76,6 @@ namespace HnzPveSeason
         {
             SessionConfig.Load();
             _poiMap.LoadConfig();
-
-            _doneFirstUpdate = false;
         }
 
         public override void UpdateBeforeSimulation()
@@ -89,7 +85,7 @@ namespace HnzPveSeason
             if (!_doneFirstUpdate)
             {
                 _doneFirstUpdate = true;
-                _poiMap.LoadScene();
+                LoadConfig();
             }
 
             if (MyAPIGateway.Session.GameplayFrameCounter % 60 == 0)
@@ -113,7 +109,7 @@ namespace HnzPveSeason
                 return;
             }
 
-            var pois = _poiMap.GetAllPois();
+            var pois = _poiMap.AllPois;
 
             int limit;
             var limitMatch = Regex.Match(args, @"--limit (\d+)");
@@ -173,6 +169,15 @@ namespace HnzPveSeason
             Poi poi;
             _poiMap.TryGetPoi(id, out poi);
             return poi;
+        }
+
+        public float GetProgression()
+        {
+            return _poiMap.GetProgression();
+        }
+
+        public void AddProgressionDelta(float progression)
+        {
         }
     }
 }

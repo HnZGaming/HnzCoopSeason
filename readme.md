@@ -21,19 +21,24 @@ co-op season
 - [x] merchants acquisition contracts
 - [x] merchants acquisition contracts persistency across session
 - [x] merchant safezone
-- [x] merchant stores selling tech comps
 - [x] merchant encounter in space
 - [x] keep player grids intact upon npc despawn
 - [x] ork invasion at random interval
-- [ ] merchant contracts refill with timer
-- [ ] merchant stores refill with timer
-- [ ] progressive tech comp tier
-- [ ] use vanilla economy stations and store item list for merchants
-- [ ] game complete event
-- [ ] respawn ship data pad with POI info
+- [x] vanilla stations for merchants -- 1x for space, 1x for planetary
+- [x] disable contract blocks
+- [x] merchant stores selling tech comps
+- [x] refill merchant stores
+- [ ] progress display permanently on the screen
+- [ ] merchant discovery notification
+- [ ] respawn players near occupied POIs
+- [ ] replace data pad
+- [ ] MOTD with recaps
+- [ ] orks spawn in fleet, as opposed to a single spawn group
 
 ### V1.5
 
+- [ ] merchant color override
+- [ ] grids for sale by builder merchants
 - [ ] wandering merchants random encounter around safe POIs
 - [ ] wandering merchants stopping at player bases
 - [ ] wandering orks random encounter based on area's tier score
@@ -46,3 +51,15 @@ co-op season
 ### V2.0
 
 tba
+
+## Notes
+
+### Ships for sale
+
+code: `MyGenericFactionTypeStrategy.GenerateGridOffers()`
+
+### Progressive store items
+
+Progression based on:
+- number of released POIs
+- number of contracts finished

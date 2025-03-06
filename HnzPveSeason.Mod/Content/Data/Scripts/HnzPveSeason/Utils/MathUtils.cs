@@ -42,17 +42,16 @@ namespace HnzPveSeason.Utils
                 totalWeight += weight;
             }
 
-            var random = new Random();
-            var randomNumber = random.NextDouble() * totalWeight;
+            var randomValue = MyRandom.Instance.NextFloat() * totalWeight;
 
+            var cumulative = 0f;
             for (var i = 0; i < weights.Length; i++)
             {
-                if (randomNumber < weights[i])
+                cumulative += weights[i];
+                if (randomValue < cumulative)
                 {
                     return i;
                 }
-
-                randomNumber -= weights[i];
             }
 
             return weights.Length - 1;

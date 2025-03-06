@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Sandbox.Definitions;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
+using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRage.ObjectBuilders;
 using VRageMath;
 
 namespace HnzPveSeason.Utils
@@ -26,6 +29,11 @@ namespace HnzPveSeason.Utils
             }
 
             return entity.Storage.TryGetValue(key, out value);
+        }
+
+        public static MyDefinitionId ToDefinitionId(this SerializableDefinitionId id)
+        {
+            return new MyDefinitionId(id.TypeId, id.SubtypeName);
         }
 
         public static Vector3 CalculateNaturalGravity(Vector3 point)
@@ -80,6 +88,73 @@ namespace HnzPveSeason.Utils
             var ownerId = block.OwnerId;
             faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
             return faction != null;
+        }
+
+        public static void ClearItems(this IMyStoreBlock storeBlock)
+        {
+            // clear existing items
+            var items = new List<IMyStoreItem>();
+            storeBlock.GetStoreItems(items);
+            foreach (var item in items)
+            {
+                storeBlock.RemoveStoreItem(item);
+            }
+        }
+
+        public static bool TryGetEntityById<T>(long entityId, out T entity) where T : class, IMyEntity
+        {
+            entity = MyAPIGateway.Entities.GetEntityById(entityId) as T;
+            return entity != null;
+        }
+
+        public static bool IsContractBlock(this IMyCubeBlock block)
+        {
+            return block.BlockDefinition.SubtypeId?.IndexOf("ContractBlock", StringComparison.Ordinal) > -1;
+        }
+
+        public static bool IsStoreBlock(this IMyCubeBlock block)
+        {
+            return block is IMyStoreBlock && !(block is IMyVendingMachine);
+        }
+
+        // copied from vanilla private code
+        public static int CalculateItemMinimalPrice(MyDefinitionId itemId)
+        {
+            MyPhysicalItemDefinition myPhysicalItemDefinition;
+            if (MyDefinitionManager.Static.TryGetDefinition(itemId, out myPhysicalItemDefinition) && myPhysicalItemDefinition.MinimalPricePerUnit > 0)
+            {
+                return myPhysicalItemDefinition.MinimalPricePerUnit;
+            }
+
+            MyBlueprintDefinitionBase myBlueprintDefinitionBase;
+            if (!MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(itemId, out myBlueprintDefinitionBase))
+            {
+                return 0;
+            }
+
+            var num = myPhysicalItemDefinition.IsIngot ? 1f : MyAPIGateway.Session.AssemblerEfficiencyMultiplier;
+            var num2 = 0;
+            foreach (var item in myBlueprintDefinitionBase.Prerequisites)
+            {
+                var num3 = CalculateItemMinimalPrice(item.Id);
+                var num4 = (float)item.Amount / num;
+                num2 += (int)(num3 * num4);
+            }
+
+            var num5 = myPhysicalItemDefinition.IsIngot ? MyAPIGateway.Session.RefinerySpeedMultiplier : MyAPIGateway.Session.AssemblerSpeedMultiplier;
+            foreach (var item2 in myBlueprintDefinitionBase.Results)
+            {
+                if (item2.Id != itemId) continue;
+
+                var amount = (float)item2.Amount;
+                if (amount == 0f) continue;
+
+                var num7 = 1f + (float)Math.Log(myBlueprintDefinitionBase.BaseProductionTimeInSeconds + 1f) / num5;
+                var num8 = (int)(num2 * (1f / amount) * num7);
+                return num8;
+            }
+
+            return 0;
         }
     }
 }

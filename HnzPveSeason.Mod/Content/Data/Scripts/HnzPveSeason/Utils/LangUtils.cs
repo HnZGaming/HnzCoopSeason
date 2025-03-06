@@ -23,5 +23,10 @@ namespace HnzPveSeason.Utils
             if (!(value is T)) return defaultValue;
             return (T)value;
         }
+
+        public static HashSet<T> ToSet<T>(this IEnumerable<T> self)
+        {
+            return new HashSet<T>(self);
+        }
     }
 }

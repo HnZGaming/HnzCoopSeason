@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using HnzPveSeason.Utils;
+using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
@@ -17,7 +18,7 @@ namespace HnzPveSeason
         public PoiOrk(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
         {
             _poiId = poiId;
-            _encounter = new MesStaticEncounter($"{poiId}-ork", "[ORKS]", configs, position, false);
+            _encounter = new MesStaticEncounter($"{poiId}-ork", "[ORKS]", configs, position, null, false);
             _randomInvasionInterval = new Interval();
             _randomInvasionChance = new Random();
         }
@@ -26,7 +27,7 @@ namespace HnzPveSeason
         {
             _encounter.OnGridSet += OnGridSet;
             _encounter.OnGridUnset += OnGridUnset;
-            _encounter.Load(grids);
+            _encounter.Load(grids, false, true);
 
             _randomInvasionInterval.Initialize();
         }
@@ -74,15 +75,15 @@ namespace HnzPveSeason
             var poi = Session.Instance.GetPoi(_poiId);
             if (poi.State == PoiState.Occupied) return;
 
-            var interval = TimeSpan.FromSeconds(SessionConfig.Instance.RandomInvasionInterval);
-            if (!_randomInvasionInterval.Update(interval)) return;
+            var span = SessionConfig.Instance.RandomInvasionInterval * 60;
+            if (!_randomInvasionInterval.Update(span)) return;
 
             var chance = SessionConfig.Instance.RandomInvasionChance;
             var random = _randomInvasionChance.NextDouble();
             if (random <= chance) return;
 
             var merchant = poi.Observers.OfType<PoiMerchant>().First();
-            if (merchant.LastPlayerVisitTime + interval > DateTime.UtcNow) return;
+            if (merchant.LastPlayerVisitFrame + span > MyAPIGateway.Session.GameplayFrameCounter) return;
 
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} random invasion");
             poi.SetState(PoiState.Occupied);

@@ -31,7 +31,6 @@ co-op season
 - [x] progress bar on the screen
 - [x] merchant discovery notification
 - [x] replace data pad
-- [ ] MOTD with recaps
 - [ ] orks spawn in fleet, as opposed to a single spawn group
 - [ ] multiplayer tests
 

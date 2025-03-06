@@ -9,15 +9,13 @@ using VRageRender;
 
 namespace HnzPveSeason
 {
-    public sealed class ProgressionView
+    public static class ProgressionView
     {
-        public static readonly ProgressionView Instance = new ProgressionView();
         static readonly ushort ModKey = (ushort)"HnzPveSeason.ProgressionView".GetHashCode();
 
-        HudAPIv2 _hudApi;
-        bool IsApiLoaded => _hudApi?.Heartbeat ?? false;
+        static HudAPIv2 _hudApi;
 
-        public void Load()
+        public static void Load()
         {
             MyLog.Default.Info("[HnzPveSeason] ProgressionView.Load()");
 
@@ -30,7 +28,7 @@ namespace HnzPveSeason
             }
         }
 
-        public void Unload()
+        public static void Unload()
         {
             MyLog.Default.Info("[HnzPveSeason] ProgressionView.Unload()");
 
@@ -44,7 +42,7 @@ namespace HnzPveSeason
             }
         }
 
-        public void UpdateProgress() //called in server
+        public static void UpdateProgress() //called in server
         {
             var progress = Session.Instance.GetProgress();
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(progress));
@@ -59,7 +57,7 @@ namespace HnzPveSeason
             MyLog.Default.Info("[HnzPveSeason] progress sent: {0:0.00}", progress);
         }
 
-        void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
+        static void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
         {
             if (MyAPIGateway.Utilities.IsDedicated) return;
             if (modKey != ModKey) return;

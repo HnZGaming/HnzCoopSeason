@@ -28,12 +28,11 @@ namespace HnzPveSeason
 
             MyLog.Default.Info("[HnzPveSeason] session loading");
 
-            MissionScreenView.Load();
-
             _commandModule = new CommandModule("pve");
             _commandModule.Load();
             InitializeCommands();
 
+            MissionScreenView.Load();
             PoiGpsView.Load();
 
             // server or single player
@@ -47,7 +46,7 @@ namespace HnzPveSeason
                 RespawnPodManipulator.Load();
             }
 
-            ProgressionView.Instance.Load();
+            ProgressionView.Load();
 
             MyLog.Default.Info("[HnzPveSeason] session loaded");
         }
@@ -70,26 +69,27 @@ namespace HnzPveSeason
                 RespawnPodManipulator.Unload();
             }
 
-            ProgressionView.Instance.Unload();
+            ProgressionView.Unload();
         }
 
         void LoadConfig()
         {
             SessionConfig.Load();
             _poiMap.LoadConfig();
-            ProgressionView.Instance.UpdateProgress();
+            ProgressionView.UpdateProgress();
         }
 
         void FirstUpdate()
         {
+            // server or single player
             if (MyAPIGateway.Session.IsServer)
             {
                 LoadConfig();
             }
 
+            // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                // client init
             }
         }
 
@@ -119,7 +119,7 @@ namespace HnzPveSeason
             if (!_poiMap.TryGetPoi(poiId, out poi)) return false;
             if (!poi.SetState(state)) return false;
 
-            ProgressionView.Instance.UpdateProgress();
+            ProgressionView.UpdateProgress();
             return true;
         }
 

@@ -134,6 +134,7 @@
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsSerialization.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\FlashGPS\FlashGpsSource.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\HudAPI\HudApiV2.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\IPoiObserver.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MesGrid.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\MesGridContext.cs" />
@@ -149,6 +150,7 @@
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiMerchant.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiOrk.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\PoiState.cs" />
+      <Compile Include="Content\Data\Scripts\HnzPveSeason\ProgressionView.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\SessionConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\Session.cs" />
       <Compile Include="Content\Data\Scripts\HnzPveSeason\StoreItemConfig.cs" />

@@ -19,7 +19,6 @@ namespace HnzPveSeason
     {
         const float SafezoneRadius = 75f;
         readonly string _poiId;
-        readonly Vector3D _position;
         readonly IMyFaction _faction;
         readonly MesStaticEncounter _encounter;
         readonly string _variableKey;
@@ -31,15 +30,12 @@ namespace HnzPveSeason
         public PoiMerchant(string poiId, Vector3D position, IMyFaction faction, MesStaticEncounterConfig[] configs)
         {
             _poiId = poiId;
-            _position = position;
             _faction = faction;
             _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, _faction.Tag, true);
             _variableKey = $"HnzPveSeason.PoiMerchant.{_poiId}";
             _contractIds = new HashSet<long>();
             _economyInterval = new Interval();
         }
-
-        public int LastPlayerVisitFrame { get; private set; }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
@@ -64,8 +60,6 @@ namespace HnzPveSeason
         {
             _encounter.Update();
 
-            UpdateLastVisitedTime();
-
             // update economy
             if (_grid != null && _economyInterval.Update(SessionConfig.Instance.EconomyUpdateInterval * 60))
             {
@@ -81,11 +75,6 @@ namespace HnzPveSeason
             if (state == PoiState.Occupied)
             {
                 _encounter.Despawn();
-            }
-
-            if (state == PoiState.Released)
-            {
-                LastPlayerVisitFrame = MyAPIGateway.Session.GameplayFrameCounter;
             }
         }
 
@@ -114,21 +103,6 @@ namespace HnzPveSeason
             // DisposeContracts(); // note: let the game handle this
             RemoveSafezone();
             SaveToSandbox();
-        }
-
-        void UpdateLastVisitedTime()
-        {
-            // every 10 seconds
-            if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 10) != 0) return;
-
-            var poi = Session.Instance.GetPoi(_poiId);
-            if (poi.State != PoiState.Released) return;
-
-            var sphere = new BoundingSphereD(_position, _encounter.Config.Area);
-            if (!OnlineCharacterCollection.ContainsPlayer(sphere)) return;
-
-            LastPlayerVisitFrame = MyAPIGateway.Session.GameplayFrameCounter;
-            MyLog.Default.Debug($"[HnzPveSeason] POI {_poiId} merchant last visit time updated");
         }
 
         void UpdateContracts()
@@ -227,7 +201,7 @@ namespace HnzPveSeason
                 var item = storeBlock.CreateStoreItem(id, amount, c.PricePerUnit, StoreItemTypes.Offer);
                 storeBlock.InsertStoreItem(item);
 
-                MyLog.Default.Debug($"[HnzPveSeason] UpdateStoreItems() offer; item: {id}, origin: {existingAmount}, delta: {fillAmount}");
+                MyLog.Default.Debug("[HnzPveSeason] UpdateStoreItems() offer; item: {0}, origin: {1}, delta: {2}", id, existingAmount, amount, fillAmount);
             }
         }
 

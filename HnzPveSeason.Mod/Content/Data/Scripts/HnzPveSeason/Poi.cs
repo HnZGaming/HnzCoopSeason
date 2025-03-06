@@ -49,16 +49,16 @@ namespace HnzPveSeason
             foreach (var o in _observers) o.Unload(sessionUnload);
         }
 
-        public void SetState(PoiState state, bool init = false)
+        public bool SetState(PoiState state, bool init = false)
         {
             if (State == state)
             {
-                if (!init) return;
+                if (!init) return false;
             }
 
             if (init)
             {
-                MyLog.Default.Debug($"[HnzPveSeason] POI {Id} state init with {state}");
+                MyLog.Default.Debug("[HnzPveSeason] POI {0} state init with {1}", Id, state);
             }
             else
             {
@@ -72,6 +72,8 @@ namespace HnzPveSeason
             {
                 Save();
             }
+
+            return true;
         }
 
         void Save()
@@ -88,6 +90,12 @@ namespace HnzPveSeason
         public void Update()
         {
             foreach (var o in _observers) o.Update();
+        }
+
+        public bool IsPlayerAround(float radius)
+        {
+            var sphere = new BoundingSphereD(Position, radius);
+            return OnlineCharacterCollection.ContainsPlayer(sphere);
         }
     }
 }

@@ -122,9 +122,8 @@ namespace HnzPveSeason
 
         public bool TryGetPoi(string id, out Poi poi)
         {
-            if (_planetaryPois.TryGetValue(id, out poi)) return true;
-            if (_spacePois.TryGetValue(id, out poi)) return true;
-            return false;
+            return _planetaryPois.TryGetValue(id, out poi) ||
+                   _spacePois.TryGetValue(id, out poi);
         }
 
         public float GetProgression()
@@ -138,6 +137,7 @@ namespace HnzPveSeason
                 }
             }
 
+            MyLog.Default.Info($"[HnzPveSeason] {releasedPoiCount} / {_allPois.Count}");
             return releasedPoiCount / (float)_allPois.Count;
         }
     }

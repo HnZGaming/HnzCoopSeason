@@ -15,7 +15,7 @@ namespace HnzPveSeason
         public float PoiMapRadius = 10000000;
 
         [XmlElement]
-        public int PoiCountPerAxis = 5;
+        public int PoiCountPerAxis = 4;
 
         [XmlElement]
         public float EncounterRadius = 10000;

@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Linq;
 using HnzPveSeason.Utils;
-using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
+using VRage.Library.Utils;
 using VRage.Utils;
 using VRageMath;
 
@@ -13,14 +12,13 @@ namespace HnzPveSeason
         readonly string _poiId;
         readonly MesStaticEncounter _encounter;
         readonly Interval _randomInvasionInterval;
-        readonly Random _randomInvasionChance;
+        PoiState _poiState;
 
         public PoiOrk(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
         {
             _poiId = poiId;
             _encounter = new MesStaticEncounter($"{poiId}-ork", "[ORKS]", configs, position, null, false);
             _randomInvasionInterval = new Interval();
-            _randomInvasionChance = new Random();
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
@@ -47,6 +45,7 @@ namespace HnzPveSeason
 
         void IPoiObserver.OnStateChanged(PoiState state)
         {
+            _poiState = state;
             _encounter.SetActive(state == PoiState.Occupied);
         }
 
@@ -66,27 +65,25 @@ namespace HnzPveSeason
         {
             if (!VRageUtils.IsGridControlledByAI(grid))
             {
-                Session.Instance.GetPoi(_poiId).SetState(PoiState.Released);
+                Session.Instance.SetPoiState(_poiId, PoiState.Released);
             }
         }
 
         void AttemptRandomInvasion()
         {
-            var poi = Session.Instance.GetPoi(_poiId);
-            if (poi.State == PoiState.Occupied) return;
+            if (_poiState == PoiState.Occupied) return;
 
             var span = SessionConfig.Instance.RandomInvasionInterval * 60;
             if (!_randomInvasionInterval.Update(span)) return;
 
+            if (Session.Instance.IsPlayerAroundPoi(_poiId, _encounter.Config.Area)) return;
+
             var chance = SessionConfig.Instance.RandomInvasionChance;
-            var random = _randomInvasionChance.NextDouble();
+            var random = MyRandom.Instance.NextDouble();
             if (random <= chance) return;
 
-            var merchant = poi.Observers.OfType<PoiMerchant>().First();
-            if (merchant.LastPlayerVisitFrame + span > MyAPIGateway.Session.GameplayFrameCounter) return;
-
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} random invasion");
-            poi.SetState(PoiState.Occupied);
+            Session.Instance.SetPoiState(_poiId, PoiState.Occupied);
         }
     }
 }

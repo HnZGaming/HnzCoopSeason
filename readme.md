@@ -28,12 +28,13 @@ co-op season
 - [x] disable contract blocks
 - [x] merchant stores selling tech comps
 - [x] refill merchant stores
-- [ ] progress display permanently on the screen
+- [x] progress bar on the screen
 - [ ] merchant discovery notification
 - [ ] respawn players near occupied POIs
 - [ ] replace data pad
 - [ ] MOTD with recaps
 - [ ] orks spawn in fleet, as opposed to a single spawn group
+- [ ] multiplayer tests
 
 ### V1.5
 

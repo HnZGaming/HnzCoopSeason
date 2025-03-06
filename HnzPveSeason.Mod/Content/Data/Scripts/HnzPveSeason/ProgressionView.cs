@@ -15,7 +15,7 @@ namespace HnzPveSeason
         static readonly ushort ModKey = (ushort)"HnzPveSeason.ProgressionView".GetHashCode();
 
         HudAPIv2 _hudApi;
-        float _progress; // client
+        bool IsApiLoaded => _hudApi?.Heartbeat ?? false;
 
         public void Load()
         {
@@ -65,41 +65,35 @@ namespace HnzPveSeason
             if (modKey != ModKey) return;
 
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
-            _progress = payload.Progress;
-
-            MyLog.Default.Info("[HnzPveSeason] progress received: {0:0.00}", _progress);
-        }
-
-        public void Draw()
-        {
-            if (MyAPIGateway.Utilities.IsDedicated) return; // client
-            if (!(_hudApi?.Heartbeat ?? false)) return;
+            var progress = payload.Progress;
 
             // ReSharper disable once ObjectCreationAsStatement
             new HudAPIv2.HUDMessage( // this actually works smh
-                /*text*/ CreateProgressionHudText(),
+                /*text*/ CreateProgressionHudText(progress),
                 /*origin*/ new Vector2D(0f, 1f),
                 /*offset*/ new Vector2D(-0.25f, -0.04f),
-                /*time to live*/ 10,
+                /*time to live*/ -1,
                 /*scale*/ 1,
                 /*hide hud*/ true,
                 /*shadowing*/ false,
                 /*shadow color*/ null,
                 /*text*/ MyBillboard.BlendTypeEnum.PostPP);
+
+            MyLog.Default.Info("[HnzPveSeason] progress received: {0:0.00}", progress);
         }
 
-        StringBuilder CreateProgressionHudText()
+        static StringBuilder CreateProgressionHudText(float progress)
         {
             var buffer = new StringBuilder();
             buffer.Append("PEACEMETER ");
 
             for (var i = 0; i < 100; i++)
             {
-                var c = (float)i / 100 < _progress ? "0,255,0" : "200,0,0";
+                var c = (float)i / 100 < progress ? "0,255,0" : "200,0,0";
                 buffer.Append($"<color={c}>|");
             }
 
-            var p100 = _progress * 100;
+            var p100 = progress * 100;
             var pstr = p100 == 0 ? "0" : p100 < 1f ? $"{p100:0.0}" : $"{p100:0}";
             buffer.Append($"<reset> {pstr}%");
 

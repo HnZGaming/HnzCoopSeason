@@ -29,7 +29,7 @@ co-op season
 - [x] merchant stores selling tech comps
 - [x] refill merchant stores
 - [x] progress bar on the screen
-- [ ] merchant discovery notification
+- [x] merchant discovery notification
 - [ ] respawn players near occupied POIs
 - [ ] replace data pad
 - [ ] MOTD with recaps

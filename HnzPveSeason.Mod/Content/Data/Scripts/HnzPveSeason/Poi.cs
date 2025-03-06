@@ -97,5 +97,10 @@ namespace HnzPveSeason
             var sphere = new BoundingSphereD(Position, radius);
             return OnlineCharacterCollection.ContainsPlayer(sphere);
         }
+
+        public override string ToString()
+        {
+            return $"POI({nameof(Id)}: {Id}, {nameof(State)}: {State}, {nameof(_observers)}: {_observers.ToStringSeq()})";
+        }
     }
 }

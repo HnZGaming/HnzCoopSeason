@@ -1,14 +1,13 @@
 ﻿using ProtoBuf;
-using Sandbox.Game;
 using Sandbox.ModAPI;
+using VRage.Game.ModAPI;
 using VRage.Utils;
-using VRageMath;
 
 namespace HnzPveSeason
 {
-    public static class Communication
+    public static class MissionScreenView
     {
-        static readonly ushort ModKey = (ushort)"HnzPveSeason.Communication".GetHashCode();
+        static readonly ushort ModKey = (ushort)"HnzPveSeason.MissionScreenView".GetHashCode();
 
         public static void Load()
         {
@@ -20,15 +19,9 @@ namespace HnzPveSeason
             MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
         }
 
-        public static void SendMessage(ulong steamId, Color color, string message)
+        public static void ShowScreenMessage(ulong steamId, string title, string message, bool clipboard)
         {
-            var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
-            MyVisualScriptLogicProvider.SendChatMessageColored(message, color, "pve", playerId);
-        }
-
-        public static void ShowScreenMessage(ulong steamId, string title, string message)
-        {
-            var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(title, message));
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(title, message, clipboard));
             MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, steamId, true);
             MyLog.Default.Debug("[HnzPveSeason] screen message sent");
         }
@@ -38,8 +31,23 @@ namespace HnzPveSeason
             if (modKey != ModKey) return;
 
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
-            MyAPIGateway.Utilities.ShowMissionScreen("pve", currentObjective: payload.Title, screenDescription: payload.Message);
+            MyAPIGateway.Utilities.ShowMissionScreen(
+                "pve",
+                currentObjective: payload.Title,
+                screenDescription: payload.Message,
+                currentObjectivePrefix: "",
+                okButtonCaption: "Copy to clipboard",
+                callback: r => Callback(payload, r));
             MyLog.Default.Debug("[HnzPveSeason] screen message received");
+        }
+
+        static void Callback(Payload payload, ResultEnum result)
+        {
+            if (!payload.Clipboard) return;
+            if (result != ResultEnum.OK) return;
+
+            MyClipboardHelper.SetClipboard(payload.Message);
+            MyLog.Default.Info("[HnzPveSeason] set message to clipboard");
         }
 
         [ProtoContract]
@@ -51,15 +59,19 @@ namespace HnzPveSeason
             [ProtoMember(2)]
             public string Message;
 
+            [ProtoMember(3)]
+            public bool Clipboard;
+
             // ReSharper disable once UnusedMember.Local
             public Payload()
             {
             }
 
-            public Payload(string title, string message)
+            public Payload(string title, string message, bool clipboard)
             {
                 Title = title;
                 Message = message;
+                Clipboard = clipboard;
             }
         }
     }

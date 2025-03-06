@@ -83,7 +83,7 @@ namespace HnzPveSeason
                 // under gravity
                 if (VRageUtils.CalculateNaturalGravity(position).Length() > 0)
                 {
-                    MyLog.Default.Info($"[HnzPveSeason] poi removed under gravity: {x}, {y}, {z}");
+                    MyLog.Default.Info($"[HnzPveSeason] poi removed under gravity: {x}-{y}-{z}");
                     continue;
                 }
 
@@ -139,6 +139,11 @@ namespace HnzPveSeason
 
             MyLog.Default.Info($"[HnzPveSeason] {releasedPoiCount} / {_allPois.Count}");
             return releasedPoiCount / (float)_allPois.Count;
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(AllPois)}: {AllPois.ToStringSeq()}";
         }
     }
 }

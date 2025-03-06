@@ -49,10 +49,15 @@ namespace HnzPveSeason
             _encounter.SetActive(state == PoiState.Occupied);
         }
 
-        void OnGridSet(IMyCubeGrid grid)
+        void OnGridSet(IMyCubeGrid grid, bool recovery)
         {
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} ork spawn");
             grid.OnBlockOwnershipChanged += OnGridOwnershipChanged;
+            
+            if (!recovery) // new spawn
+            {
+                Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
+            }
         }
 
         void OnGridUnset(IMyCubeGrid grid)
@@ -84,6 +89,11 @@ namespace HnzPveSeason
 
             MyLog.Default.Info($"[HnzPveSeason] POI {_poiId} random invasion");
             Session.Instance.SetPoiState(_poiId, PoiState.Occupied);
+        }
+
+        public override string ToString()
+        {
+            return $"Ork({nameof(_poiId)}: {_poiId}, {nameof(_poiState)}: {_poiState}, {nameof(_encounter)}: {_encounter})";
         }
     }
 }

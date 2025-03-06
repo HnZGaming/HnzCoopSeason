@@ -31,7 +31,7 @@ namespace HnzPveSeason
 
         public MesStaticEncounterConfig Config => _configs[Math.Min(ConfigIndex, _configs.Length - 1)];
 
-        public event Action<IMyCubeGrid> OnGridSet
+        public event Action<IMyCubeGrid, bool> OnGridSet
         {
             add { _mesGrid.OnGridSet += value; }
             remove { _mesGrid.OnGridSet -= value; }
@@ -85,12 +85,12 @@ namespace HnzPveSeason
             IMyPlayer player;
             if (!OnlineCharacterCollection.TryGetContainedPlayer(sphere, out player)) return;
 
-            MyLog.Default.Info($"[HnzPveSeason] encounter `{_mesGrid.Id}` player nearby: '{player.DisplayName}'");
+            MyLog.Default.Info($"[HnzPveSeason] encounter {_mesGrid.Id} player nearby: '{player.DisplayName}'");
 
             var matrix = TryCalcMatrix();
             if (matrix == null)
             {
-                MyLog.Default.Error($"[HnzPveSeason] encounter `{_mesGrid.Id}` failed to find a spawnable position: {Config}");
+                MyLog.Default.Error($"[HnzPveSeason] encounter {_mesGrid.Id} failed to find a spawnable position: {Config}");
                 return;
             }
 
@@ -125,6 +125,11 @@ namespace HnzPveSeason
             }
 
             return SpawnUtils.TryCalcSpaceMatrix(sphere, clearance);
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(_gridId)}: {_gridId}, {nameof(_factionTag)}: {_factionTag}, {nameof(_encounterActive)}: {_encounterActive}";
         }
     }
 }

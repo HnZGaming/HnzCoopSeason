@@ -68,17 +68,22 @@ namespace HnzCoopSeason
 
             var poiCountPerAxis = SessionConfig.Instance.PoiCountPerAxis;
             var poiMapRadius = SessionConfig.Instance.PoiMapRadius;
+            var poiMapCenter = new Vector3D(
+                SessionConfig.Instance.PoiMapCenterX,
+                SessionConfig.Instance.PoiMapCenterY,
+                SessionConfig.Instance.PoiMapCenterZ);
+
             for (var x = 0; x < poiCountPerAxis; x++)
             for (var y = 0; y < poiCountPerAxis; y++)
             for (var z = 0; z < poiCountPerAxis; z++)
             {
-                var position = new Vector3D(
+                var position = poiMapCenter + new Vector3D(
                     ((float)x / poiCountPerAxis * 2 - 1) * poiMapRadius,
                     ((float)y / poiCountPerAxis * 2 - 1) * poiMapRadius,
                     ((float)z / poiCountPerAxis * 2 - 1) * poiMapRadius);
 
                 // circular shape
-                if (Vector3D.Distance(position, Vector3D.Zero) > poiMapRadius) continue;
+                if (Vector3D.Distance(position, poiMapCenter) > poiMapRadius) continue;
 
                 // under gravity
                 if (VRageUtils.CalculateNaturalGravity(position).Length() > 0)

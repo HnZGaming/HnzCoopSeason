@@ -34,9 +34,8 @@ co-op season
 - [x] admin command proxy from torch
 - [x] merchant reputation on session start
 - [x] show progress bar on player connection
-- [ ] random ork invasion debugging
-- [ ] determine the map relative to planet positions
-- [ ] randomize poi positions
+- [x] determine the map relative to planet positions
+- [ ] progressive ork spawn groups
 - [ ] multiplayer tests
 - [ ] upload orks mod
 - [ ] beta release
@@ -44,6 +43,7 @@ co-op season
 
 ### V1.5
 
+- [ ] merchant spawn messages
 - [ ] merchants buying scrap grids
 - [ ] orks spawn in fleet, as opposed to a single spawn group
 - [ ] postgres to integrate with PvP sector

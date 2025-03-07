@@ -12,6 +12,15 @@ namespace HnzCoopSeason
         public static SessionConfig Instance { get; private set; }
 
         [XmlElement]
+        public double PoiMapCenterX = 0;
+
+        [XmlElement]
+        public double PoiMapCenterY = 0;
+
+        [XmlElement]
+        public double PoiMapCenterZ = 0;
+
+        [XmlElement]
         public float PoiMapRadius = 10000000;
 
         [XmlElement]

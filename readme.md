@@ -31,8 +31,9 @@ co-op season
 - [x] replace data pad
 - [x] rename things from "pve" to "coop"
 - [x] refresh progress bar
-- [ ] admin command proxy from torch
+- [x] admin command proxy from torch
 - [ ] merchant neutral reputation on session start
+- [ ] random ork invasion debugging
 - [ ] randomize poi positions
 - [ ] multiplayer tests
 - [ ] beta release

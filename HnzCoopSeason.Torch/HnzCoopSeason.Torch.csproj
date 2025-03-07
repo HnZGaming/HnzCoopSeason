@@ -196,6 +196,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+      <Compile Include="HnzCoopSeason.Torch\Commands.cs" />
       <Compile Include="HnzCoopSeason.Torch\Config.cs" />
       <Compile Include="HnzCoopSeason.Torch\Plugin.cs" />
     </ItemGroup>

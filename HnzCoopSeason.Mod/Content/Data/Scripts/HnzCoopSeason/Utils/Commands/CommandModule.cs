@@ -46,8 +46,7 @@ namespace HnzCoopSeason.Utils.Commands
             var prefix = $"/{_prefix}";
             if (!messageText.StartsWith(prefix)) return;
 
-            var body = messageText.Substring(prefix.Length).Trim();
-            MyLog.Default.Info($"[HnzCoopSeason] command entered by {sender}: '{messageText}', body: '{body}'");
+            MyLog.Default.Info($"[HnzCoopSeason] command (client) entered by {sender}: {messageText}");
             sendToOthers = false;
 
             var body = messageText.Substring(prefix.Length).Trim();
@@ -63,14 +62,13 @@ namespace HnzCoopSeason.Utils.Commands
                 {
                     var data = Encoding.UTF8.GetBytes(body);
                     MyAPIGateway.Multiplayer.SendMessageToServer(MessageHandlerId, data);
+                    MyLog.Default.Info($"[HnzCoopSeason] command (client) sent to server: {body}");
                 }
 
                 return;
             }
 
             // fallback: show the list of all commands
-            MyLog.Default.Info($"[HnzCoopSeason] command not found; message: '{messageText}', showing the command list");
-
             var sb = new StringBuilder();
             sb.AppendLine($"Commands for {_prefix}:");
             foreach (var command in _commands)
@@ -84,7 +82,7 @@ namespace HnzCoopSeason.Utils.Commands
         void OnCommandPayloadReceived(ushort id, byte[] load, ulong steamId, bool sentFromServer)
         {
             var body = Encoding.UTF8.GetString(load);
-            MyLog.Default.Info($"[HnzCoopSeason] command (server) received: {body}");
+            MyLog.Default.Info($"[HnzCoopSeason] command (server) received; steam: {steamId}, body: '{body}'");
 
             foreach (var command in _commands)
             {
@@ -124,6 +122,7 @@ namespace HnzCoopSeason.Utils.Commands
 
         static bool ValidateLevel(ulong steamId, MyPromoteLevel level)
         {
+            if (steamId == 0) return true; // torch command
             var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
             var player = MyAPIGateway.Players.TryGetIdentityId(playerId);
             return player?.PromoteLevel >= level;

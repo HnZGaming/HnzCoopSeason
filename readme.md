@@ -32,8 +32,10 @@ co-op season
 - [x] rename things from "pve" to "coop"
 - [x] refresh progress bar
 - [x] admin command proxy from torch
-- [ ] merchant neutral reputation on session start
+- [x] merchant reputation on session start
+- [ ] show progress bar on player connection
 - [ ] random ork invasion debugging
+- [ ] determine the map relative to planet positions
 - [ ] randomize poi positions
 - [ ] multiplayer tests
 - [ ] beta release

@@ -9,6 +9,8 @@
             <DisplayName>Merchants</DisplayName>
             <IsDefault>true</IsDefault>
             <DefaultRelation>Neutral</DefaultRelation>
+            <StartingReputation>0</StartingReputation>
+            <DiscoveredByDefault>true</DiscoveredByDefault>
             <AcceptHumans>false</AcceptHumans>
             <AutoAcceptMember>false</AutoAcceptMember>
         </Faction>

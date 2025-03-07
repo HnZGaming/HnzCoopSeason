@@ -51,9 +51,9 @@ namespace HnzCoopSeason
 
         void OnGridSet(IMyCubeGrid grid, bool recovery)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} ork spawn");
+            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} spawn");
             grid.OnBlockOwnershipChanged += OnGridOwnershipChanged;
-            
+
             if (!recovery) // new spawn
             {
                 Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
@@ -62,7 +62,7 @@ namespace HnzCoopSeason
 
         void OnGridUnset(IMyCubeGrid grid)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} ork despawn");
+            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} despawn");
             grid.OnBlockOwnershipChanged -= OnGridOwnershipChanged;
         }
 
@@ -70,6 +70,7 @@ namespace HnzCoopSeason
         {
             if (!VRageUtils.IsGridControlledByAI(grid))
             {
+                MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} defeated by players");
                 Session.Instance.SetPoiState(_poiId, PoiState.Released);
             }
         }
@@ -87,8 +88,13 @@ namespace HnzCoopSeason
             var random = MyRandom.Instance.NextDouble();
             if (random <= chance) return;
 
-            MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} random invasion");
+            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} random invasion");
             Session.Instance.SetPoiState(_poiId, PoiState.Occupied);
+        }
+
+        public void ForceSpawn()
+        {
+            _encounter.ForceSpawn();
         }
 
         public override string ToString()

@@ -87,6 +87,11 @@ namespace HnzCoopSeason
 
             MyLog.Default.Info($"[HnzCoopSeason] encounter {_mesGrid.Id} player nearby: '{player.DisplayName}'");
 
+            ForceSpawn();
+        }
+
+        public void ForceSpawn()
+        {
             var matrix = TryCalcMatrix();
             if (matrix == null)
             {

@@ -57,7 +57,7 @@ namespace HnzCoopSeason
 
         public void RequestSpawn(string spawnGroup, string mainPrefab, string factionTag, MatrixD targetMatrix) // called multiple times
         {
-            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} spawning");
+            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} spawning; group: '{spawnGroup}', {VRageUtils.FormatGps("Spawn", targetMatrix.Translation, "FFFFFF")}");
 
             if (Grid != null)
             {

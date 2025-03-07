@@ -1,1 +1,0 @@
-SEWorkshopTool push --mods "HnZ PvE Season"

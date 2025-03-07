@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <Factions>
+        <Faction Tag="MERC" Founder="The Marchant Boss">
+            <Id>
+                <TypeId>MyObjectBuilder_FactionDefinition</TypeId>
+                <SubtypeId>Merchants</SubtypeId>
+            </Id>
+            <DisplayName>Merchants</DisplayName>
+            <IsDefault>true</IsDefault>
+            <DefaultRelation>Neutral</DefaultRelation>
+            <StartingReputation>0</StartingReputation>
+            <DiscoveredByDefault>true</DiscoveredByDefault>
+            <AcceptHumans>false</AcceptHumans>
+            <AutoAcceptMember>false</AutoAcceptMember>
+        </Faction>
+    </Factions>
+</Definitions>

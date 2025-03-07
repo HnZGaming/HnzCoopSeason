@@ -1,4 +1,4 @@
-# HnZ PvE Season
+# HnZ Coop Season
 
 co-op season
 
@@ -18,8 +18,6 @@ co-op season
 - [x] get reference to the contract block in script
 - [x] disable MES cleanup for merchants
 - [x] dedi: merchant cleanup check
-- [x] merchants acquisition contracts
-- [x] merchants acquisition contracts persistency across session
 - [x] merchant safezone
 - [x] merchant encounter in space
 - [x] keep player grids intact upon npc despawn
@@ -31,34 +29,31 @@ co-op season
 - [x] progress bar on the screen
 - [x] merchant discovery notification
 - [x] replace data pad
-- [ ] orks spawn in fleet, as opposed to a single spawn group
+- [x] rename things from "pve" to "coop"
+- [x] refresh progress bar
+- [x] admin command proxy from torch
+- [x] merchant reputation on session start
+- [x] show progress bar on player connection
+- [x] determine the map relative to planet positions
+- [ ] progressive ork spawn groups
 - [ ] multiplayer tests
+- [ ] upload orks mod
+- [ ] beta release
+- [ ] release
 
 ### V1.5
 
-- [ ] merchant color override
-- [ ] grids for sale by builder merchants
-- [ ] wandering merchants random encounter around safe POIs
-- [ ] wandering merchants stopping at player bases
-- [ ] wandering orks random encounter based on area's tier score
-- [ ] faction ranking for POIs released
-- [ ] faction ranking for contracts completed
-- [ ] faction ranking for tech comps purchased
-- [ ] command-based global market with dynamic pricing and tax
-- [ ] merchant shops stabilizing global market
+- [ ] merchant spawn messages
+- [ ] merchants buying scrap grids
+- [ ] orks spawn in fleet, as opposed to a single spawn group
+- [ ] postgres to integrate with PvP sector
+- [ ] PvP sector with higher tech yield & daily rep reset
+- [ ] command-based global market
+- [ ] wandering merchants & stopping at player bases
+- [ ] wandering orks & tier-based threat score
+- [ ] ranking: POIs released
+- [ ] ranking: tech comps purchased
 
 ### V2.0
 
-tba
-
-## Notes
-
-### Ships for sale
-
-code: `MyGenericFactionTypeStrategy.GenerateGridOffers()`
-
-### Progressive store items
-
-Progression based on:
-- number of released POIs
-- number of contracts finished
+- [ ] [gui for global market](https://github.com/ZachHembree/RichHudFramework.Client)

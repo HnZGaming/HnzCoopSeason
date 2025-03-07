@@ -82,7 +82,7 @@ namespace HnzCoopSeason
             var span = SessionConfig.Instance.RandomInvasionInterval * 60;
             if (!_randomInvasionInterval.Update(span)) return;
 
-            if (Session.Instance.IsPlayerAroundPoi(_poiId, _encounter.Config.Area)) return;
+            if (Session.Instance.IsPlayerAroundPoi(_poiId, SessionConfig.Instance.EncounterRadius)) return;
 
             var chance = SessionConfig.Instance.RandomInvasionChance;
             var random = MyRandom.Instance.NextDouble();
@@ -92,9 +92,9 @@ namespace HnzCoopSeason
             Session.Instance.SetPoiState(_poiId, PoiState.Occupied);
         }
 
-        public void ForceSpawn()
+        public void ForceSpawn(int configIndex)
         {
-            _encounter.ForceSpawn();
+            _encounter.ForceSpawn(configIndex);
         }
 
         public override string ToString()

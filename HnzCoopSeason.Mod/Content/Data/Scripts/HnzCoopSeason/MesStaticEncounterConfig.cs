@@ -19,17 +19,17 @@ namespace HnzCoopSeason
         public bool SnapToVoxel;
 
         [XmlAttribute]
-        public float Area = 10000;
-
-        [XmlAttribute]
-        public float Clearance = 1000;
-
-        [XmlAttribute]
         public float Weight = 1;
+
+        [XmlAttribute]
+        public float MinProgress = 0;
+
+        [XmlAttribute]
+        public float MaxProgress = 1;
 
         public override string ToString()
         {
-            return $"{nameof(SpawnGroup)}: {SpawnGroup}, {nameof(Planetary)}: {Planetary}, {nameof(SnapToVoxel)}: {SnapToVoxel}, {nameof(Area)}: {Area}, {nameof(Clearance)}: {Clearance}, {nameof(Weight)}: {Weight}";
+            return $"{nameof(SpawnGroup)}: {SpawnGroup}, {nameof(Planetary)}: {Planetary}, {nameof(SnapToVoxel)}: {SnapToVoxel}, {nameof(Weight)}: {Weight}";
         }
     }
 }

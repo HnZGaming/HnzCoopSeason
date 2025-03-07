@@ -131,7 +131,7 @@ namespace HnzCoopSeason
                    _spacePois.TryGetValue(id, out poi);
         }
 
-        public float GetProgression()
+        public float GetProgress()
         {
             var releasedPoiCount = 0;
             foreach (var p in _allPois)

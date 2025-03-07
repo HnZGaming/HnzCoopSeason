@@ -30,6 +30,9 @@ namespace HnzCoopSeason
         public float EncounterRadius = 10000;
 
         [XmlElement]
+        public float EncounterClearance = 1000;
+
+        [XmlElement]
         public float RandomInvasionChance = 0.1f;
 
         [XmlElement]

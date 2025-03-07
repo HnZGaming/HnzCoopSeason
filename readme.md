@@ -35,10 +35,13 @@ co-op season
 - [x] merchant reputation on session start
 - [x] show progress bar on player connection
 - [x] determine the map relative to planet positions
-- [ ] progressive ork spawn groups
+- [x] progressive ork spawn groups
 - [ ] multiplayer tests
 - [ ] upload orks mod
+- [ ] disable tech assembly
+- [ ] disable tech sale at vanilla stores
 - [ ] beta release
+- [ ] update wiki
 - [ ] release
 
 ### V1.5

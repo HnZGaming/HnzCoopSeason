@@ -116,7 +116,7 @@ namespace HnzCoopSeason
 
         public float GetProgress()
         {
-            return _poiMap.GetProgression();
+            return _poiMap.GetProgress();
         }
 
         public bool SetPoiState(string poiId, PoiState state)

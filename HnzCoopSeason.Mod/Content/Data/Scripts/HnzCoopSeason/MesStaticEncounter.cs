@@ -24,12 +24,7 @@ namespace HnzCoopSeason
             _factionTag = factionTag;
             _position = position;
             _mesGrid = new MesGrid(gridId, prefix, ignoreForDespawn);
-            ConfigIndex = CalcConfigIndex();
         }
-
-        public int ConfigIndex { get; set; }
-
-        public MesStaticEncounterConfig Config => _configs[Math.Min(ConfigIndex, _configs.Length - 1)];
 
         public event Action<IMyCubeGrid, bool> OnGridSet
         {
@@ -81,27 +76,27 @@ namespace HnzCoopSeason
             if (!_encounterActive) return;
             if (_mesGrid.State != MesGrid.SpawningState.Idle) return;
 
-            var sphere = new BoundingSphereD(_position, Config.Area);
+            var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
             IMyPlayer player;
             if (!OnlineCharacterCollection.TryGetContainedPlayer(sphere, out player)) return;
 
             MyLog.Default.Info($"[HnzCoopSeason] encounter {_mesGrid.Id} player nearby: '{player.DisplayName}'");
 
-            ForceSpawn();
+            ForceSpawn(CalcConfigIndex());
         }
 
-        public void ForceSpawn()
+        public void ForceSpawn(int configIndex)
         {
-            var matrix = TryCalcMatrix();
+            var config = _configs[configIndex];
+            var matrix = TryCalcMatrix(config, _position);
             if (matrix == null)
             {
-                MyLog.Default.Error($"[HnzCoopSeason] encounter {_mesGrid.Id} failed to find a spawnable position: {Config}");
+                MyLog.Default.Error($"[HnzCoopSeason] encounter {_mesGrid.Id} failed to find a spawnable position: {config}");
                 return;
             }
 
-            _mesGrid.RequestSpawn(Config.SpawnGroup, Config.MainPrefab, _factionTag, matrix.Value);
-
-            ConfigIndex = CalcConfigIndex();
+            MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");
+            _mesGrid.RequestSpawn(config.SpawnGroup, config.MainPrefab, _factionTag, matrix.Value);
         }
 
         public void Despawn()
@@ -113,18 +108,32 @@ namespace HnzCoopSeason
         {
             if (_configs.Length == 1) return 0;
 
-            var weights = _configs.Select(c => c.Weight).ToArray();
+            var progress = Session.Instance.GetProgress();
+            var weights = _configs.Select(c => GetWeight(c, progress)).ToArray();
+            if (weights.Length == 0)
+            {
+                MyLog.Default.Warning($"[HnzCoopSeason] encounter {_mesGrid.Id} no configs eligible; selecting 0");
+                return 0;
+            }
+
             return MathUtils.WeightedRandom(weights);
         }
 
-        MatrixD? TryCalcMatrix()
+        static float GetWeight(MesStaticEncounterConfig config, float progress)
         {
-            var sphere = new BoundingSphereD(_position, Config.Area);
-            var clearance = Config.Clearance;
+            if (progress < config.MinProgress) return 0;
+            if (progress > config.MaxProgress) return 0;
+            return config.Weight;
+        }
 
-            if (Config.Planetary)
+        static MatrixD? TryCalcMatrix(MesStaticEncounterConfig config, Vector3D position)
+        {
+            var sphere = new BoundingSphereD(position, SessionConfig.Instance.EncounterRadius);
+            var clearance = SessionConfig.Instance.EncounterClearance;
+
+            if (config.Planetary)
             {
-                return Config.SnapToVoxel
+                return config.SnapToVoxel
                     ? SpawnUtils.TryCalcSurfaceMatrix(sphere, clearance)
                     : SpawnUtils.TryCalcOrbitMatrix(sphere, clearance);
             }

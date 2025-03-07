@@ -27,9 +27,11 @@ namespace HnzCoopSeason
         public PoiMerchant(string poiId, Vector3D position, IMyFaction faction, MesStaticEncounterConfig[] configs)
         {
             _poiId = poiId;
-            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", configs, position, faction.Tag, true);
             _variableKey = $"HnzCoopSeason.PoiMerchant.{_poiId}";
             _economyInterval = new Interval();
+
+            var config = configs[poiId.GetHashCode() % configs.Length];
+            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", new[] { config }, position, faction.Tag, true);
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
@@ -203,6 +205,11 @@ namespace HnzCoopSeason
 
                 MyLog.Default.Debug("[HnzCoopSeason] UpdateStoreItems() offer; item: {0}, origin: {1}, delta: {2}", id, existingAmount, amount, fillAmount);
             }
+        }
+
+        public void ForceSpawn()
+        {
+            _encounter.ForceSpawn(0);
         }
 
         void SaveToSandbox()

@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
+using Sandbox.ModAPI;
+using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
 
@@ -18,6 +20,7 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi release", false, MyPromoteLevel.Moderator, Command_ReleasePoi, "release a POI."));
             _commandModule.Register(new Command("poi invade", false, MyPromoteLevel.Moderator, Command_InvadePoi, "invade a POI."));
             _commandModule.Register(new Command("poi spawn", false, MyPromoteLevel.Moderator, Command_Spawn, "spawn grids at a POI."));
+            _commandModule.Register(new Command("poi spectate", true, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
         }
 
@@ -105,6 +108,11 @@ namespace HnzCoopSeason
             {
                 //todo
             }
+        }
+
+        void Command_SpectatePoi(string poiId, ulong steamId)
+        {
+            PoiSpectatorCamera.RequestPosition(poiId);
         }
 
         void Command_Print(string args, ulong steamId)

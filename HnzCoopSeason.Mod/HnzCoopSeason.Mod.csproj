@@ -149,6 +149,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMap.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMerchant.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiOrk.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiSpectatorCamera.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiState.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\ProgressionView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\RespawnPodManipulator.cs" />

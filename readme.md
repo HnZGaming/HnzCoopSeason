@@ -38,6 +38,7 @@ co-op season
 - [ ] determine the map relative to planet positions
 - [ ] randomize poi positions
 - [ ] multiplayer tests
+- [ ] upload orks mod
 - [ ] beta release
 - [ ] release
 

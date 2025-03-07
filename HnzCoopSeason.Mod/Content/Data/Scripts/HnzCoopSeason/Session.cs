@@ -34,6 +34,7 @@ namespace HnzCoopSeason
 
             MissionScreenView.Load();
             PoiGpsView.Load();
+            PoiSpectatorCamera.Load();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -58,6 +59,7 @@ namespace HnzCoopSeason
             _commandModule.Unload();
             PoiGpsView.Unload();
             MissionScreenView.Unload();
+            PoiSpectatorCamera.Unload();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -160,6 +162,19 @@ namespace HnzCoopSeason
         public bool TryGetClosestPoiPosition(Vector3D position, out Vector3D closestPosition)
         {
             return _poiMap.TryGetClosestPosition(position, out closestPosition);
+        }
+
+        public bool TryGetPoiPosition(string poiId, out Vector3D position)
+        {
+            Poi poi;
+            if (_poiMap.TryGetPoi(poiId, out poi))
+            {
+                position = poi.Position;
+                return true;
+            }
+
+            position = Vector3D.Zero;
+            return false;
         }
     }
 }

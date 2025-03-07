@@ -43,14 +43,14 @@ namespace HnzCoopSeason.Utils.Commands
 
         void OnMessageEntered(ulong sender, string messageText, ref bool sendToOthers)
         {
-            sendToOthers = false;
-
-            var prefix = $"/{_prefix} ";
+            var prefix = $"/{_prefix}";
             if (!messageText.StartsWith(prefix)) return;
 
-            MyLog.Default.Info($"[HnzCoopSeason] command (client) entered by {sender}: {messageText}");
+            var body = messageText.Substring(prefix.Length).Trim();
+            MyLog.Default.Info($"[HnzCoopSeason] command entered by {sender}: '{messageText}', body: '{body}'");
+            sendToOthers = false;
 
-            var body = messageText.Substring(prefix.Length);
+            var body = messageText.Substring(prefix.Length).Trim();
             foreach (var command in _commands)
             {
                 if (!body.StartsWith(command.Head)) continue;
@@ -63,13 +63,14 @@ namespace HnzCoopSeason.Utils.Commands
                 {
                     var data = Encoding.UTF8.GetBytes(body);
                     MyAPIGateway.Multiplayer.SendMessageToServer(MessageHandlerId, data);
-                    MyLog.Default.Info($"[HnzCoopSeason] command (client) sent to server: {body}");
                 }
 
                 return;
             }
 
             // fallback: show the list of all commands
+            MyLog.Default.Info($"[HnzCoopSeason] command not found; message: '{messageText}', showing the command list");
+
             var sb = new StringBuilder();
             sb.AppendLine($"Commands for {_prefix}:");
             foreach (var command in _commands)
@@ -77,7 +78,7 @@ namespace HnzCoopSeason.Utils.Commands
                 sb.AppendLine($"{command.Head}: {command.Help}");
             }
 
-            Session.SendMessage(sender, Color.White, sb.ToString());
+            MyAPIGateway.Utilities.ShowMessage("COOP", sb.ToString());
         }
 
         void OnCommandPayloadReceived(ushort id, byte[] load, ulong steamId, bool sentFromServer)

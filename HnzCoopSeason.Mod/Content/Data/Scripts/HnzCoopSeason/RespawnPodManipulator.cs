@@ -39,6 +39,7 @@ namespace HnzCoopSeason
             cockpit.GetInventory(0).AddItems(1, new MyObjectBuilder_Datapad
             {
                 SubtypeName = "Datapad",
+                Name = "COOP",
                 Data = string.Format(SessionConfig.Instance.RespawnDatapadTextFormat, gps),
             });
         }

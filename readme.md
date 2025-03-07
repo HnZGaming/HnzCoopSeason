@@ -30,6 +30,10 @@ co-op season
 - [x] merchant discovery notification
 - [x] replace data pad
 - [x] rename things from "pve" to "coop"
+- [x] refresh progress bar
+- [ ] admin command proxy from torch
+- [ ] merchant neutral reputation on session start
+- [ ] randomize poi positions
 - [ ] multiplayer tests
 - [ ] beta release
 - [ ] release

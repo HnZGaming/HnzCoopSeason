@@ -14,6 +14,7 @@ namespace HnzCoopSeason
         static readonly ushort ModKey = (ushort)"HnzCoopSeason.ProgressionView".GetHashCode();
 
         static HudAPIv2 _hudApi;
+        static HudAPIv2.HUDMessage _hudMessage;
 
         public static void Load()
         {
@@ -39,6 +40,7 @@ namespace HnzCoopSeason
             {
                 _hudApi.Close();
                 _hudApi.Unload();
+                _hudMessage?.DeleteMessage();
             }
         }
 
@@ -65,8 +67,8 @@ namespace HnzCoopSeason
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
             var progress = payload.Progress;
 
-            // ReSharper disable once ObjectCreationAsStatement
-            new HudAPIv2.HUDMessage( // this actually works smh
+            _hudMessage?.DeleteMessage();
+            _hudMessage = new HudAPIv2.HUDMessage(
                 /*text*/ CreateProgressionHudText(progress),
                 /*origin*/ new Vector2D(0f, 1f),
                 /*offset*/ new Vector2D(-0.25f, -0.04f),

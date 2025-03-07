@@ -27,7 +27,7 @@ namespace HnzCoopSeason
 
         public void Unload()
         {
-            foreach (var p in _allPois) p.Unload();
+            foreach (var p in _allPois) p.Unload(true);
             _allPois.Clear();
             _spacePois.Clear();
             _planetaryPois.Clear();

@@ -103,9 +103,12 @@ namespace HnzCoopSeason
                 FirstUpdate();
             }
 
-            OnlineCharacterCollection.Update();
-
-            _poiMap.Update();
+            // server or single player
+            if (MyAPIGateway.Session.IsServer)
+            {
+                OnlineCharacterCollection.Update();
+                _poiMap.Update();
+            }
         }
 
         public float GetProgress()

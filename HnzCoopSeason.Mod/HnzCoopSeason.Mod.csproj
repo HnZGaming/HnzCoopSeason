@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+        <ProjectGuid>{859B7124-5339-45C9-A500-886EE4FDF2ED}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <AssemblyName>HnzCoopSeason.Mod</AssemblyName>
+        <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <LangVersion>6</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+      <DebugType>pdbonly</DebugType>
+      <Optimize>true</Optimize>
+      <DefineConstants>TRACE</DefineConstants>
+      <ErrorReport>prompt</ErrorReport>
+      <WarningLevel>4</WarningLevel>
+      <OutputPath>bin\x64\Release\</OutputPath>
+      <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+      <DebugSymbols>true</DebugSymbols>
+      <DebugType>full</DebugType>
+      <Optimize>false</Optimize>
+      <DefineConstants>DEBUG;TRACE</DefineConstants>
+      <ErrorReport>prompt</ErrorReport>
+      <WarningLevel>4</WarningLevel>
+      <OutputPath>bin\x64\Debug\</OutputPath>
+      <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Xml" />
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="ProtoBuf.Net">
+            <HintPath>..\..\Mods\Bin64\ProtoBuf.Net.dll</HintPath>
+        </Reference>
+        <Reference Include="ProtoBuf.Net.Core">
+            <HintPath>..\..\Mods\Bin64\ProtoBuf.Net.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="Sandbox.Common">
+            <HintPath>..\..\Mods\Bin64\Sandbox.Common.dll</HintPath>
+        </Reference>
+        <Reference Include="Sandbox.Game">
+            <HintPath>..\..\Mods\Bin64\Sandbox.Game.dll</HintPath>
+        </Reference>
+        <Reference Include="Sandbox.Game.XmlSerializers">
+            <HintPath>..\..\Mods\Bin64\Sandbox.Game.XmlSerializers.dll</HintPath>
+        </Reference>
+        <Reference Include="Sandbox.Graphics">
+            <HintPath>..\..\Mods\Bin64\Sandbox.Graphics.dll</HintPath>
+        </Reference>
+        <Reference Include="Sandbox.RenderDirect">
+            <HintPath>..\..\Mods\Bin64\Sandbox.RenderDirect.dll</HintPath>
+        </Reference>
+        <Reference Include="SpaceEngineers.Game">
+            <HintPath>..\..\Mods\Bin64\SpaceEngineers.Game.dll</HintPath>
+        </Reference>
+        <Reference Include="SpaceEngineers.ObjectBuilders">
+            <HintPath>..\..\Mods\Bin64\SpaceEngineers.ObjectBuilders.dll</HintPath>
+        </Reference>
+        <Reference Include="SpaceEngineers.ObjectBuilders.XmlSerializers">
+            <HintPath>..\..\Mods\Bin64\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage">
+            <HintPath>..\..\Mods\Bin64\VRage.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Ansel">
+            <HintPath>..\..\Mods\Bin64\VRage.Ansel.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Audio">
+            <HintPath>..\..\Mods\Bin64\VRage.Audio.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Game">
+            <HintPath>..\..\Mods\Bin64\VRage.Game.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Game.XmlSerializers">
+            <HintPath>..\..\Mods\Bin64\VRage.Game.XmlSerializers.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Input">
+            <HintPath>..\..\Mods\Bin64\VRage.Input.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Library">
+            <HintPath>..\..\Mods\Bin64\VRage.Library.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Math">
+            <HintPath>..\..\Mods\Bin64\VRage.Math.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Math.XmlSerializers">
+            <HintPath>..\..\Mods\Bin64\VRage.Math.XmlSerializers.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Mod.Io">
+            <HintPath>..\..\Mods\Bin64\VRage.Mod.Io.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.NativeAftermath">
+            <HintPath>..\..\Mods\Bin64\VRage.NativeAftermath.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.NativeWrapper">
+            <HintPath>..\..\Mods\Bin64\VRage.NativeWrapper.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Network">
+            <HintPath>..\..\Mods\Bin64\VRage.Network.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Platform.Windows">
+            <HintPath>..\..\Mods\Bin64\VRage.Platform.Windows.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Render">
+            <HintPath>..\..\Mods\Bin64\VRage.Render.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Render11">
+            <HintPath>..\..\Mods\Bin64\VRage.Render11.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Scripting">
+            <HintPath>..\..\Mods\Bin64\VRage.Scripting.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.Steam">
+            <HintPath>..\..\Mods\Bin64\VRage.Steam.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.UserInterface">
+            <HintPath>..\..\Mods\Bin64\VRage.UserInterface.dll</HintPath>
+        </Reference>
+        <Reference Include="VRage.XmlSerializers">
+            <HintPath>..\..\Mods\Bin64\VRage.XmlSerializers.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MissionScreenView.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\FlashGpsApi.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\FlashGpsSerialization.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\FlashGpsSource.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudAPI\HudApiV2.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoiObserver.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesGrid.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesGridContext.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesStaticEncounterConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MES\MESApi.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MES\NpcData.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\OnlineCharacterCollection.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesStaticEncounter.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Poi.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiGpsView.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMap.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMerchant.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiOrk.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiState.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\ProgressionView.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\RespawnPodManipulator.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\SessionConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Session.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Session_Commands.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\StoreItemConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Commands\Command.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Commands\CommandModule.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Interval.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\LangUtils.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\MathUtils.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\PlanetCollection.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Pools\DictionaryPool.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Pools\ListPool.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Pools\SetPool.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\SpawnUtils.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\VRageUtils.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="Content\Data\Factions.sbc" />
+      <Content Include="Content\Data\ModStorageComponents.sbc" />
+      <Content Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\readme.md" />
+      <Content Include="Content\Data\Scripts\HnzCoopSeason\MES\readme.md" />
+      <Content Include="Content\Data\SpawnGroups\Merchants-SpawnGroups.sbc" />
+      <Content Include="upload.bat" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

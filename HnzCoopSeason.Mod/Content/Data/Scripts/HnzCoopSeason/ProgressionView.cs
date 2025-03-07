@@ -18,7 +18,7 @@ namespace HnzCoopSeason
 
         public static void Load()
         {
-            MyLog.Default.Info("[HnzCoopSeason] ProgressionView.Load()");
+            MyLog.Default.Debug("[HnzCoopSeason] ProgressionView.Load()");
 
             MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(ModKey, OnMessageReceived);
 
@@ -31,7 +31,7 @@ namespace HnzCoopSeason
 
         public static void Unload()
         {
-            MyLog.Default.Info("[HnzCoopSeason] ProgressionView.Unload()");
+            MyLog.Default.Debug("[HnzCoopSeason] ProgressionView.Unload()");
 
             MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
 
@@ -40,7 +40,7 @@ namespace HnzCoopSeason
             {
                 _hudApi.Close();
                 _hudApi.Unload();
-                _hudMessage?.DeleteMessage();
+                // _hudMessage?.DeleteMessage(); fails to unload
             }
         }
 

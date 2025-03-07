@@ -90,6 +90,7 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
+                ProgressionView.RequestUpdate();
             }
         }
 

@@ -33,7 +33,7 @@ co-op season
 - [x] refresh progress bar
 - [x] admin command proxy from torch
 - [x] merchant reputation on session start
-- [ ] show progress bar on player connection
+- [x] show progress bar on player connection
 - [ ] random ork invasion debugging
 - [ ] determine the map relative to planet positions
 - [ ] randomize poi positions

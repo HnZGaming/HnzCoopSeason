@@ -44,42 +44,73 @@ namespace HnzCoopSeason
             }
         }
 
+        public static void RequestUpdate() // called in client
+        {
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Request());
+
+            if (MyAPIGateway.Session.IsServer) // single player
+            {
+                OnMessageReceived(ModKey, bytes, 0, false);
+            }
+            else // dedi
+            {
+                MyAPIGateway.Multiplayer.SendMessageToServer(ModKey, bytes, true);
+            }
+        }
+
         public static void UpdateProgress() //called in server
         {
             var progress = Session.Instance.GetProgress();
-            var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(progress));
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Update(progress));
 
-            if (MyAPIGateway.Session.IsServer && !MyAPIGateway.Utilities.IsDedicated) // single player
+            if (MyAPIGateway.Utilities.IsDedicated) // dedi
+            {
+                MyAPIGateway.Multiplayer.SendMessageToOthers(ModKey, bytes, true);
+                MyLog.Default.Info("[HnzCoopSeason] progress sent: {0:0.00}", progress);
+            }
+            else // single player
             {
                 OnMessageReceived(ModKey, bytes, 0, false);
-                return;
             }
-
-            MyAPIGateway.Multiplayer.SendMessageToOthers(ModKey, bytes, true);
-            MyLog.Default.Info("[HnzCoopSeason] progress sent: {0:0.00}", progress);
         }
 
         static void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
         {
-            if (MyAPIGateway.Utilities.IsDedicated) return;
             if (modKey != ModKey) return;
 
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
-            var progress = payload.Progress;
+            if (payload.Type == 1) // query
+            {
+                var progress = Session.Instance.GetProgress();
+                bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Update(progress));
 
-            _hudMessage?.DeleteMessage();
-            _hudMessage = new HudAPIv2.HUDMessage(
-                /*text*/ CreateProgressionHudText(progress),
-                /*origin*/ new Vector2D(0f, 1f),
-                /*offset*/ new Vector2D(-0.25f, -0.04f),
-                /*time to live*/ -1,
-                /*scale*/ 1,
-                /*hide hud*/ true,
-                /*shadowing*/ false,
-                /*shadow color*/ null,
-                /*text*/ MyBillboard.BlendTypeEnum.PostPP);
+                if (MyAPIGateway.Utilities.IsDedicated) // dedi
+                {
+                    MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, senderId, true);
+                }
+                else // single player
+                {
+                    OnMessageReceived(ModKey, bytes, 0, false);
+                }
+            }
+            else // update
+            {
+                var progress = payload.Progress;
 
-            MyLog.Default.Info("[HnzCoopSeason] progress received: {0:0.00}", progress);
+                _hudMessage?.DeleteMessage();
+                _hudMessage = new HudAPIv2.HUDMessage(
+                    /*text*/ CreateProgressionHudText(progress),
+                    /*origin*/ new Vector2D(0f, 1f),
+                    /*offset*/ new Vector2D(-0.25f, -0.04f),
+                    /*time to live*/ -1,
+                    /*scale*/ 1,
+                    /*hide hud*/ true,
+                    /*shadowing*/ false,
+                    /*shadow color*/ null,
+                    /*text*/ MyBillboard.BlendTypeEnum.PostPP);
+
+                MyLog.Default.Info("[HnzCoopSeason] progress received: {0:0.00}", progress);
+            }
         }
 
         static StringBuilder CreateProgressionHudText(float progress)
@@ -103,18 +134,27 @@ namespace HnzCoopSeason
         [ProtoContract]
         sealed class Payload
         {
-            // ReSharper disable once UnusedMember.Local
+            [ProtoMember(1)]
+            public byte Type;
+
+            [ProtoMember(2)]
+            public float Progress;
+
+            // ReSharper disable once EmptyConstructor
             public Payload()
             {
             }
 
-            public Payload(float progress)
+            public static Payload Request() => new Payload
             {
-                Progress = progress;
-            }
+                Type = 1
+            };
 
-            [ProtoMember(1)]
-            public float Progress { get; set; }
+            public static Payload Update(float progress) => new Payload
+            {
+                Type = 2,
+                Progress = progress,
+            };
         }
     }
 }

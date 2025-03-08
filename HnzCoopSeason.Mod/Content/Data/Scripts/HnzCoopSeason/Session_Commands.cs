@@ -21,7 +21,7 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi invade", false, MyPromoteLevel.Moderator, Command_InvadePoi, "invade a POI."));
             _commandModule.Register(new Command("poi spawn", false, MyPromoteLevel.Moderator, Command_Spawn, "spawn grids at a POI given encounter config index."));
             _commandModule.Register(new Command("stores update", false, MyPromoteLevel.Moderator, Command_UpdateStores, "update all merchant stores."));
-            _commandModule.Register(new Command("poi spectate", true, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
+            _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
         }
 
@@ -127,7 +127,7 @@ namespace HnzCoopSeason
 
         void Command_SpectatePoi(string poiId, ulong steamId)
         {
-            PoiSpectatorCamera.RequestPosition(poiId);
+            PoiSpectatorCamera.SendPosition(poiId, steamId);
         }
 
         void Command_Print(string args, ulong steamId)

@@ -20,17 +20,23 @@ namespace HnzCoopSeason
             MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
         }
 
-        public static void RequestPosition(string poiId)
+        public static void SendPosition(string poiId, ulong steamId)
         {
-            var bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Request(poiId));
-            if (MyAPIGateway.Session.IsServer) // single player
+            Vector3D position;
+            if (!Session.Instance.TryGetPoiPosition(poiId, out position))
+            {
+                position = Vector3D.Zero;
+            }
+
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(position));
+            if (MyAPIGateway.Utilities.IsDedicated) // dedi
+            {
+                MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, steamId, true);
+                MyLog.Default.Info("[HnzCoopSeason] PoiSpectatorCamera position sent");
+            }
+            else // single player
             {
                 OnMessageReceived(ModKey, bytes, 0, false);
-            }
-            else // dedi
-            {
-                MyAPIGateway.Multiplayer.SendMessageToServer(ModKey, bytes, true);
-                MyLog.Default.Error("[HnzCoopSeason] PoiSpectatorCamera request sent");
             }
         }
 
@@ -38,46 +44,15 @@ namespace HnzCoopSeason
         {
             if (modKey != ModKey) return;
 
+            MyLog.Default.Info("[HnzCoopSeason] PoiSpectatorCamera position received");
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
-            if (payload.Type == 1) // request
-            {
-                MyLog.Default.Error("[HnzCoopSeason] PoiSpectatorCamera request received");
-
-                Vector3D position;
-                if (!Session.Instance.TryGetPoiPosition(payload.PoiId, out position))
-                {
-                    position = Vector3D.Zero;
-                }
-
-                bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Response(position));
-                if (MyAPIGateway.Session.IsServer && !MyAPIGateway.Utilities.IsDedicated) // single player
-                {
-                    OnMessageReceived(ModKey, bytes, 0, false);
-                }
-                else // dedi
-                {
-                    MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, senderId, true);
-                    MyLog.Default.Error("[HnzCoopSeason] PoiSpectatorCamera response sent");
-                }
-            }
-            else // response
-            {
-                MyLog.Default.Error("[HnzCoopSeason] PoiSpectatorCamera response received");
-                MyAPIGateway.Session.SetCameraController(MyCameraControllerEnum.Spectator, position: payload.Position);
-            }
+            MyAPIGateway.Session.SetCameraController(MyCameraControllerEnum.Spectator, position: payload.Position);
         }
-
 
         [ProtoContract]
         sealed class Payload
         {
             [ProtoMember(1)]
-            public byte Type;
-
-            [ProtoMember(2)]
-            public string PoiId;
-
-            [ProtoMember(3)]
             public Vector3D Position;
 
             // ReSharper disable once UnusedMember.Local
@@ -85,17 +60,10 @@ namespace HnzCoopSeason
             {
             }
 
-            public static Payload Request(string poiId) => new Payload
+            public Payload(Vector3D position)
             {
-                Type = 1,
-                PoiId = poiId,
-            };
-
-            public static Payload Response(Vector3D position) => new Payload()
-            {
-                Type = 2,
-                Position = position,
-            };
+                Position = position;
+            }
         }
     }
 }

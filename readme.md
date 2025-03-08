@@ -35,20 +35,31 @@ co-op season
 - [x] merchant reputation on session start
 - [x] show progress bar on player connection
 - [x] determine the map relative to planet positions
-- [ ] progressive ork spawn groups
-- [ ] multiplayer tests
-- [ ] upload orks mod
+- [x] progressive ork spawn groups
+- [x] orks mod: "retreat" behavior
+- [x] orks mod: suppress natural spawn
+- [x] tech mod: disable assembly
+- [x] tech mod: disable offers at vanilla stores
+- [x] don't use mes for merchants
+- [x] actually sell techs
+- [x] orks mod: rival ai flags
+- [ ] multiple ork spawns per poi
+- [ ] register ork spawn groups
+- [ ] tech mod: upload to steam
+- [ ] orks mod: upload to steam
 - [ ] beta release
+- [ ] update wiki
 - [ ] release
 
 ### V1.5
 
 - [ ] merchant spawn messages
 - [ ] merchants buying scrap grids
-- [ ] orks spawn in fleet, as opposed to a single spawn group
+- [ ] final boss
 - [ ] postgres to integrate with PvP sector
 - [ ] PvP sector with higher tech yield & daily rep reset
 - [ ] command-based global market
+- [ ] mes mod: custom threat score
 - [ ] wandering merchants & stopping at player bases
 - [ ] wandering orks & tier-based threat score
 - [ ] ranking: POIs released
@@ -57,3 +68,4 @@ co-op season
 ### V2.0
 
 - [ ] [gui for global market](https://github.com/ZachHembree/RichHudFramework.Client)
+- [ ] merchant contracts

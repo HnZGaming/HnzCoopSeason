@@ -112,11 +112,6 @@ namespace HnzCoopSeason.Utils
             return block.BlockDefinition.SubtypeId?.IndexOf("ContractBlock", StringComparison.Ordinal) > -1;
         }
 
-        public static bool IsStoreBlock(this IMyCubeBlock block)
-        {
-            return block is IMyStoreBlock && !(block is IMyVendingMachine);
-        }
-
         // copied from vanilla private code
         public static int CalculateItemMinimalPrice(MyDefinitionId itemId)
         {

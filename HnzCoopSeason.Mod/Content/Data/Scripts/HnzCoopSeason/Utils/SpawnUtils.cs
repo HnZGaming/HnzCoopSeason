@@ -143,5 +143,29 @@ namespace HnzCoopSeason.Utils
                 ListPool<MyEntity>.Release(entities);
             }
         }
+
+        public static bool TryCalcMatrix(SpawnType type, BoundingSphereD sphere, float clearance, out MatrixD matrix)
+        {
+            switch (type)
+            {
+                case SpawnType.PlanetaryShip: return Cnv(TryCalcOrbitMatrix(sphere, clearance), out matrix);
+                case SpawnType.PlanetaryStation: return Cnv(TryCalcSurfaceMatrix(sphere, clearance), out matrix);
+                case SpawnType.SpaceShip: return Cnv(TryCalcSpaceMatrix(sphere, clearance), out matrix);
+                case SpawnType.SpaceStation: return Cnv(TryCalcSpaceMatrix(sphere, clearance), out matrix);
+                default: throw new InvalidOperationException($"Unknown spawn type: {type}");
+            }
+        }
+
+        static bool Cnv(MatrixD? m, out MatrixD om)
+        {
+            if (m == null)
+            {
+                om = MatrixD.Identity;
+                return false;
+            }
+
+            om = m.Value;
+            return true;
+        }
     }
 }

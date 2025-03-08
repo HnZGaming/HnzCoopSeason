@@ -28,5 +28,23 @@ namespace HnzCoopSeason.Utils
         {
             return new HashSet<T>(self);
         }
+
+        public static int ParseIntOrDefault(this string self, int defaultValue)
+        {
+            int result;
+            if (int.TryParse(self, out result))
+            {
+                return result;
+            }
+
+            return defaultValue;
+        }
+
+        public static void Increment<K>(this IDictionary<K, int> self, K key, int delta)
+        {
+            int value;
+            self.TryGetValue(key, out value);
+            self[key] = value + delta;
+        }
     }
 }

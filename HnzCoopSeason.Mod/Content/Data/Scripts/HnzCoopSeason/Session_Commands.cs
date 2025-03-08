@@ -3,8 +3,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
-using Sandbox.ModAPI;
-using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
 
@@ -19,8 +17,9 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi list", false, MyPromoteLevel.None, Command_SendPoiList, "show the list of POIs.\n--gps: create GPS points.\n--gps-remove: remove GPS points.\n--limit N: show N POIs."));
             _commandModule.Register(new Command("poi release", false, MyPromoteLevel.Moderator, Command_ReleasePoi, "release a POI."));
             _commandModule.Register(new Command("poi invade", false, MyPromoteLevel.Moderator, Command_InvadePoi, "invade a POI."));
-            _commandModule.Register(new Command("poi spawn", false, MyPromoteLevel.Moderator, Command_Spawn, "spawn grids at a POI."));
-            _commandModule.Register(new Command("poi spectate", true, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
+            _commandModule.Register(new Command("poi spawn", false, MyPromoteLevel.Moderator, Command_Spawn, "spawn grids at a POI given encounter config index."));
+            _commandModule.Register(new Command("stores update", false, MyPromoteLevel.Moderator, Command_UpdateStores, "update all merchant stores."));
+            _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
         }
 
@@ -90,8 +89,12 @@ namespace HnzCoopSeason
             }
         }
 
-        void Command_Spawn(string poiId, ulong steamId)
+        void Command_Spawn(string text, ulong steamId)
         {
+            var parts = text.Split(' ');
+            var poiId = parts[0];
+            var configIndex = parts[1].ParseIntOrDefault(0);
+
             Poi poi;
             if (!_poiMap.TryGetPoi(poiId, out poi))
             {
@@ -102,22 +105,32 @@ namespace HnzCoopSeason
             if (poi.State == PoiState.Occupied)
             {
                 var ork = poi.Observers.OfType<PoiOrk>().First();
-                ork.ForceSpawn();
+                ork.Spawn(configIndex);
             }
             else
             {
-                //todo
+                var merchant = poi.Observers.OfType<PoiMerchant>().First();
+                merchant.Spawn();
+            }
+        }
+
+        void Command_UpdateStores(string text, ulong steamId)
+        {
+            foreach (var poi in _poiMap.AllPois)
+            {
+                var merchant = poi.Observers.OfType<PoiMerchant>().First();
+                merchant.UpdateStore();
             }
         }
 
         void Command_SpectatePoi(string poiId, ulong steamId)
         {
-            PoiSpectatorCamera.RequestPosition(poiId);
+            PoiSpectatorCamera.SendPosition(poiId, steamId);
         }
 
         void Command_Print(string args, ulong steamId)
         {
-            MissionScreenView.ShowScreenMessage(steamId, "Print", _poiMap.ToString(), true);
+            MissionScreenView.ShowScreenMessage(steamId, "Print", ToString(), true);
         }
     }
 }

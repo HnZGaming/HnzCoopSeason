@@ -35,17 +35,17 @@ namespace HnzCoopSeason
 
         public void LoadConfig()
         {
-            var spaceOrks = SessionConfig.Instance.Orks.Where(c => !c.Planetary).ToArray();
+            var spaceOrks = SessionConfig.Instance.Orks.Where(c => c.SpawnType == SpawnType.SpaceShip).ToArray();
             MyLog.Default.Info($"[HnzCoopSeason] space orks: {spaceOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
 
-            var spaceMerchants = SessionConfig.Instance.Merchants.Where(c => !c.Planetary).ToArray();
-            MyLog.Default.Info($"[HnzCoopSeason] space merchants: {spaceMerchants.Select(c => c.SpawnGroup).ToStringSeq()}");
+            var spaceMerchants = SessionConfig.Instance.PoiMerchants.Where(c => c.SpawnType == SpawnType.SpaceStation).ToArray();
+            MyLog.Default.Info($"[HnzCoopSeason] space merchants: {spaceMerchants.Select(c => c.Prefab).ToStringSeq()}");
 
-            var planetOrks = SessionConfig.Instance.Orks.Where(c => c.Planetary).ToArray();
+            var planetOrks = SessionConfig.Instance.Orks.Where(c => c.SpawnType == SpawnType.PlanetaryShip).ToArray();
             MyLog.Default.Info($"[HnzCoopSeason] planet orks: {planetOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
 
-            var planetMerchants = SessionConfig.Instance.Merchants.Where(c => c.Planetary).ToArray();
-            MyLog.Default.Info($"[HnzCoopSeason] planet merchants: {planetMerchants.Select(c => c.SpawnGroup).ToStringSeq()}");
+            var planetMerchants = SessionConfig.Instance.PoiMerchants.Where(c => c.SpawnType == SpawnType.PlanetaryStation).ToArray();
+            MyLog.Default.Info($"[HnzCoopSeason] planet merchants: {planetMerchants.Select(c => c.Prefab).ToStringSeq()}");
 
             if (spaceOrks.Length == 0 || planetOrks.Length == 0 || spaceMerchants.Length == 0 || planetMerchants.Length == 0)
             {
@@ -131,8 +131,10 @@ namespace HnzCoopSeason
                    _spacePois.TryGetValue(id, out poi);
         }
 
-        public float GetProgression()
+        public float GetProgress()
         {
+            if (_allPois.Count == 0) return 0;
+
             var releasedPoiCount = 0;
             foreach (var p in _allPois)
             {

@@ -27,7 +27,13 @@ namespace HnzCoopSeason
         public int PoiCountPerAxis = 4;
 
         [XmlElement]
+        public int MaxProgressLevel = 5;
+
+        [XmlElement]
         public float EncounterRadius = 10000;
+
+        [XmlElement]
+        public float EncounterClearance = 1000;
 
         [XmlElement]
         public float RandomInvasionChance = 0.1f;
@@ -50,8 +56,8 @@ namespace HnzCoopSeason
         public MesStaticEncounterConfig[] Orks = { new MesStaticEncounterConfig() };
 
         [XmlArray]
-        [XmlArrayItem("Merchant")]
-        public MesStaticEncounterConfig[] Merchants = { new MesStaticEncounterConfig() };
+        [XmlArrayItem("PoiMerchant")]
+        public PoiMerchantConfig[] PoiMerchants = { new PoiMerchantConfig() };
 
         [XmlArray]
         [XmlArrayItem("StoreItem")]

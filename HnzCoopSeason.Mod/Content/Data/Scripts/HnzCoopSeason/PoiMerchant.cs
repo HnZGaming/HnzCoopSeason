@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HnzCoopSeason.Utils;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
@@ -8,6 +9,7 @@ using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Library.Utils;
+using VRage.ModAPI;
 using VRage.Serialization;
 using VRage.Utils;
 using VRageMath;
@@ -17,73 +19,172 @@ namespace HnzCoopSeason
     public sealed class PoiMerchant : IPoiObserver
     {
         const float SafezoneRadius = 75f;
+        static readonly Guid StorageKey = Guid.Parse("8e562067-5807-49a0-9d7d-108febcece97");
+
         readonly string _poiId;
-        readonly MesStaticEncounter _encounter;
+        readonly Vector3D _position;
+        readonly IMyFaction _faction;
         readonly string _variableKey;
         readonly Interval _economyInterval;
+        readonly PoiMerchantConfig _config;
         long _safeZoneId;
         IMyCubeGrid _grid;
+        PoiState _poiState;
+        SpawnState _spawnState;
 
-        public PoiMerchant(string poiId, Vector3D position, IMyFaction faction, MesStaticEncounterConfig[] configs)
+        public PoiMerchant(string poiId, Vector3D position, IMyFaction faction, PoiMerchantConfig[] configs)
         {
             _poiId = poiId;
+            _position = position;
+            _faction = faction;
             _variableKey = $"HnzCoopSeason.PoiMerchant.{_poiId}";
             _economyInterval = new Interval();
-
-            var config = configs[poiId.GetHashCode() % configs.Length];
-            _encounter = new MesStaticEncounter($"{poiId}-merchant", "[MERCHANTS]", new[] { config }, position, faction.Tag, true);
+            _config = configs[poiId.GetHashCode() % configs.Length];
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
-            _encounter.OnGridSet += OnGridSet;
-            _encounter.OnGridUnset += OnGridUnset;
-
             LoadFromSandbox();
-
-            _encounter.Load(grids, true, false);
             _economyInterval.Initialize();
+
+            var myGrids = grids.Where(g => IsMyGrid(g)).ToArray();
+            for (var i = 0; i < myGrids.Length; i++)
+            {
+                if (i > 0) // shouldn't happen
+                {
+                    myGrids[i].Close();
+                    MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} found multiple grids; closing except one");
+                    continue;
+                }
+
+                MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} recovering existing grid");
+                OnGridSet(myGrids[i], true);
+            }
         }
 
         void IPoiObserver.Unload(bool sessionUnload)
         {
-            _encounter.Unload(sessionUnload);
-
-            _encounter.OnGridSet -= OnGridSet;
-            _encounter.OnGridUnset -= OnGridUnset;
+            if (!sessionUnload)
+            {
+                Despawn();
+            }
         }
 
         void IPoiObserver.Update()
         {
-            _encounter.Update();
+            UpdateStation();
+            UpdateEconomy();
+        }
 
-            // update economy
-            if (_grid != null && _economyInterval.Update(SessionConfig.Instance.EconomyUpdateInterval * 60))
-            {
-                UpdateStore();
-                UpdateContracts();
-            }
+        void UpdateStation()
+        {
+            if (MyAPIGateway.Session.GameplayFrameCounter % 60 != 0) return;
+            if (_poiState != PoiState.Released) return;
+            if (_spawnState != SpawnState.Idle) return;
+
+            var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
+            if (!OnlineCharacterCollection.ContainsPlayer(sphere)) return;
+
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} player nearby");
+
+            Spawn();
+        }
+
+        void UpdateEconomy()
+        {
+            if (_grid == null) return;
+
+            var i = SessionConfig.Instance.EconomyUpdateInterval * 60;
+            if (!_economyInterval.Update(i)) return;
+
+            UpdateStore();
         }
 
         void IPoiObserver.OnStateChanged(PoiState state)
         {
-            _encounter.SetActive(state == PoiState.Released);
+            _poiState = state;
 
             if (state == PoiState.Occupied)
             {
-                _encounter.Despawn();
+                Despawn();
             }
+        }
+
+        public void Spawn()
+        {
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} Spawn()");
+
+            Despawn();
+
+            var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
+            var clearance = SessionConfig.Instance.EncounterClearance;
+            MatrixD matrix;
+            if (!SpawnUtils.TryCalcMatrix(_config.SpawnType, sphere, clearance, out matrix))
+            {
+                MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} failed to find position for spawning");
+                return;
+            }
+
+            matrix.Translation += matrix.Up * _config.OffsetY;
+
+            try
+            {
+                _spawnState = SpawnState.Processing;
+
+                var resultGrids = new List<IMyCubeGrid>();
+                var ownerId = _faction.FounderId;
+                MyAPIGateway.PrefabManager.SpawnPrefab(
+                    resultGrids, _config.Prefab, matrix.Translation, matrix.Forward, matrix.Up,
+                    ownerId: ownerId,
+                    spawningOptions: SpawningOptions.RotateFirstCockpitTowardsDirection,
+                    callback: () => OnGridSpawned(resultGrids, matrix));
+            }
+            catch (Exception e)
+            {
+                _spawnState = SpawnState.Failure;
+                MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} failed to spawn: {e}");
+            }
+        }
+
+        void OnGridSpawned(List<IMyCubeGrid> resultGrids, MatrixD matrix)
+        {
+            if (resultGrids.Count == 0)
+            {
+                MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} failed to spawn via SpawnPrefab()");
+                _spawnState = SpawnState.Failure;
+
+                // debug
+                var gps = MyAPIGateway.Session.GPS.Create(_config.Prefab, "", matrix.Translation, true);
+                MyAPIGateway.Session.GPS.AddLocalGps(gps);
+                return;
+            }
+
+            // name manipulation
+            var grid = resultGrids[0];
+            grid.CustomName = $"[{_faction.Tag}] {grid.CustomName}";
+
+            OnGridSet(grid, false);
         }
 
         void OnGridSet(IMyCubeGrid grid, bool recovery)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} merchant grid set");
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} grid set");
             _grid = grid;
+            _grid.OnClose += OnGridClosed;
+            _grid.UpdateStorageValue(StorageKey, _poiId);
+            _spawnState = SpawnState.Success;
 
             UpdateStore();
-            UpdateContracts();
             SetUpSafezone();
             SaveToSandbox();
+
+            // disable contract blocks
+            var contractBlocks = new List<IMySlimBlock>();
+            _grid.GetBlocks(contractBlocks, b => b.FatBlock?.IsContractBlock() ?? false);
+            foreach (var b in contractBlocks)
+            {
+                ((IMyFunctionalBlock)b.FatBlock).Enabled = false;
+            }
 
             if (!recovery) // new spawn
             {
@@ -91,36 +192,20 @@ namespace HnzCoopSeason
             }
         }
 
-        void OnGridUnset(IMyCubeGrid grid)
+        void Despawn()
         {
-            MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} merchant grid unset");
+            if (_grid == null) return;
 
-            if (_grid != grid)
-            {
-                throw new InvalidOperationException("unsetting grid that isn't set");
-            }
-
-            _grid = null;
-
-            // DisposeContracts(); // note: let the game handle this
+            _grid.Close();
             RemoveSafezone();
-            SaveToSandbox();
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} despawned");
         }
 
-        void UpdateContracts()
+        void OnGridClosed(IMyEntity grid)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} update contracts");
-
-            // find contract blocks
-            IMyCubeBlock block;
-            if (!TryGetSingleBlock(_grid, b => b?.IsContractBlock() ?? false, out block))
-            {
-                //MyLog.Default.Error($"[HnzCoopSeason] POI {_poiId} invalid contract block count");
-                return;
-            }
-
-            // disable contract blocks until we implement custom contracts
-            ((IMyFunctionalBlock)block).Enabled = false;
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} grid closed");
+            grid.OnClose -= OnGridClosed;
+            _spawnState = SpawnState.Idle;
         }
 
         void SetUpSafezone()
@@ -128,7 +213,7 @@ namespace HnzCoopSeason
             MySafeZone safezone;
             if (VRageUtils.TryGetEntityById(_safeZoneId, out safezone))
             {
-                MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} safezone already exists");
+                MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} safezone already exists");
                 return;
             }
 
@@ -141,7 +226,8 @@ namespace HnzCoopSeason
 
             MySessionComponentSafeZones.AddSafeZone(safezone);
             _safeZoneId = safezone.EntityId;
-            MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} safezone created");
+            SaveToSandbox();
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} safezone created");
         }
 
         void RemoveSafezone()
@@ -149,7 +235,7 @@ namespace HnzCoopSeason
             MySafeZone safezone;
             if (!VRageUtils.TryGetEntityById(_safeZoneId, out safezone))
             {
-                MyLog.Default.Warning($"[HnzCoopSeason] POI {_poiId} safezone not found");
+                MyLog.Default.Warning($"[HnzCoopSeason] poi merchant {_poiId} safezone not found");
                 return;
             }
 
@@ -158,17 +244,18 @@ namespace HnzCoopSeason
             MyEntities.Remove(safezone);
 
             _safeZoneId = 0;
-            MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} safezone removed");
+            SaveToSandbox();
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} safezone removed");
         }
 
         void UpdateStore()
         {
-            MyLog.Default.Info($"[HnzCoopSeason] POI {_poiId} update store items");
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} update store items");
 
             IMyStoreBlock storeBlock;
             if (!TryGetSingleBlock(_grid, b => b?.IsStoreBlock() ?? false, out storeBlock))
             {
-                MyLog.Default.Error($"[HnzCoopSeason] POI {_poiId} invalid store block count");
+                MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} invalid store block count");
                 return;
             }
 
@@ -207,11 +294,6 @@ namespace HnzCoopSeason
             }
         }
 
-        public void ForceSpawn()
-        {
-            _encounter.ForceSpawn(0);
-        }
-
         void SaveToSandbox()
         {
             var data = new SerializableDictionary<string, object>
@@ -231,6 +313,18 @@ namespace HnzCoopSeason
             }
         }
 
+        bool IsMyGrid(IMyCubeGrid grid)
+        {
+            if (grid.Closed) return false;
+            if (grid.MarkedForClose) return false;
+
+            string value;
+            if (!grid.TryGetStorageValue(StorageKey, out value)) return false;
+
+            //MyLog.Default.Info($"[HnzCoopSeason] grid name: {grid.CustomName}, value: '{value}', to: '{_poiId}'");
+            return value == _poiId;
+        }
+
         static bool TryGetSingleBlock<T>(IMyCubeGrid grid, Func<IMyCubeBlock, bool> f, out T block) where T : class, IMyCubeBlock
         {
             block = null;
@@ -244,7 +338,15 @@ namespace HnzCoopSeason
 
         public override string ToString()
         {
-            return $"Merchant({nameof(_poiId)}: {_poiId}, {nameof(_encounter)}: {_encounter})";
+            return $"Merchant({nameof(_poiId)}: {_poiId}, {nameof(_spawnState)}: {_spawnState}, {nameof(_grid)}: '{_grid.Name}')";
+        }
+
+        enum SpawnState
+        {
+            Idle,
+            Processing,
+            Success,
+            Failure,
         }
     }
 }

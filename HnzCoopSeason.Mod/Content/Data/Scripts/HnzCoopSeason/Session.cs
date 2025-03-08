@@ -23,10 +23,9 @@ namespace HnzCoopSeason
 
         public override void LoadData()
         {
+            MyLog.Default.Info("[HnzCoopSeason] session loading");
             base.LoadData();
             Instance = this;
-
-            MyLog.Default.Info("[HnzCoopSeason] session loading");
 
             _commandModule = new CommandModule("coop");
             _commandModule.Load();
@@ -54,6 +53,7 @@ namespace HnzCoopSeason
 
         protected override void UnloadData()
         {
+            MyLog.Default.Info("[HnzCoopSeason] session unloading");
             base.UnloadData();
 
             _commandModule.Unload();
@@ -72,6 +72,8 @@ namespace HnzCoopSeason
             }
 
             ProgressionView.Unload();
+            
+            MyLog.Default.Info("[HnzCoopSeason] session unloaded");
         }
 
         void LoadConfig()

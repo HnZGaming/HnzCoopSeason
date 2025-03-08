@@ -92,9 +92,9 @@ namespace HnzCoopSeason
             Session.Instance.SetPoiState(_poiId, PoiState.Occupied);
         }
 
-        public void ForceSpawn(int configIndex)
+        public void Spawn(int configIndex)
         {
-            _encounter.ForceSpawn(configIndex);
+            _encounter.Spawn(configIndex);
         }
 
         public override string ToString()

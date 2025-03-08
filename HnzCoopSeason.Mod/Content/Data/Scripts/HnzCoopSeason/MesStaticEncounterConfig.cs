@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml.Serialization;
+using HnzCoopSeason.Utils;
 
 namespace HnzCoopSeason
 {
@@ -13,10 +14,7 @@ namespace HnzCoopSeason
         public string MainPrefab = ""; // in case a spawn group consists of multiple grids
 
         [XmlAttribute]
-        public bool Planetary;
-
-        [XmlAttribute]
-        public bool SnapToVoxel;
+        public SpawnType SpawnType = SpawnType.SpaceShip;
 
         [XmlAttribute]
         public float Weight = 1;
@@ -29,7 +27,7 @@ namespace HnzCoopSeason
 
         public override string ToString()
         {
-            return $"{nameof(SpawnGroup)}: {SpawnGroup}, {nameof(Planetary)}: {Planetary}, {nameof(SnapToVoxel)}: {SnapToVoxel}, {nameof(Weight)}: {Weight}";
+            return $"{nameof(SpawnGroup)}: {SpawnGroup}, {nameof(MainPrefab)}: {MainPrefab}, {nameof(SpawnType)}: {SpawnType}, {nameof(Weight)}: {Weight}, {nameof(MinProgress)}: {MinProgress}, {nameof(MaxProgress)}: {MaxProgress}";
         }
     }
 }

@@ -77,31 +77,27 @@ namespace HnzCoopSeason
             if (_mesGrid.State != MesGrid.SpawningState.Idle) return;
 
             var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
-            IMyPlayer player;
-            if (!OnlineCharacterCollection.TryGetContainedPlayer(sphere, out player)) return;
+            if (!OnlineCharacterCollection.ContainsPlayer(sphere)) return;
 
-            MyLog.Default.Info($"[HnzCoopSeason] encounter {_mesGrid.Id} player nearby: '{player.DisplayName}'");
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_mesGrid.Id} player nearby");
 
-            ForceSpawn(CalcConfigIndex());
+            Spawn(CalcConfigIndex());
         }
 
-        public void ForceSpawn(int configIndex)
+        public void Spawn(int configIndex)
         {
             var config = _configs[configIndex];
-            var matrix = TryCalcMatrix(config, _position);
-            if (matrix == null)
+            var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
+            var clearance = SessionConfig.Instance.EncounterClearance;
+            MatrixD matrix;
+            if (!SpawnUtils.TryCalcMatrix(config.SpawnType, sphere, clearance, out matrix))
             {
                 MyLog.Default.Error($"[HnzCoopSeason] encounter {_mesGrid.Id} failed to find a spawnable position: {config}");
                 return;
             }
 
             MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");
-            _mesGrid.RequestSpawn(config.SpawnGroup, config.MainPrefab, _factionTag, matrix.Value);
-        }
-
-        public void Despawn()
-        {
-            _mesGrid.Despawn();
+            _mesGrid.RequestSpawn(config.SpawnGroup, config.MainPrefab, _factionTag, matrix);
         }
 
         int CalcConfigIndex()
@@ -124,21 +120,6 @@ namespace HnzCoopSeason
             if (progress < config.MinProgress) return 0;
             if (progress > config.MaxProgress) return 0;
             return config.Weight;
-        }
-
-        static MatrixD? TryCalcMatrix(MesStaticEncounterConfig config, Vector3D position)
-        {
-            var sphere = new BoundingSphereD(position, SessionConfig.Instance.EncounterRadius);
-            var clearance = SessionConfig.Instance.EncounterClearance;
-
-            if (config.Planetary)
-            {
-                return config.SnapToVoxel
-                    ? SpawnUtils.TryCalcSurfaceMatrix(sphere, clearance)
-                    : SpawnUtils.TryCalcOrbitMatrix(sphere, clearance);
-            }
-
-            return SpawnUtils.TryCalcSpaceMatrix(sphere, clearance);
         }
 
         public override string ToString()

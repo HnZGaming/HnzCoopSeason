@@ -106,12 +106,12 @@ namespace HnzCoopSeason
             if (poi.State == PoiState.Occupied)
             {
                 var ork = poi.Observers.OfType<PoiOrk>().First();
-                ork.ForceSpawn(configIndex);
+                ork.Spawn(configIndex);
             }
             else
             {
                 var merchant = poi.Observers.OfType<PoiMerchant>().First();
-                merchant.ForceSpawn();
+                merchant.Spawn();
             }
         }
 

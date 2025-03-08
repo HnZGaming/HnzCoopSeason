@@ -40,7 +40,8 @@ co-op season
 - [x] orks mod: suppress natural spawn
 - [x] tech mod: disable assembly
 - [x] tech mod: disable offers at vanilla stores
-- [ ] don't use mes for merchants
+- [x] don't use mes for merchants
+- [ ] actually sell techs
 - [ ] register ork spawn groups
 - [ ] mes mod: remove rival ai flags
 - [ ] tech mod: upload to steam
@@ -53,7 +54,7 @@ co-op season
 
 - [ ] merchant spawn messages
 - [ ] merchants buying scrap grids
-- [ ] orks spawn in fleet, as opposed to a single spawn group
+- [ ] orks spawn in fleet
 - [ ] postgres to integrate with PvP sector
 - [ ] PvP sector with higher tech yield & daily rep reset
 - [ ] command-based global market
@@ -66,3 +67,4 @@ co-op season
 ### V2.0
 
 - [ ] [gui for global market](https://github.com/ZachHembree/RichHudFramework.Client)
+- [ ] merchant contracts

@@ -13,17 +13,17 @@ namespace HnzCoopSeason
         public string Id;
 
         [XmlElement]
-        public string MainPrefabId;
+        public bool IsMainSpawn;
 
         // serializer
         public MesGridContext()
         {
         }
 
-        public MesGridContext(string id, string mainPrefabId)
+        public MesGridContext(string id, bool isMainSpawn)
         {
+            IsMainSpawn = isMainSpawn;
             Id = id;
-            MainPrefabId = mainPrefabId;
         }
 
         public string ToXml()

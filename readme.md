@@ -43,8 +43,8 @@ co-op season
 - [x] don't use mes for merchants
 - [x] actually sell techs
 - [x] orks mod: rival ai flags
-- [ ] multiple ork spawns per poi
-- [ ] register ork spawn groups
+- [x] multiple ork spawns per poi
+- [x] register ork spawn groups
 - [ ] tech mod: upload to steam
 - [ ] orks mod: upload to steam
 - [ ] beta release

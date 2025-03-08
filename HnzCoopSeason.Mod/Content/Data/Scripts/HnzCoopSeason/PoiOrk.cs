@@ -10,22 +10,22 @@ namespace HnzCoopSeason
     public sealed class PoiOrk : IPoiObserver
     {
         readonly string _poiId;
-        readonly MesStaticEncounter _encounter;
+        readonly MesEncounter _encounter;
         readonly Interval _randomInvasionInterval;
         PoiState _poiState;
 
-        public PoiOrk(string poiId, Vector3D position, MesStaticEncounterConfig[] configs)
+        public PoiOrk(string poiId, Vector3D position, MesEncounterConfig[] configs)
         {
             _poiId = poiId;
-            _encounter = new MesStaticEncounter($"{poiId}-ork", "[ORKS]", configs, position, null, false);
+            _encounter = new MesEncounter($"{poiId}-ork", "[ORKS]", configs, position, null);
             _randomInvasionInterval = new Interval();
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
-            _encounter.OnGridSet += OnGridSet;
-            _encounter.OnGridUnset += OnGridUnset;
-            _encounter.Load(grids, false, true);
+            _encounter.OnMainGridSet += OnMainGridSet;
+            _encounter.OnMainGridUnset += OnMainGridUnset;
+            _encounter.Load(grids);
 
             _randomInvasionInterval.Initialize();
         }
@@ -33,8 +33,8 @@ namespace HnzCoopSeason
         void IPoiObserver.Unload(bool sessionUnload)
         {
             _encounter.Unload(sessionUnload);
-            _encounter.OnGridSet -= OnGridSet;
-            _encounter.OnGridUnset -= OnGridUnset;
+            _encounter.OnMainGridSet -= OnMainGridSet;
+            _encounter.OnMainGridUnset -= OnMainGridUnset;
         }
 
         void IPoiObserver.Update()
@@ -49,18 +49,15 @@ namespace HnzCoopSeason
             _encounter.SetActive(state == PoiState.Occupied);
         }
 
-        void OnGridSet(IMyCubeGrid grid, bool recovery)
+        void OnMainGridSet(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} spawn");
             grid.OnBlockOwnershipChanged += OnGridOwnershipChanged;
 
-            if (!recovery) // new spawn
-            {
-                Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
-            }
+            Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
         }
 
-        void OnGridUnset(IMyCubeGrid grid)
+        void OnMainGridUnset(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} despawn");
             grid.OnBlockOwnershipChanged -= OnGridOwnershipChanged;

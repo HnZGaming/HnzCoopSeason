@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HnzCoopSeason.Utils;
 using Sandbox.Common.ObjectBuilders;
+using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using VRage.Game;
@@ -10,6 +11,7 @@ using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Library.Utils;
 using VRage.ModAPI;
+using VRage.ObjectBuilders;
 using VRage.Serialization;
 using VRage.Utils;
 using VRageMath;
@@ -248,33 +250,45 @@ namespace HnzCoopSeason
             MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} safezone removed");
         }
 
-        void UpdateStore()
+        public void UpdateStore()
         {
+            if (_grid == null) return;
+
             MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} update store items");
 
-            IMyStoreBlock storeBlock;
-            if (!TryGetSingleBlock(_grid, b => b?.IsStoreBlock() ?? false, out storeBlock))
+            var storeBlocks = _grid.GetFatBlocks<IMyStoreBlock>().Where(b => IsStoreBlock(b)).ToArray();
+            if (storeBlocks.Length != 1)
             {
                 MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} invalid store block count");
                 return;
             }
 
+            var cargoBlocks = _grid.GetFatBlocks<IMyCargoContainer>().Where(b => IsCargoBlock(b)).ToArray();
+            if (cargoBlocks.Length == 0)
+            {
+                MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} no cargo container blocks");
+                return;
+            }
+
+            var storeBlock = storeBlocks[0];
+            var inventory = cargoBlocks[0].GetInventory(0);
+
             var allExistingItems = new List<IMyStoreItem>();
             storeBlock.GetStoreItems(allExistingItems);
 
             var existingOffers = new Dictionary<MyDefinitionId, int>();
-            var existingOrders = new Dictionary<MyDefinitionId, int>();
             foreach (var item in allExistingItems)
             {
                 if (item.Item == null) continue; // shouldn't happen
+                if (item.StoreItemType != StoreItemTypes.Offer) continue;
 
                 var id = item.Item.Value.ToDefinitionId();
-                var dic = item.StoreItemType == StoreItemTypes.Offer ? existingOffers : existingOrders;
-                dic[id] = item.Amount;
+                existingOffers[id] = item.Amount;
             }
 
             storeBlock.ClearItems();
 
+            var allItems = new Dictionary<MyDefinitionId, int>();
             foreach (var c in SessionConfig.Instance.StoreItems)
             {
                 MyDefinitionId id;
@@ -289,8 +303,16 @@ namespace HnzCoopSeason
                 var amount = Math.Min(existingAmount + fillAmount, c.MaxAmount);
                 var item = storeBlock.CreateStoreItem(id, amount, c.PricePerUnit, StoreItemTypes.Offer);
                 storeBlock.InsertStoreItem(item);
+                allItems.Increment(id, amount);
 
-                MyLog.Default.Debug("[HnzCoopSeason] UpdateStoreItems() offer; item: {0}, origin: {1}, delta: {2}", id, existingAmount, amount, fillAmount);
+                MyLog.Default.Debug("[HnzCoopSeason] UpdateStoreItems(); item: {0}, origin: {1}, delta: {2}", id, existingAmount, amount, fillAmount);
+            }
+
+            inventory.Clear();
+            foreach (var kvp in allItems)
+            {
+                var builder = new MyObjectBuilder_Component { SubtypeName = kvp.Key.SubtypeName };
+                inventory.AddItems(kvp.Value, builder);
             }
         }
 
@@ -325,15 +347,14 @@ namespace HnzCoopSeason
             return value == _poiId;
         }
 
-        static bool TryGetSingleBlock<T>(IMyCubeGrid grid, Func<IMyCubeBlock, bool> f, out T block) where T : class, IMyCubeBlock
+        static bool IsStoreBlock(IMyStoreBlock block)
         {
-            block = null;
-            var blocks = new List<IMySlimBlock>();
-            grid.GetBlocks(blocks, b => f(b.FatBlock));
-            if (blocks.Count != 1) return false;
+            return !(block is IMyVendingMachine);
+        }
 
-            block = (T)blocks[0].FatBlock;
-            return true;
+        static bool IsCargoBlock(IMyCargoContainer block)
+        {
+            return block.CustomName.Contains("Cargo");
         }
 
         public override string ToString()

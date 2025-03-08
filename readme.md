@@ -41,7 +41,7 @@ co-op season
 - [x] tech mod: disable assembly
 - [x] tech mod: disable offers at vanilla stores
 - [x] don't use mes for merchants
-- [ ] actually sell techs
+- [x] actually sell techs
 - [ ] register ork spawn groups
 - [ ] mes mod: remove rival ai flags
 - [ ] tech mod: upload to steam

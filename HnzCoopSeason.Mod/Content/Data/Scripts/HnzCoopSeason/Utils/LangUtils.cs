@@ -39,5 +39,12 @@ namespace HnzCoopSeason.Utils
 
             return defaultValue;
         }
+
+        public static void Increment<K>(this IDictionary<K, int> self, K key, int delta)
+        {
+            int value;
+            self.TryGetValue(key, out value);
+            self[key] = value + delta;
+        }
     }
 }

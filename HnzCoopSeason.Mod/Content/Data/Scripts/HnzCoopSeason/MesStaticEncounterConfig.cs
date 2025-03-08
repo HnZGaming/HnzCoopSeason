@@ -20,14 +20,11 @@ namespace HnzCoopSeason
         public float Weight = 1;
 
         [XmlAttribute]
-        public float MinProgress = 0;
-
-        [XmlAttribute]
-        public float MaxProgress = 1;
+        public int ProgressLevel = 1;
 
         public override string ToString()
         {
-            return $"{nameof(SpawnGroup)}: {SpawnGroup}, {nameof(MainPrefab)}: {MainPrefab}, {nameof(SpawnType)}: {SpawnType}, {nameof(Weight)}: {Weight}, {nameof(MinProgress)}: {MinProgress}, {nameof(MaxProgress)}: {MaxProgress}";
+            return $"{nameof(SpawnGroup)}: {SpawnGroup}, {nameof(MainPrefab)}: {MainPrefab}, {nameof(SpawnType)}: {SpawnType}, {nameof(Weight)}: {Weight}, {nameof(ProgressLevel)}: {ProgressLevel}";
         }
     }
 }

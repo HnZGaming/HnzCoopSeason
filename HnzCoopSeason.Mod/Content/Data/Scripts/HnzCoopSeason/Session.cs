@@ -72,7 +72,7 @@ namespace HnzCoopSeason
             }
 
             ProgressionView.Unload();
-            
+
             MyLog.Default.Info("[HnzCoopSeason] session unloaded");
         }
 
@@ -121,6 +121,15 @@ namespace HnzCoopSeason
             return _poiMap.GetProgress();
         }
 
+        // min: 1
+        // max: SessionConfig.Instance.MaxProgressLevel
+        public int GetProgressLevel()
+        {
+            var progress = GetProgress();
+            var max = SessionConfig.Instance.MaxProgressLevel;
+            return Math.Min((int)Math.Floor(progress * max) + 1, max);
+        }
+
         public bool SetPoiState(string poiId, PoiState state)
         {
             Poi poi;
@@ -128,6 +137,7 @@ namespace HnzCoopSeason
             if (!poi.SetState(state)) return false;
 
             ProgressionView.UpdateProgress();
+            MyLog.Default.Info($"[HnzCoopSeason] progress: {GetProgress() * 100:0.0}%, level: {GetProgressLevel()}");
             return true;
         }
 
@@ -177,6 +187,11 @@ namespace HnzCoopSeason
 
             position = Vector3D.Zero;
             return false;
+        }
+
+        public override string ToString()
+        {
+            return $"Session(progress: {GetProgress()}, progressLevel: {GetProgressLevel()}, {nameof(_poiMap)}: {_poiMap})";
         }
     }
 }

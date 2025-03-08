@@ -27,6 +27,9 @@ namespace HnzCoopSeason
         public int PoiCountPerAxis = 4;
 
         [XmlElement]
+        public int MaxProgressLevel = 5;
+
+        [XmlElement]
         public float EncounterRadius = 10000;
 
         [XmlElement]

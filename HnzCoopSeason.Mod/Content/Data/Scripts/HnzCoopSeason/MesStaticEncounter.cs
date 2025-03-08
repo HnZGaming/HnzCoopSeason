@@ -104,8 +104,8 @@ namespace HnzCoopSeason
         {
             if (_configs.Length == 1) return 0;
 
-            var progress = Session.Instance.GetProgress();
-            var weights = _configs.Select(c => GetWeight(c, progress)).ToArray();
+            var progressLevel = Session.Instance.GetProgressLevel();
+            var weights = _configs.Select(c => GetWeight(c, progressLevel)).ToArray();
             if (weights.Length == 0)
             {
                 MyLog.Default.Warning($"[HnzCoopSeason] encounter {_mesGrid.Id} no configs eligible; selecting 0");
@@ -115,10 +115,9 @@ namespace HnzCoopSeason
             return MathUtils.WeightedRandom(weights);
         }
 
-        static float GetWeight(MesStaticEncounterConfig config, float progress)
+        static float GetWeight(MesStaticEncounterConfig config, int progressLevel)
         {
-            if (progress < config.MinProgress) return 0;
-            if (progress > config.MaxProgress) return 0;
+            if (progressLevel != config.ProgressLevel) return 0;
             return config.Weight;
         }
 

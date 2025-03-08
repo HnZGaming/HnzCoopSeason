@@ -3,8 +3,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
-using Sandbox.ModAPI;
-using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
 
@@ -132,7 +130,7 @@ namespace HnzCoopSeason
 
         void Command_Print(string args, ulong steamId)
         {
-            MissionScreenView.ShowScreenMessage(steamId, "Print", _poiMap.ToString(), true);
+            MissionScreenView.ShowScreenMessage(steamId, "Print", ToString(), true);
         }
     }
 }

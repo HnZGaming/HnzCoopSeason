@@ -42,8 +42,9 @@ co-op season
 - [x] tech mod: disable offers at vanilla stores
 - [x] don't use mes for merchants
 - [x] actually sell techs
+- [x] orks mod: rival ai flags
+- [ ] multiple ork spawns per poi
 - [ ] register ork spawn groups
-- [ ] mes mod: remove rival ai flags
 - [ ] tech mod: upload to steam
 - [ ] orks mod: upload to steam
 - [ ] beta release
@@ -54,7 +55,7 @@ co-op season
 
 - [ ] merchant spawn messages
 - [ ] merchants buying scrap grids
-- [ ] orks spawn in fleet
+- [ ] final boss
 - [ ] postgres to integrate with PvP sector
 - [ ] PvP sector with higher tech yield & daily rep reset
 - [ ] command-based global market

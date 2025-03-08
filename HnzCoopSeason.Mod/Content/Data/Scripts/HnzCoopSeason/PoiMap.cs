@@ -133,6 +133,8 @@ namespace HnzCoopSeason
 
         public float GetProgress()
         {
+            if (_allPois.Count == 0) return 0;
+
             var releasedPoiCount = 0;
             foreach (var p in _allPois)
             {

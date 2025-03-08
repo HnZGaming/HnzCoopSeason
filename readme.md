@@ -36,10 +36,15 @@ co-op season
 - [x] show progress bar on player connection
 - [x] determine the map relative to planet positions
 - [x] progressive ork spawn groups
-- [ ] multiplayer tests
-- [ ] upload orks mod
-- [ ] disable tech assembly
-- [ ] disable tech sale at vanilla stores
+- [x] orks mod: "retreat" behavior
+- [x] orks mod: suppress natural spawn
+- [x] tech mod: disable assembly
+- [x] tech mod: disable offers at vanilla stores
+- [ ] don't use mes for merchants
+- [ ] register ork spawn groups
+- [ ] mes mod: remove rival ai flags
+- [ ] tech mod: upload to steam
+- [ ] orks mod: upload to steam
 - [ ] beta release
 - [ ] update wiki
 - [ ] release
@@ -52,6 +57,7 @@ co-op season
 - [ ] postgres to integrate with PvP sector
 - [ ] PvP sector with higher tech yield & daily rep reset
 - [ ] command-based global market
+- [ ] mes mod: custom threat score
 - [ ] wandering merchants & stopping at player bases
 - [ ] wandering orks & tier-based threat score
 - [ ] ranking: POIs released

@@ -173,6 +173,7 @@
       <Content Include="Content\Data\Factions.sbc" />
       <Content Include="Content\Data\ModStorageComponents.sbc" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\readme.md" />
+      <Content Include="Content\Data\Scripts\HnzCoopSeason\HudAPI\readme.md" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\MES\readme.md" />
       <Content Include="Content\Data\SpawnGroups\Merchants-SpawnGroups.sbc" />
       <Content Include="upload.bat" />

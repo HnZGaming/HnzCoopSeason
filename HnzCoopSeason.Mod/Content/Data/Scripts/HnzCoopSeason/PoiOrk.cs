@@ -12,10 +12,12 @@ namespace HnzCoopSeason
         readonly string _poiId;
         readonly MesEncounter _encounter;
         readonly Interval _randomInvasionInterval;
+        readonly Vector3D _position;
         PoiState _poiState;
 
         public PoiOrk(string poiId, Vector3D position, MesEncounterConfig[] configs)
         {
+            _position = position;
             _poiId = poiId;
             _encounter = new MesEncounter($"{poiId}-ork", "[ORKS]", configs, position, null);
             _randomInvasionInterval = new Interval();
@@ -87,6 +89,7 @@ namespace HnzCoopSeason
 
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} random invasion");
             Session.Instance.SetPoiState(_poiId, PoiState.Occupied);
+            Session.Instance.OnRandomInvasion(_poiId, _position);
         }
 
         public void Spawn(int configIndex)

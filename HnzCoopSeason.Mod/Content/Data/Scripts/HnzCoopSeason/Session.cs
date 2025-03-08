@@ -165,6 +165,12 @@ namespace HnzCoopSeason
             MyVisualScriptLogicProvider.AddGPS("Something", "", position, Color.Red);
         }
 
+        public void OnRandomInvasion(string poiId, Vector3D position)
+        {
+            MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have taken over our land!", 10000);
+            MyVisualScriptLogicProvider.AddGPS("Something", "", position, Color.Red);
+        }
+
         public static void SendMessage(ulong steamId, Color color, string message)
         {
             var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);

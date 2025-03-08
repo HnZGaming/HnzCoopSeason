@@ -41,7 +41,7 @@ namespace HnzCoopSeason
             _faction = faction;
             _variableKey = $"HnzCoopSeason.PoiMerchant.{_poiId}";
             _economyInterval = new Interval();
-            _config = configs[poiId.GetHashCode() % configs.Length];
+            _config = configs[Math.Abs(poiId.GetHashCode()) % configs.Length];
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)

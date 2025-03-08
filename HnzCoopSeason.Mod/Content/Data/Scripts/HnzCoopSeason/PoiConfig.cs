@@ -7,7 +7,7 @@ namespace HnzCoopSeason
     [Serializable]
     public sealed class PoiConfig
     {
-        [XmlAttribute]
+        [XmlText]
         public string Id = "Dummy";
 
         [XmlAttribute]

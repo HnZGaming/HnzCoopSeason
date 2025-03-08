@@ -45,6 +45,7 @@ co-op season
 - [x] orks mod: rival ai flags
 - [x] multiple ork spawns per poi
 - [x] register ork spawn groups
+- [ ] register merchant prefabs
 - [ ] tech mod: upload to steam
 - [ ] orks mod: upload to steam
 - [ ] beta release

@@ -7,6 +7,7 @@ using Sandbox.ModAPI;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace HnzCoopSeason.Utils
@@ -75,10 +76,7 @@ namespace HnzCoopSeason.Utils
 
                 // no spawning inside the voxel
                 var surfacePosition = planet.GetClosestSurfacePointGlobal(position);
-                if (Vector3D.Distance(position, planetCenter) < Vector3D.Distance(surfacePosition, planetCenter))
-                {
-                    position = surfacePosition + (surfacePosition - planetCenter).Normalized() * clearance;
-                }
+                position = surfacePosition + (surfacePosition - planetCenter).Normalized() * clearance;
 
                 // check for clearance
                 var space = new BoundingSphereD(position, clearance);
@@ -96,14 +94,6 @@ namespace HnzCoopSeason.Utils
             var r = up + new Vector3D(random.NextDouble() + 1, random.NextDouble() + 1, random.NextDouble() + 1);
             var right = Vector3D.Cross(up, r);
             var forward = Vector3D.Cross(right, up);
-
-            if (!MyAPIGateway.Utilities.IsDedicated)
-            {
-                VRageUtils.AddTemporaryGps("center", Color.White, 20, position);
-                VRageUtils.AddTemporaryGps("up", Color.White, 20, position + up.Normalized() * 20);
-                VRageUtils.AddTemporaryGps("forward", Color.White, 20, position + forward.Normalized() * 20);
-            }
-
             return MatrixD.CreateWorld(position, forward.Normalized(), up.Normalized());
         }
 

@@ -36,13 +36,13 @@ namespace HnzCoopSeason
         public void LoadConfig()
         {
             var spaceOrks = SessionConfig.Instance.Orks.Where(c => c.SpawnType == SpawnType.SpaceShip).ToArray();
-            MyLog.Default.Info($"[HnzCoopSeason] space orks: {spaceOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
+            MyLog.Default.Info($"[HnzCoopSeason] space orks: {spaceOrks.Select(c => c.SpawnGroups[0].SpawnGroup).ToStringSeq()}");
 
             var spaceMerchants = SessionConfig.Instance.PoiMerchants.Where(c => c.SpawnType == SpawnType.SpaceStation).ToArray();
             MyLog.Default.Info($"[HnzCoopSeason] space merchants: {spaceMerchants.Select(c => c.Prefab).ToStringSeq()}");
 
             var planetOrks = SessionConfig.Instance.Orks.Where(c => c.SpawnType == SpawnType.PlanetaryShip).ToArray();
-            MyLog.Default.Info($"[HnzCoopSeason] planet orks: {planetOrks.Select(c => c.SpawnGroup).ToStringSeq()}");
+            MyLog.Default.Info($"[HnzCoopSeason] planet orks: {planetOrks.Select(c => c.SpawnGroups[0].SpawnGroup).ToStringSeq()}");
 
             var planetMerchants = SessionConfig.Instance.PoiMerchants.Where(c => c.SpawnType == SpawnType.PlanetaryStation).ToArray();
             MyLog.Default.Info($"[HnzCoopSeason] planet merchants: {planetMerchants.Select(c => c.Prefab).ToStringSeq()}");

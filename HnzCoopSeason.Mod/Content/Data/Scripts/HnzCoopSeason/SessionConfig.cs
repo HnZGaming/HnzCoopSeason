@@ -53,7 +53,7 @@ namespace HnzCoopSeason
 
         [XmlArray]
         [XmlArrayItem("Ork")]
-        public MesStaticEncounterConfig[] Orks = { new MesStaticEncounterConfig() };
+        public MesEncounterConfig[] Orks = { new MesEncounterConfig() };
 
         [XmlArray]
         [XmlArrayItem("PoiMerchant")]

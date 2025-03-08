@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using HnzCoopSeason.Utils;
+using Sandbox.Game;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -8,59 +9,44 @@ using VRageMath;
 
 namespace HnzCoopSeason
 {
-    public sealed class MesStaticEncounter
+    public sealed class MesEncounter
     {
         readonly string _gridId;
-        readonly MesStaticEncounterConfig[] _configs;
+        readonly MesEncounterConfig[] _configs;
         readonly Vector3D _position;
         readonly MesGrid _mesGrid;
         readonly string _factionTag;
         bool _encounterActive;
 
-        public MesStaticEncounter(string gridId, string prefix, MesStaticEncounterConfig[] configs, Vector3D position, string factionTag, bool ignoreForDespawn)
+        public MesEncounter(string gridId, string prefix, MesEncounterConfig[] configs, Vector3D position, string factionTag)
         {
             _gridId = gridId;
             _configs = configs;
             _factionTag = factionTag;
             _position = position;
-            _mesGrid = new MesGrid(gridId, prefix, ignoreForDespawn);
+            _mesGrid = new MesGrid(gridId, prefix);
         }
 
-        public event Action<IMyCubeGrid, bool> OnGridSet
+        public event Action<IMyCubeGrid> OnMainGridSet
         {
-            add { _mesGrid.OnGridSet += value; }
-            remove { _mesGrid.OnGridSet -= value; }
+            add { _mesGrid.OnMainGridSet += value; }
+            remove { _mesGrid.OnMainGridSet -= value; }
         }
 
-        public event Action<IMyCubeGrid> OnGridUnset
+        public event Action<IMyCubeGrid> OnMainGridUnset
         {
-            add { _mesGrid.OnGridUnset += value; }
-            remove { _mesGrid.OnGridUnset -= value; }
+            add { _mesGrid.OnMainGridUnset += value; }
+            remove { _mesGrid.OnMainGridUnset -= value; }
         }
 
-        public void Load(IMyCubeGrid[] grids, bool recover, bool clear)
+        public void Load(IMyCubeGrid[] grids)
         {
-            _mesGrid.Load();
-
-            if (recover && _mesGrid.TryRecover(grids))
-            {
-                MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} recovered grid from save");
-            }
-
-            if (clear)
-            {
-                _mesGrid.CloseAllMyGrids(grids);
-            }
+            _mesGrid.Load(grids);
         }
 
         public void Unload(bool sessionUnload)
         {
-            if (!sessionUnload) // otherwise fails to unload session
-            {
-                _mesGrid.Despawn();
-            }
-
-            _mesGrid.Unload();
+            _mesGrid.Unload(sessionUnload);
         }
 
         public void SetActive(bool active)
@@ -95,9 +81,12 @@ namespace HnzCoopSeason
                 MyLog.Default.Error($"[HnzCoopSeason] encounter {_mesGrid.Id} failed to find a spawnable position: {config}");
                 return;
             }
+            
+            MyVisualScriptLogicProvider.AddGPS("center", "", matrix.Translation, Color.Blue);
 
             MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");
-            _mesGrid.RequestSpawn(config.SpawnGroup, config.MainPrefab, _factionTag, matrix);
+            var spawnGroupNames = config.SpawnGroups.Select(g => g.SpawnGroup).ToArray();
+            _mesGrid.RequestSpawn(spawnGroupNames, _factionTag, matrix);
         }
 
         int CalcConfigIndex()
@@ -115,7 +104,7 @@ namespace HnzCoopSeason
             return MathUtils.WeightedRandom(weights);
         }
 
-        static float GetWeight(MesStaticEncounterConfig config, int progressLevel)
+        static float GetWeight(MesEncounterConfig config, int progressLevel)
         {
             if (progressLevel != config.ProgressLevel) return 0;
             return config.Weight;

@@ -7,12 +7,12 @@ using VRageMath;
 
 namespace HnzCoopSeason
 {
-    public static class PoiGpsView
+    public static class PoiMapDebugView
     {
-        static readonly ushort ModKey = (ushort)"HnzCoopSeason.PoiGpsView".GetHashCode();
+        static readonly ushort ModKey = (ushort)"HnzCoopSeason.PoiMapDebugView".GetHashCode();
         static readonly HashSet<IMyGps> _localGpsSet;
 
-        static PoiGpsView()
+        static PoiMapDebugView()
         {
             _localGpsSet = new HashSet<IMyGps>();
         }
@@ -33,7 +33,7 @@ namespace HnzCoopSeason
             ReplaceAll(steamId, Array.Empty<Poi>());
         }
 
-        public static void ReplaceAll(ulong steamId, IEnumerable<Poi> pois)
+        public static void ReplaceAll(ulong steamId, IEnumerable<IPoi> pois)
         {
             var gpsList = new List<Gps>();
             foreach (var p in pois)

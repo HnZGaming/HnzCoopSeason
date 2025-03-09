@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using HnzCoopSeason.FlashGPS;
 using HnzCoopSeason.MES;
 using HnzCoopSeason.Utils;
@@ -32,8 +33,9 @@ namespace HnzCoopSeason
             InitializeCommands();
 
             MissionScreenView.Load();
-            PoiGpsView.Load();
+            PoiMapDebugView.Load();
             PoiSpectatorCamera.Load();
+            PoiMapView.Instance.Load();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -57,9 +59,10 @@ namespace HnzCoopSeason
             base.UnloadData();
 
             _commandModule.Unload();
-            PoiGpsView.Unload();
+            PoiMapDebugView.Unload();
             MissionScreenView.Unload();
             PoiSpectatorCamera.Unload();
+            PoiMapView.Instance.Unload();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -96,6 +99,8 @@ namespace HnzCoopSeason
             {
                 ProgressionView.RequestUpdate();
             }
+
+            PoiMapView.Instance.FirstUpdate();
         }
 
         public override void UpdateBeforeSimulation()
@@ -114,6 +119,8 @@ namespace HnzCoopSeason
                 OnlineCharacterCollection.Update();
                 _poiMap.Update();
             }
+
+            PoiMapView.Instance.Update();
         }
 
         public float GetProgress()
@@ -138,6 +145,8 @@ namespace HnzCoopSeason
 
             ProgressionView.UpdateProgress();
             MyLog.Default.Info($"[HnzCoopSeason] progress: {GetProgress() * 100:0.0}%, level: {GetProgressLevel()}");
+
+            PoiMapView.Instance.OnPoiStateUpdated();
             return true;
         }
 
@@ -179,7 +188,15 @@ namespace HnzCoopSeason
 
         public bool TryGetClosestPoiPosition(Vector3D position, out Vector3D closestPosition)
         {
-            return _poiMap.TryGetClosestPosition(position, out closestPosition);
+            Poi poi;
+            if (_poiMap.TryGetClosestPoi(position, out poi))
+            {
+                closestPosition = poi.Position;
+                return true;
+            }
+
+            closestPosition = default(Vector3D);
+            return false;
         }
 
         public bool TryGetPoiPosition(string poiId, out Vector3D position)
@@ -193,6 +210,11 @@ namespace HnzCoopSeason
 
             position = Vector3D.Zero;
             return false;
+        }
+
+        public IPoi[] GetClosestPois(Vector3D position, int count)
+        {
+            return _poiMap.GetClosestPois(position, count).Cast<IPoi>().ToArray();
         }
 
         public override string ToString()

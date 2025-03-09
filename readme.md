@@ -48,7 +48,7 @@ co-op season
 - [x] register merchant prefabs
 - [x] register tech comps
 - [x] first explorer advantage
-- [ ] expose other poi via notification
+- [x] expose other poi
 - [ ] tech mod: upload to steam
 - [ ] orks mod: upload to steam
 - [ ] beta release

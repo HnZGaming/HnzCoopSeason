@@ -253,7 +253,7 @@ namespace HnzCoopSeason
         {
             if (_grid == null) return;
 
-            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} update store items; fill: {(fill ? 'o' : 'x')}");
+            MyLog.Default.Debug("[HnzCoopSeason] poi merchant {0} update store items; fill: {1}", _poiId, fill ? "o" : "x");
 
             var storeBlocks = _grid.GetFatBlocks<IMyStoreBlock>().Where(b => IsStoreBlock(b)).ToArray();
             if (storeBlocks.Length != 1)

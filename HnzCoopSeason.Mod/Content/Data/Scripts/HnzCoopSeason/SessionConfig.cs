@@ -45,6 +45,9 @@ namespace HnzCoopSeason
         public int EconomyUpdateInterval = 1200;
 
         [XmlElement]
+        public int ExposedPoiCount = 3;
+
+        [XmlElement]
         public string RespawnDatapadTextFormat = "Come here: {0}";
 
         [XmlArray]

@@ -32,7 +32,7 @@ namespace HnzCoopSeason
         {
             if (args.Contains("--gps-remove"))
             {
-                PoiGpsView.RemoveAll(steamId);
+                PoiMapDebugView.RemoveAll(steamId);
                 SendMessage(steamId, Color.White, "GPS points removed.");
                 return;
             }
@@ -56,7 +56,7 @@ namespace HnzCoopSeason
 
             if (args.Contains("--gps"))
             {
-                PoiGpsView.ReplaceAll(steamId, pois);
+                PoiMapDebugView.ReplaceAll(steamId, pois);
                 SendMessage(steamId, Color.White, "GPS points added to HUD.");
             }
             else

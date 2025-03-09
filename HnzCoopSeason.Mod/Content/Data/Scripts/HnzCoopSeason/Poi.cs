@@ -9,7 +9,7 @@ using VRageMath;
 
 namespace HnzCoopSeason
 {
-    public sealed class Poi
+    public sealed class Poi : IPoi
     {
         readonly PoiConfig _config;
         readonly IPoiObserver[] _observers;

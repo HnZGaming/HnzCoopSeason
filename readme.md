@@ -45,11 +45,16 @@ co-op season
 - [x] orks mod: rival ai flags
 - [x] multiple ork spawns per poi
 - [x] register ork spawn groups
+- [x] register merchant prefabs
+- [x] register tech comps
+- [x] first explorer advantage
+- [x] expose other poi
 - [ ] tech mod: upload to steam
 - [ ] orks mod: upload to steam
 - [ ] beta release
-- [ ] update wiki
+- [ ] armor comps assembly limited by area
 - [ ] release
+- [ ] update wiki
 
 ### V1.5
 
@@ -59,6 +64,7 @@ co-op season
 - [ ] postgres to integrate with PvP sector
 - [ ] PvP sector with higher tech yield & daily rep reset
 - [ ] command-based global market
+- [ ] delivery contract to expose other poi
 - [ ] mes mod: custom threat score
 - [ ] wandering merchants & stopping at player bases
 - [ ] wandering orks & tier-based threat score

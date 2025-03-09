@@ -130,7 +130,9 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesEncounterSpawnGroupConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMapView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMerchantConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MissionScreenView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\FlashGpsApi.cs" />
@@ -147,7 +149,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesEncounter.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Poi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiConfig.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiGpsView.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMapDebugView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMap.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMerchant.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiOrk.cs" />

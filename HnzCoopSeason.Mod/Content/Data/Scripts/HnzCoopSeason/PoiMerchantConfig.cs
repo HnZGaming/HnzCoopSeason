@@ -7,7 +7,7 @@ namespace HnzCoopSeason
     [Serializable]
     public sealed class PoiMerchantConfig
     {
-        [XmlAttribute]
+        [XmlText]
         public string Prefab = "Economy_Outpost_1";
 
         [XmlAttribute]

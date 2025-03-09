@@ -114,6 +114,8 @@ namespace HnzCoopSeason
                 _allPois.Add(poi);
             }
 
+            MyLog.Default.Info($"[HnzCoopSeason] PoiMap loading POIs: {_allPois.Select(p => p.Id).ToStringSeq()}");
+
             var entities = new HashSet<IMyEntity>();
             MyAPIGateway.Entities.GetEntities(entities);
             var grids = entities.OfType<IMyCubeGrid>().ToArray();
@@ -148,20 +150,27 @@ namespace HnzCoopSeason
             return releasedPoiCount / (float)_allPois.Count;
         }
 
-        public bool TryGetClosestPosition(Vector3D position, out Vector3D closestPosition)
+        public bool TryGetClosestPoi(Vector3D position, out Poi poi)
         {
             if (_allPois.Count == 0)
             {
-                closestPosition = default(Vector3D);
+                poi = null;
                 return false;
             }
 
-            closestPosition = _allPois
+            poi = _allPois
                 .OrderBy(p => Vector3D.Distance(p.Position, position))
-                .First()
-                .Position;
+                .First();
 
             return true;
+        }
+
+        public Poi[] GetClosestPois(Vector3D position, int count)
+        {
+            return _allPois
+                .OrderBy(p => Vector3D.Distance(p.Position, position))
+                .Take(count)
+                .ToArray();
         }
 
         public override string ToString()

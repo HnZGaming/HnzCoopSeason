@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using HnzCoopSeason.MES;
 using HnzCoopSeason.Utils;
 using Sandbox.Game;
 using Sandbox.ModAPI;
@@ -14,39 +15,37 @@ namespace HnzCoopSeason
         readonly string _gridId;
         readonly MesEncounterConfig[] _configs;
         readonly Vector3D _position;
-        readonly MesGrid _mesGrid;
-        readonly string _factionTag;
+        readonly MesGridGroup _mesGridGroup;
         bool _encounterActive;
 
-        public MesEncounter(string gridId, string prefix, MesEncounterConfig[] configs, Vector3D position, string factionTag)
+        public MesEncounter(string gridId, MesEncounterConfig[] configs, Vector3D position)
         {
             _gridId = gridId;
             _configs = configs;
-            _factionTag = factionTag;
             _position = position;
-            _mesGrid = new MesGrid(gridId, prefix);
+            _mesGridGroup = new MesGridGroup(gridId);
         }
 
         public event Action<IMyCubeGrid> OnMainGridSet
         {
-            add { _mesGrid.OnMainGridSet += value; }
-            remove { _mesGrid.OnMainGridSet -= value; }
+            add { _mesGridGroup.OnMainGridSet += value; }
+            remove { _mesGridGroup.OnMainGridSet -= value; }
         }
 
         public event Action<IMyCubeGrid> OnMainGridUnset
         {
-            add { _mesGrid.OnMainGridUnset += value; }
-            remove { _mesGrid.OnMainGridUnset -= value; }
+            add { _mesGridGroup.OnMainGridUnset += value; }
+            remove { _mesGridGroup.OnMainGridUnset -= value; }
         }
 
         public void Load(IMyCubeGrid[] grids)
         {
-            _mesGrid.Load(grids);
+            _mesGridGroup.Load(grids);
         }
 
         public void Unload(bool sessionUnload)
         {
-            _mesGrid.Unload(sessionUnload);
+            _mesGridGroup.Unload(sessionUnload);
         }
 
         public void SetActive(bool active)
@@ -56,21 +55,36 @@ namespace HnzCoopSeason
 
         public void Update()
         {
-            _mesGrid.Update();
+            _mesGridGroup.Update();
 
             if (MyAPIGateway.Session.GameplayFrameCounter % 60 != 0) return;
             if (!_encounterActive) return;
-            if (_mesGrid.State != MesGrid.SpawningState.Idle) return;
+            if (_mesGridGroup.State != MesGridGroup.SpawningState.Idle) return;
 
+            IMyPlayer player;
             var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
-            if (!OnlineCharacterCollection.ContainsPlayer(sphere)) return;
+            if (!OnlineCharacterCollection.TryGetContainedPlayer(sphere, out player)) return;
 
-            MyLog.Default.Info($"[HnzCoopSeason] encounter {_mesGrid.Id} player nearby");
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby");
 
-            Spawn(CalcConfigIndex());
+            Spawn(CalcConfigIndex(), player.GetPosition());
         }
 
-        public void Spawn(int configIndex)
+        public void ForceSpawn(int configIndex)
+        {
+            Vector3D? knownPlayerPosition = null;
+            IMyPlayer player;
+            var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
+            if (OnlineCharacterCollection.TryGetContainedPlayer(sphere, out player))
+            {
+                knownPlayerPosition = player.GetPosition();
+            }
+
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby");
+            Spawn(configIndex, knownPlayerPosition);
+        }
+
+        void Spawn(int configIndex, Vector3D? playerPosition)
         {
             var config = _configs[configIndex];
             var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
@@ -78,15 +92,21 @@ namespace HnzCoopSeason
             MatrixD matrix;
             if (!SpawnUtils.TryCalcMatrix(config.SpawnType, sphere, clearance, out matrix))
             {
-                MyLog.Default.Error($"[HnzCoopSeason] encounter {_mesGrid.Id} failed to find a spawnable position: {config}");
+                MyLog.Default.Error($"[HnzCoopSeason] encounter {_gridId} failed to find a spawnable position: {config}");
                 return;
             }
-            
-            MyVisualScriptLogicProvider.AddGPS("center", "", matrix.Translation, Color.Blue);
+
+            // rotate so that sidekicks can populate in correct positions
+            if (playerPosition.HasValue && config.SpawnType == SpawnType.SpaceShip)
+            {
+                var up = (playerPosition.Value - matrix.Translation).Normalized();
+                var forward = Vector3D.CalculatePerpendicularVector(up);
+                matrix = MatrixD.CreateWorld(matrix.Translation, forward, up);
+            }
 
             MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");
             var spawnGroupNames = config.SpawnGroups.Select(g => g.SpawnGroup).ToArray();
-            _mesGrid.RequestSpawn(spawnGroupNames, _factionTag, matrix);
+            _mesGridGroup.RequestSpawn(spawnGroupNames, matrix, SessionConfig.Instance.EncounterClearance);
         }
 
         int CalcConfigIndex()
@@ -97,7 +117,7 @@ namespace HnzCoopSeason
             var weights = _configs.Select(c => GetWeight(c, progressLevel)).ToArray();
             if (weights.Length == 0)
             {
-                MyLog.Default.Warning($"[HnzCoopSeason] encounter {_mesGrid.Id} no configs eligible; selecting 0");
+                MyLog.Default.Warning($"[HnzCoopSeason] encounter {_gridId} no configs eligible; selecting 0");
                 return 0;
             }
 
@@ -112,7 +132,7 @@ namespace HnzCoopSeason
 
         public override string ToString()
         {
-            return $"{nameof(_gridId)}: {_gridId}, {nameof(_factionTag)}: {_factionTag}, {nameof(_encounterActive)}: {_encounterActive}";
+            return $"MesEncounter({nameof(_gridId)}: {_gridId}, {nameof(_encounterActive)}: {_encounterActive}, {nameof(_mesGridGroup)}: {_mesGridGroup})";
         }
     }
 }

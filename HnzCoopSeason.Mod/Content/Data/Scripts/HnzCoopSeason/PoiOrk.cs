@@ -1,5 +1,6 @@
 ﻿using System;
 using HnzCoopSeason.Utils;
+using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Library.Utils;
 using VRage.Utils;
@@ -19,7 +20,7 @@ namespace HnzCoopSeason
         {
             _position = position;
             _poiId = poiId;
-            _encounter = new MesEncounter($"{poiId}-ork", "[ORKS]", configs, position, null);
+            _encounter = new MesEncounter($"{poiId}-ork", configs, position);
             _randomInvasionInterval = new Interval();
         }
 
@@ -55,6 +56,16 @@ namespace HnzCoopSeason
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} spawn");
             grid.OnBlockOwnershipChanged += OnGridOwnershipChanged;
+            
+            foreach (var beacon in grid.GetFatBlocks<IMyBeacon>())
+            {
+                beacon.HudText = $"[BOSS] {grid.CustomName}";
+            }
+            
+            foreach (var antenna in grid.GetFatBlocks<IMyRadioAntenna>())
+            {
+                antenna.HudText = $"[BOSS] {grid.CustomName}";
+            }
 
             Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
         }
@@ -94,12 +105,12 @@ namespace HnzCoopSeason
 
         public void Spawn(int configIndex)
         {
-            _encounter.Spawn(configIndex);
+            _encounter.ForceSpawn(configIndex);
         }
 
         public override string ToString()
         {
-            return $"Ork({nameof(_poiId)}: {_poiId}, {nameof(_poiState)}: {_poiState}, {nameof(_encounter)}: {_encounter})";
+            return $"Ork({nameof(_poiId)}: {_poiId},  {nameof(_encounter)}: {_encounter})";
         }
     }
 }

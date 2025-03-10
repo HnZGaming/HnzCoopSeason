@@ -384,7 +384,7 @@ namespace HnzCoopSeason
 
         public override string ToString()
         {
-            return $"Merchant({nameof(_poiId)}: {_poiId}, {nameof(_spawnState)}: {_spawnState}, {nameof(_grid)}: '{_grid.Name}')";
+            return $"Merchant({nameof(_poiId)}: {_poiId}, {nameof(_spawnState)}: {_spawnState}, {nameof(_grid)}: '{_grid?.Name ?? "--"}')";
         }
 
         enum SpawnState

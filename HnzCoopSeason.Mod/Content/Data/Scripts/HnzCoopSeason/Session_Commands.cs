@@ -18,6 +18,7 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi release", false, MyPromoteLevel.Moderator, Command_ReleasePoi, "release a POI."));
             _commandModule.Register(new Command("poi invade", false, MyPromoteLevel.Moderator, Command_InvadePoi, "invade a POI."));
             _commandModule.Register(new Command("poi spawn", false, MyPromoteLevel.Moderator, Command_Spawn, "spawn grids at a POI given encounter config index."));
+            _commandModule.Register(new Command("poi print", false, MyPromoteLevel.Moderator, Command_PrintPoi, "print out the POI state."));
             _commandModule.Register(new Command("stores update", false, MyPromoteLevel.Moderator, Command_UpdateStores, "update all merchant stores."));
             _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
@@ -126,6 +127,18 @@ namespace HnzCoopSeason
         void Command_SpectatePoi(string poiId, ulong steamId)
         {
             PoiSpectatorCamera.SendPosition(poiId, steamId);
+        }
+
+        void Command_PrintPoi(string poiId, ulong steamId)
+        {
+            Poi poi;
+            if (!_poiMap.TryGetPoi(poiId, out poi))
+            {
+                SendMessage(steamId, Color.Red, $"POI {poiId} not found.");
+                return;
+            }
+
+            MissionScreenView.ShowScreenMessage(steamId, "Print", poi.ToString(), true);
         }
 
         void Command_Print(string args, ulong steamId)

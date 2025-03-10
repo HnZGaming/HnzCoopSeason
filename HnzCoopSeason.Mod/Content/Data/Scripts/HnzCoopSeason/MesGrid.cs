@@ -70,7 +70,7 @@ namespace HnzCoopSeason
 
         public void RequestSpawn(IReadOnlyList<string> spawnGroups, string factionTag, MatrixD targetMatrix) // called multiple times
         {
-            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} spawning; group: {spawnGroups.ToStringSeq()}, {VRageUtils.FormatGps("Spawn", targetMatrix.Translation, "FFFFFF")}");
+            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} spawning; group: {spawnGroups.ToStringSeq()}, position: {targetMatrix.Translation}");
 
             if (_allGrids.Any())
             {
@@ -129,7 +129,7 @@ namespace HnzCoopSeason
             grid.OnClosing += OnGridClosing;
             _allGrids.Add(context.Index, grid);
 
-            MyLog.Default.Error($"[HnzCoopSeason] MesGrid {Id} grid found; index: {context.Index}");
+            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} grid spawned; index: {context.Index}");
 
             if (context.Index == 0)
             {

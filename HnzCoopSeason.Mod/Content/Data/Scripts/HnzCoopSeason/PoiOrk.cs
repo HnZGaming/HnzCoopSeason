@@ -1,5 +1,6 @@
 ﻿using System;
 using HnzCoopSeason.Utils;
+using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Library.Utils;
 using VRage.Utils;
@@ -55,6 +56,16 @@ namespace HnzCoopSeason
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} spawn");
             grid.OnBlockOwnershipChanged += OnGridOwnershipChanged;
+            
+            foreach (var beacon in grid.GetFatBlocks<IMyBeacon>())
+            {
+                beacon.HudText = $"[BOSS] {beacon.HudText}";
+            }
+            
+            foreach (var antenna in grid.GetFatBlocks<IMyRadioAntenna>())
+            {
+                antenna.HudText = $"[BOSS] {antenna.HudText}";
+            }
 
             Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
         }

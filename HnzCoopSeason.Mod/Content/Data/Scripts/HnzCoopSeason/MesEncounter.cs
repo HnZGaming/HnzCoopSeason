@@ -104,6 +104,8 @@ namespace HnzCoopSeason
             {
                 MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} adding known player location");
                 MESApi.Instance.AddKnownPlayerLocation(knownPlayerPosition.Value, "Orks", SessionConfig.Instance.EncounterRadius * 2, 1, int.MaxValue, int.MaxValue);
+
+                matrix.Forward = knownPlayerPosition.Value - matrix.Translation;
             }
 
             MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");

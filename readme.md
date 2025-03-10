@@ -50,6 +50,8 @@ co-op season
 - [x] first explorer advantage
 - [x] expose other poi
 - [x] spawn orks back on despawn
+- [x] annotate main orks
+- [x] tech mod: disable injection
 - [ ] tech mod: upload to steam
 - [ ] orks mod: upload to steam
 - [ ] beta release

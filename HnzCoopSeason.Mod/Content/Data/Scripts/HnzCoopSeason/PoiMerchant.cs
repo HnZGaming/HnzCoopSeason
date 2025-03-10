@@ -175,7 +175,7 @@ namespace HnzCoopSeason
             _grid.UpdateStorageValue(StorageKey, _poiId);
             _spawnState = SpawnState.Success;
 
-            UpdateStore(true);
+            UpdateStore(!recovery);
             SetUpSafezone();
             SaveToSandbox();
 
@@ -349,7 +349,7 @@ namespace HnzCoopSeason
 
         static bool IsStoreBlock(IMyStoreBlock block)
         {
-            return !(block is IMyVendingMachine);
+            return block.BlockDefinition.SubtypeName == "StoreBlock";
         }
 
         static bool IsCargoBlock(IMyCargoContainer block)

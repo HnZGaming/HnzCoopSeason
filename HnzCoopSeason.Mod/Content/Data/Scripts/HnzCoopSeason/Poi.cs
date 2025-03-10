@@ -15,8 +15,9 @@ namespace HnzCoopSeason
         readonly IPoiObserver[] _observers;
         readonly string _variableKey;
 
-        public Poi(PoiConfig config, IPoiObserver[] observers)
+        public Poi(PoiConfig config, bool isPlanetary, IPoiObserver[] observers)
         {
+            IsPlanetary = isPlanetary;
             _config = config;
             _observers = observers;
             _variableKey = $"HnzCoopSeason.Poi.{Id}";
@@ -25,6 +26,7 @@ namespace HnzCoopSeason
 
         public string Id => _config.Id;
         public Vector3D Position => _config.Position;
+        public bool IsPlanetary { get; }
         public PoiState State { get; private set; }
         public IReadOnlyList<IPoiObserver> Observers => _observers;
 

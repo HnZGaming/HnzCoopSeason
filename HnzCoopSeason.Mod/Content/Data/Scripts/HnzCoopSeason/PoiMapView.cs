@@ -36,7 +36,7 @@ namespace HnzCoopSeason
 
         public void Update()
         {
-            if (MyAPIGateway.Session.GameplayFrameCounter % 60 * 5 != 0) return;
+            if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 5) != 0) return;
             if (MyAPIGateway.Session.LocalHumanPlayer == null) return;
             SendRequest();
         }
@@ -49,14 +49,14 @@ namespace HnzCoopSeason
         {
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Request());
 
-            if (MyAPIGateway.Utilities.IsDedicated) // dedi client
-            {
-                MyLog.Default.Info("[HnzCoopSeason] PoiMapView sending request");
-                MyAPIGateway.Multiplayer.SendMessageToServer(ModKey, bytes, true);
-            }
-            else // single player
+            if (MyAPIGateway.Session.IsServer) // single player
             {
                 OnMessageReceived(ModKey, bytes, 0, false);
+            }
+            else // dedi client
+            {
+                MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending request");
+                MyAPIGateway.Multiplayer.SendMessageToServer(ModKey, bytes, true);
             }
         }
 
@@ -67,7 +67,7 @@ namespace HnzCoopSeason
 
             if (payload.Type == 1) // request
             {
-                SendMapToClient(senderId);
+                SendMarkersToClient(senderId);
             }
             else // response
             {
@@ -75,7 +75,7 @@ namespace HnzCoopSeason
             }
         }
 
-        void SendMapToClient(ulong steamId)
+        void SendMarkersToClient(ulong steamId)
         {
             IMyPlayer player;
             if (MyAPIGateway.Utilities.IsDedicated) // server
@@ -105,7 +105,7 @@ namespace HnzCoopSeason
 
             if (MyAPIGateway.Utilities.IsDedicated) // dedi
             {
-                MyLog.Default.Info("[HnzCoopSeason] PoiMapView sending response");
+                MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending response");
                 MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, steamId, true);
             }
             else // single player

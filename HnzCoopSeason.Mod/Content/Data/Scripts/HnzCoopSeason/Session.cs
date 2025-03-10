@@ -186,10 +186,10 @@ namespace HnzCoopSeason
             MyVisualScriptLogicProvider.SendChatMessageColored(message, color, "COOP", playerId);
         }
 
-        public bool TryGetClosestPoiPosition(Vector3D position, out Vector3D closestPosition)
+        public bool TryGetClosestPoiPosition(Vector3D position, Vector3 gravity, out Vector3D closestPosition)
         {
             Poi poi;
-            if (_poiMap.TryGetClosestPoi(position, out poi))
+            if (_poiMap.TryGetClosestPoi(position, gravity != Vector3.Zero, out poi))
             {
                 closestPosition = poi.Position;
                 return true;

@@ -96,7 +96,7 @@ namespace HnzCoopSeason
                 var poiConfig = new PoiConfig(id, position);
                 var ork = new PoiOrk(id, poiConfig.Position, spaceOrks);
                 var merchant = new PoiMerchant(id, poiConfig.Position, merchantFaction, spaceMerchants);
-                var poi = new Poi(poiConfig, new IPoiObserver[] { ork, merchant });
+                var poi = new Poi(poiConfig, false, new IPoiObserver[] { ork, merchant });
                 _spacePois[id] = poi;
                 _allPois.Add(poi);
             }
@@ -109,7 +109,7 @@ namespace HnzCoopSeason
             {
                 var ork = new PoiOrk(p.Id, p.Position, planetOrks);
                 var merchant = new PoiMerchant(p.Id, p.Position, merchantFaction, planetMerchants);
-                var poi = new Poi(p, new IPoiObserver[] { ork, merchant });
+                var poi = new Poi(p, true, new IPoiObserver[] { ork, merchant });
                 _planetaryPois[p.Id] = poi;
                 _allPois.Add(poi);
             }
@@ -150,19 +150,13 @@ namespace HnzCoopSeason
             return releasedPoiCount / (float)_allPois.Count;
         }
 
-        public bool TryGetClosestPoi(Vector3D position, out Poi poi)
+        public bool TryGetClosestPoi(Vector3D position, bool planetary, out Poi poi)
         {
-            if (_allPois.Count == 0)
-            {
-                poi = null;
-                return false;
-            }
-
             poi = _allPois
+                .Where(p => p.IsPlanetary == planetary)
                 .OrderBy(p => Vector3D.Distance(p.Position, position))
-                .First();
-
-            return true;
+                .FirstOrDefault();
+            return poi != null;
         }
 
         public Poi[] GetClosestPois(Vector3D position, int count)

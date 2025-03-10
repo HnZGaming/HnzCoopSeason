@@ -49,6 +49,7 @@ co-op season
 - [x] register tech comps
 - [x] first explorer advantage
 - [x] expose other poi
+- [x] spawn orks back on despawn
 - [ ] tech mod: upload to steam
 - [ ] orks mod: upload to steam
 - [ ] beta release

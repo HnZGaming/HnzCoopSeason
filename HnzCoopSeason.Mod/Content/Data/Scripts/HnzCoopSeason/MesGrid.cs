@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HnzCoopSeason.MES;
 using HnzCoopSeason.Utils;
 using VRage.Game.ModAPI;
@@ -20,20 +21,18 @@ namespace HnzCoopSeason
         }
 
         readonly string _prefix;
-        readonly HashSet<IMyCubeGrid> _allGrids;
+        readonly Dictionary<int, IMyCubeGrid> _allGrids;
 
         public MesGrid(string id, string prefix)
         {
             Id = id;
             _prefix = prefix;
-            _allGrids = new HashSet<IMyCubeGrid>();
+            _allGrids = new Dictionary<int, IMyCubeGrid>();
         }
 
         public string Id { get; }
 
         public SpawningState State { get; private set; }
-
-        public IMyCubeGrid MainGrid { get; private set; }
 
         public event Action<IMyCubeGrid> OnMainGridSet;
         public event Action<IMyCubeGrid> OnMainGridUnset;
@@ -73,14 +72,14 @@ namespace HnzCoopSeason
         {
             MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} spawning; group: {spawnGroups.ToStringSeq()}, {VRageUtils.FormatGps("Spawn", targetMatrix.Translation, "FFFFFF")}");
 
-            if (MainGrid != null)
+            if (_allGrids.Any())
             {
-                throw new InvalidOperationException("grids already spawned");
+                MyLog.Default.Warning($"[HnzCoopSeason] MesGrid {Id} despawning existing grids");
+                Despawn();
             }
 
             for (var i = 0; i < spawnGroups.Count; i++)
             {
-                var isMainSpawn = i == 0;
                 var spawnGroup = spawnGroups[i];
                 var success = MESApi.Instance.CustomSpawnRequest(new MESApi.CustomSpawnRequestArgs
                 {
@@ -89,14 +88,14 @@ namespace HnzCoopSeason
                     IgnoreSafetyCheck = true,
                     SpawnProfileId = nameof(HnzCoopSeason),
                     FactionOverride = factionTag,
-                    Context = new MesGridContext(Id, isMainSpawn).ToXml(),
+                    Context = new MesGridContext(Id, i).ToXml(),
                 });
 
                 if (!success)
                 {
                     MyLog.Default.Error($"[HnzCoopSeason] MesGrid {Id} failed to spawn: '{spawnGroup}' at '{targetMatrix.Translation}'");
 
-                    if (isMainSpawn)
+                    if (i == 0) // main grid
                     {
                         State = SpawningState.Failure;
                         return;
@@ -128,20 +127,15 @@ namespace HnzCoopSeason
 
             grid.CustomName = $"{_prefix} {grid.CustomName}";
             grid.OnClosing += OnGridClosing;
-            _allGrids.Add(grid);
+            _allGrids.Add(context.Index, grid);
 
-            if (!context.IsMainSpawn) return;
+            MyLog.Default.Error($"[HnzCoopSeason] MesGrid {Id} grid found; index: {context.Index}");
 
-            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} main grid found");
-
-            if (MainGrid != null)
+            if (context.Index == 0)
             {
-                throw new InvalidOperationException($"main grid already set: {Id}");
+                State = SpawningState.Success;
+                OnMainGridSet?.Invoke(grid);
             }
-
-            MainGrid = grid;
-            State = SpawningState.Success;
-            OnMainGridSet?.Invoke(MainGrid);
         }
 
         void Despawn()
@@ -151,10 +145,10 @@ namespace HnzCoopSeason
                 MyLog.Default.Warning($"[HnzCoopSeason] MesGrid {Id} despawning while spawning");
             }
 
-            foreach (var grid in _allGrids)
+            foreach (var kvp in _allGrids)
             {
-                // `OnGridClosed()` will be called
-                SafeCloseGrid(grid);
+                // `OnGridClosing()` will be called
+                CloseGridSafely(kvp.Value);
             }
 
             _allGrids.Clear();
@@ -163,10 +157,6 @@ namespace HnzCoopSeason
         void OnGridClosing(IMyEntity entity)
         {
             var grid = (IMyCubeGrid)entity;
-            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} grid closing");
-
-            grid.OnClosing -= OnGridClosing;
-            _allGrids.Remove(grid);
 
             MesGridContext context;
             if (!TryGetMyContext(grid, out context))
@@ -174,10 +164,15 @@ namespace HnzCoopSeason
                 throw new InvalidOperationException("context not found; shouldn't happen");
             }
 
-            if (context.IsMainSpawn)
+            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} grid closing; index: {context.Index}");
+
+            grid.OnClosing -= OnGridClosing;
+            _allGrids.Remove(context.Index);
+
+            if (context.Index == 0) // main grid
             {
-                MainGrid = null;
                 OnMainGridUnset?.Invoke(grid);
+                State = SpawningState.Idle;
             }
         }
 
@@ -198,7 +193,7 @@ namespace HnzCoopSeason
             return context.Id == Id;
         }
 
-        static void SafeCloseGrid(IMyCubeGrid grid)
+        static void CloseGridSafely(IMyCubeGrid grid)
         {
             if (grid.Closed) return;
             if (grid.MarkedForClose) return;
@@ -218,6 +213,11 @@ namespace HnzCoopSeason
                 g.Close();
                 MyLog.Default.Info($"[HnzCoopSeason] despawned: '{g.CustomName}'");
             }
+        }
+
+        public override string ToString()
+        {
+            return $"MesGrid({nameof(Id)}: {Id}, {nameof(State)}: {State}, {nameof(_allGrids)}: {_allGrids.Values.Select(g => g.CustomName).ToStringSeq()})";
         }
     }
 }

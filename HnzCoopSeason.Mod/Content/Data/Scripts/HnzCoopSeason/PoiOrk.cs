@@ -94,12 +94,12 @@ namespace HnzCoopSeason
 
         public void Spawn(int configIndex)
         {
-            _encounter.Spawn(configIndex);
+            _encounter.ForceSpawn(configIndex);
         }
 
         public override string ToString()
         {
-            return $"Ork({nameof(_poiId)}: {_poiId}, {nameof(_poiState)}: {_poiState}, {nameof(_encounter)}: {_encounter})";
+            return $"Ork({nameof(_poiId)}: {_poiId},  {nameof(_encounter)}: {_encounter})";
         }
     }
 }

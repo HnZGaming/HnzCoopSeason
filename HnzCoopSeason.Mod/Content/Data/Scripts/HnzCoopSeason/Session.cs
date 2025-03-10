@@ -171,13 +171,13 @@ namespace HnzCoopSeason
         void OnPoiDiscovered(string name, Vector3D position)
         {
             MyVisualScriptLogicProvider.ShowNotificationToAll("Someone just discovered something!", 10000);
-            MyVisualScriptLogicProvider.AddGPS("Something", "", position, Color.Red);
+            MyVisualScriptLogicProvider.AddGPS($"{name} Discovery", "", position, Color.Red, 10);
         }
 
         public void OnRandomInvasion(string poiId, Vector3D position)
         {
             MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have taken over our land!", 10000);
-            MyVisualScriptLogicProvider.AddGPS("Something", "", position, Color.Red);
+            MyVisualScriptLogicProvider.AddGPS("Invasion", "", position, Color.Red, 10);
         }
 
         public static void SendMessage(ulong steamId, Color color, string message)

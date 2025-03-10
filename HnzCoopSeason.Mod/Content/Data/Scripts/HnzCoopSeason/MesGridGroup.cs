@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HnzCoopSeason.MES;
 using HnzCoopSeason.Utils;
+using Sandbox.Game;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
@@ -79,10 +80,15 @@ namespace HnzCoopSeason
             for (var i = 0; i < spawnGroups.Count; i++)
             {
                 var spawnGroup = spawnGroups[i];
+
+                // draws a circle around the up vector
+                var matrix = CreateMatrix(targetMatrix, clearance, i, spawnGroups.Count);
+                MyVisualScriptLogicProvider.AddGPS("Spawn", "", matrix.Translation, Color.Green, 10);
+
                 var success = MESApi.Instance.CustomSpawnRequest(new MESApi.CustomSpawnRequestArgs
                 {
                     SpawnGroups = new List<string> { spawnGroup },
-                    SpawningMatrix = CreateMatrix(targetMatrix, clearance, i, spawnGroups.Count),
+                    SpawningMatrix = matrix,
                     IgnoreSafetyCheck = true,
                     SpawnProfileId = nameof(HnzCoopSeason),
                     Context = new MesGridContext(Id, i).ToXml(),

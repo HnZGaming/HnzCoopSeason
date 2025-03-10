@@ -84,7 +84,7 @@ namespace HnzCoopSeason
             Spawn(configIndex, knownPlayerPosition);
         }
 
-        void Spawn(int configIndex, Vector3D? knownPlayerPosition)
+        void Spawn(int configIndex, Vector3D? playerPosition)
         {
             var config = _configs[configIndex];
             var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
@@ -96,12 +96,12 @@ namespace HnzCoopSeason
                 return;
             }
 
-            if (knownPlayerPosition.HasValue)
+            // rotate so that sidekicks can populate in correct positions
+            if (playerPosition.HasValue && config.SpawnType == SpawnType.SpaceShip)
             {
-                // MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} adding known player location");
-                // MESApi.Instance.AddKnownPlayerLocation(knownPlayerPosition.Value, "Orks", SessionConfig.Instance.EncounterRadius * 2, 1, int.MaxValue, int.MaxValue);
-                //
-                // matrix.Forward = knownPlayerPosition.Value - matrix.Translation;
+                var up = (playerPosition.Value - matrix.Translation).Normalized();
+                var forward = Vector3D.CalculatePerpendicularVector(up);
+                matrix = MatrixD.CreateWorld(matrix.Translation, forward, up);
             }
 
             MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");

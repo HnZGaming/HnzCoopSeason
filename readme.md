@@ -52,10 +52,11 @@ co-op season
 - [x] spawn orks back on despawn
 - [x] annotate main orks
 - [x] tech mod: disable injection
-- [ ] tech mod: upload to steam
-- [ ] orks mod: upload to steam
+- [x] register planetary pois
 - [ ] beta release
 - [ ] armor comps assembly limited by area
+- [ ] tech mod: upload to steam
+- [ ] orks mod: upload to steam
 - [ ] release
 - [ ] update wiki
 

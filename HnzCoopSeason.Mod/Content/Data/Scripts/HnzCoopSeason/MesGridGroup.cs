@@ -10,7 +10,7 @@ using VRageMath;
 
 namespace HnzCoopSeason
 {
-    public sealed class MesGrid
+    public sealed class MesGridGroup
     {
         public enum SpawningState
         {
@@ -20,13 +20,11 @@ namespace HnzCoopSeason
             Failure,
         }
 
-        readonly string _prefix;
         readonly Dictionary<int, IMyCubeGrid> _allGrids;
 
-        public MesGrid(string id, string prefix)
+        public MesGridGroup(string id)
         {
             Id = id;
-            _prefix = prefix;
             _allGrids = new Dictionary<int, IMyCubeGrid>();
         }
 
@@ -68,7 +66,7 @@ namespace HnzCoopSeason
             Despawn();
         }
 
-        public void RequestSpawn(IReadOnlyList<string> spawnGroups, string factionTag, MatrixD targetMatrix) // called multiple times
+        public void RequestSpawn(IReadOnlyList<string> spawnGroups, MatrixD targetMatrix, float clearance) // called multiple times
         {
             MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} spawning; group: {spawnGroups.ToStringSeq()}, position: {targetMatrix.Translation}");
 
@@ -84,10 +82,9 @@ namespace HnzCoopSeason
                 var success = MESApi.Instance.CustomSpawnRequest(new MESApi.CustomSpawnRequestArgs
                 {
                     SpawnGroups = new List<string> { spawnGroup },
-                    SpawningMatrix = CreateMatrix(targetMatrix, 300, i, spawnGroups.Count),
+                    SpawningMatrix = CreateMatrix(targetMatrix, clearance, i, spawnGroups.Count),
                     IgnoreSafetyCheck = true,
                     SpawnProfileId = nameof(HnzCoopSeason),
-                    FactionOverride = factionTag,
                     Context = new MesGridContext(Id, i).ToXml(),
                 });
 
@@ -125,7 +122,6 @@ namespace HnzCoopSeason
             MesGridContext context;
             if (!TryGetMyContext(grid, out context)) return;
 
-            grid.CustomName = $"{_prefix} {grid.CustomName}";
             grid.OnClosing += OnGridClosing;
             _allGrids.Add(context.Index, grid);
 

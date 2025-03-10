@@ -20,7 +20,7 @@ namespace HnzCoopSeason
         {
             _position = position;
             _poiId = poiId;
-            _encounter = new MesEncounter($"{poiId}-ork", "[ORKS]", configs, position, null);
+            _encounter = new MesEncounter($"{poiId}-ork", configs, position);
             _randomInvasionInterval = new Interval();
         }
 
@@ -59,12 +59,12 @@ namespace HnzCoopSeason
             
             foreach (var beacon in grid.GetFatBlocks<IMyBeacon>())
             {
-                beacon.HudText = $"[BOSS] {beacon.HudText}";
+                beacon.HudText = $"[BOSS] {grid.CustomName}";
             }
             
             foreach (var antenna in grid.GetFatBlocks<IMyRadioAntenna>())
             {
-                antenna.HudText = $"[BOSS] {antenna.HudText}";
+                antenna.HudText = $"[BOSS] {grid.CustomName}";
             }
 
             Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());

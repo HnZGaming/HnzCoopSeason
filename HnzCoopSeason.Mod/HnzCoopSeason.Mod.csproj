@@ -140,7 +140,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\FlashGpsSource.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudAPI\HudApiV2.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoiObserver.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesGrid.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesGridGroup.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesGridContext.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesEncounterConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MES\MESApi.cs" />

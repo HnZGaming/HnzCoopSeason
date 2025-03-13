@@ -53,17 +53,24 @@ co-op season
 - [x] annotate main orks
 - [x] tech mod: disable injection
 - [x] register planetary pois
-- [ ] beta release
-- [ ] armor comps assembly limited by area
-- [ ] tech mod: upload to steam
-- [ ] orks mod: upload to steam
-- [ ] release
-- [ ] update wiki
+- [x] tech mod: upload to steam
+- [x] orks mod: upload to steam
+- [x] local test
+- [x] beta release
+- [x] armor comps assembly limited by area
+- [x] remove modded planets
+- [x] update spreadsheet
+- [x] release
+- [x] update wiki
+- [x] update lobby LCDs
 
 ### V1.5
 
-- [ ] merchant spawn messages
+- [ ] merchant messages to players
+- [ ] FlashGPS with Nexus support
+- [ ] gps notification for armor comp assembly to all players
 - [ ] merchants buying scrap grids
+- [ ] moon orks
 - [ ] final boss
 - [ ] postgres to integrate with PvP sector
 - [ ] PvP sector with higher tech yield & daily rep reset

@@ -101,7 +101,7 @@ namespace HnzCoopSeason
                 _hudMessage = new HudAPIv2.HUDMessage(
                     /*text*/ CreateProgressionHudText(progress),
                     /*origin*/ new Vector2D(0f, 1f),
-                    /*offset*/ new Vector2D(-0.25f, -0.04f),
+                    /*offset*/ new Vector2D(-0.25f, -0.1f),
                     /*time to live*/ -1,
                     /*scale*/ 1,
                     /*hide hud*/ true,

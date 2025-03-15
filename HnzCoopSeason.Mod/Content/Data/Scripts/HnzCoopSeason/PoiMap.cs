@@ -41,13 +41,13 @@ namespace HnzCoopSeason
             var spaceMerchants = SessionConfig.Instance.PoiMerchants.Where(c => c.SpawnType == SpawnType.SpaceStation).ToArray();
             MyLog.Default.Info($"[HnzCoopSeason] space merchants: {spaceMerchants.Select(c => c.Prefab).ToStringSeq()}");
 
-            var planetOrks = SessionConfig.Instance.Orks.Where(c => c.SpawnType == SpawnType.PlanetaryShip).ToArray();
-            MyLog.Default.Info($"[HnzCoopSeason] planet orks: {planetOrks.Select(c => c.SpawnGroups[0].SpawnGroup).ToStringSeq()}");
+            var atmosphericOrks = SessionConfig.Instance.Orks.Where(c => c.SpawnType == SpawnType.AtmosphericShip).ToArray();
+            MyLog.Default.Info($"[HnzCoopSeason] atmospheric orks: {atmosphericOrks.Select(c => c.SpawnGroups[0].SpawnGroup).ToStringSeq()}");
 
             var planetMerchants = SessionConfig.Instance.PoiMerchants.Where(c => c.SpawnType == SpawnType.PlanetaryStation).ToArray();
             MyLog.Default.Info($"[HnzCoopSeason] planet merchants: {planetMerchants.Select(c => c.Prefab).ToStringSeq()}");
 
-            if (spaceOrks.Length == 0 || planetOrks.Length == 0 || spaceMerchants.Length == 0 || planetMerchants.Length == 0)
+            if (spaceOrks.Length == 0 || atmosphericOrks.Length == 0 || spaceMerchants.Length == 0 || planetMerchants.Length == 0)
             {
                 MyLog.Default.Error("[HnzCoopSeason] poi map failed to reload; encounters not set");
                 return;
@@ -93,8 +93,10 @@ namespace HnzCoopSeason
                 }
 
                 var id = $"{x}-{y}-{z}";
-                var poiConfig = new PoiConfig(id, position);
-                var ork = new PoiOrk(id, poiConfig.Position, spaceOrks);
+                var atmospheric = HasAtmosphere(position);
+                var poiConfig = new PoiConfig(id, position, atmospheric);
+                var orks = atmospheric ? atmosphericOrks : spaceOrks;
+                var ork = new PoiOrk(id, poiConfig.Position, orks);
                 var merchant = new PoiMerchant(id, poiConfig.Position, merchantFaction, spaceMerchants);
                 var poi = new Poi(poiConfig, false, new IPoiObserver[] { ork, merchant });
                 _spacePois[id] = poi;
@@ -107,7 +109,8 @@ namespace HnzCoopSeason
 
             foreach (var p in SessionConfig.Instance.PlanetaryPois)
             {
-                var ork = new PoiOrk(p.Id, p.Position, planetOrks);
+                var orks = p.Atmospheric ? atmosphericOrks : spaceOrks;
+                var ork = new PoiOrk(p.Id, p.Position, orks);
                 var merchant = new PoiMerchant(p.Id, p.Position, merchantFaction, planetMerchants);
                 var poi = new Poi(p, true, new IPoiObserver[] { ork, merchant });
                 _planetaryPois[p.Id] = poi;
@@ -165,6 +168,17 @@ namespace HnzCoopSeason
                 .OrderBy(p => Vector3D.Distance(p.Position, position))
                 .Take(count)
                 .ToArray();
+        }
+
+        static bool HasAtmosphere(Vector3D position)
+        {
+            var planet = PlanetCollection.GetClosestPlanet(position);
+            if (!planet.HasAtmosphere) return false;
+
+            var dist = Vector3D.Distance(position, planet.WorldMatrix.Translation);
+            if (dist > planet.AtmosphereRadius) return false;
+
+            return true;
         }
 
         public override string ToString()

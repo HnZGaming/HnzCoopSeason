@@ -22,16 +22,36 @@ namespace HnzCoopSeason.Utils
             return dir;
         }
 
-        public static Vector3D GetRandomPosition(BoundingSphereD sphere)
+        public static Vector3D GetRandomPositionInSphere(BoundingSphereD sphere)
         {
             var randomRadius = sphere.Radius * GetRandomNormal();
             return sphere.Center + GetRandomUnitDirection() * randomRadius;
         }
 
-        public static Vector3D GetRandomPositionOnPlane(Vector3D center, Vector3D normal, double radius)
+        public static Vector3D GetRandomPositionOnDisk(Vector3D center, Vector3D normal, double radius)
         {
-            var p = new PlaneD(Vector3D.Zero, normal);
-            return p.RandomPoint() * radius + center;
+            normal = Vector3D.Normalize(normal); // Ensure the normal is unit length
+
+            // Generate two perpendicular vectors (tangent vectors) on the plane
+            var tangent1 = Vector3D.Cross(normal, Vector3D.Right);
+            if (tangent1.LengthSquared() < 1e-6) // If the normal was parallel to Right, use Up instead
+            {
+                tangent1 = Vector3D.Cross(normal, Vector3D.Up);
+            }
+
+            tangent1.Normalize();
+
+            var tangent2 = Vector3D.Cross(normal, tangent1);
+            tangent2.Normalize();
+
+            // Generate a random point inside a disk of radius `radius`
+            var theta = MyRandom.Instance.NextDouble() * Math.PI * 2; // Random angle
+            var r = Math.Sqrt(MyRandom.Instance.NextDouble()) * radius; // Uniform distribution in disk
+
+            // Compute final position
+            var randomPoint = center + tangent1 * (r * Math.Cos(theta)) + tangent2 * (r * Math.Sin(theta));
+
+            return randomPoint;
         }
 
         public static int WeightedRandom(float[] weights)

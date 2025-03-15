@@ -117,15 +117,22 @@ namespace HnzCoopSeason
 
             Despawn();
 
-            var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
-            var clearance = SessionConfig.Instance.EncounterClearance;
-            MatrixD matrix;
-            if (!SpawnUtils.TryCalcMatrix(_config.SpawnType, sphere, clearance, out matrix))
+            var matrixBuilder = new SpawnMatrixBuilder
+            {
+                Sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius),
+                Clearance = SessionConfig.Instance.EncounterClearance,
+                SnapToVoxel = _config.SpawnType == SpawnType.PlanetaryStation,
+                Count = 1,
+                PlayerPosition = null,
+            };
+
+            if (!matrixBuilder.TryBuild())
             {
                 MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} failed to find position for spawning");
                 return;
             }
 
+            var matrix = matrixBuilder.Results[0];
             matrix.Translation += matrix.Up * _config.OffsetY;
 
             try

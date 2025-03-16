@@ -61,6 +61,8 @@ namespace HnzCoopSeason.Utils
 
         public static void AddTemporaryGps(string name, Color color, double discardAt, Vector3D coords)
         {
+            if (MyAPIGateway.Utilities.IsDedicated) return;
+
             var gps = MyAPIGateway.Session.GPS.Create(name, "", coords, true, true);
             gps.GPSColor = color;
             gps.DiscardAt = TimeSpan.FromSeconds(discardAt);

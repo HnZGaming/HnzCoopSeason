@@ -46,5 +46,10 @@ namespace HnzCoopSeason.Utils
             self.TryGetValue(key, out value);
             self[key] = value + delta;
         }
+
+        public static void Sort<T, U>(this List<T> self, Func<T, U> f)
+        {
+            self.Sort((a, b) => Comparer<U>.Default.Compare(f(a), f(b)));
+        }
     }
 }

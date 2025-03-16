@@ -39,94 +39,94 @@
     </ItemGroup>
     <ItemGroup>
         <Reference Include="ProtoBuf.Net">
-            <HintPath>..\..\Mods\Bin64\ProtoBuf.Net.dll</HintPath>
+            <HintPath>../../GameBinaries\ProtoBuf.Net.dll</HintPath>
         </Reference>
         <Reference Include="ProtoBuf.Net.Core">
-            <HintPath>..\..\Mods\Bin64\ProtoBuf.Net.Core.dll</HintPath>
+            <HintPath>../../GameBinaries\ProtoBuf.Net.Core.dll</HintPath>
         </Reference>
         <Reference Include="Sandbox.Common">
-            <HintPath>..\..\Mods\Bin64\Sandbox.Common.dll</HintPath>
+            <HintPath>../../GameBinaries\Sandbox.Common.dll</HintPath>
         </Reference>
         <Reference Include="Sandbox.Game">
-            <HintPath>..\..\Mods\Bin64\Sandbox.Game.dll</HintPath>
+            <HintPath>../../GameBinaries\Sandbox.Game.dll</HintPath>
         </Reference>
         <Reference Include="Sandbox.Game.XmlSerializers">
-            <HintPath>..\..\Mods\Bin64\Sandbox.Game.XmlSerializers.dll</HintPath>
+            <HintPath>../../GameBinaries\Sandbox.Game.XmlSerializers.dll</HintPath>
         </Reference>
         <Reference Include="Sandbox.Graphics">
-            <HintPath>..\..\Mods\Bin64\Sandbox.Graphics.dll</HintPath>
+            <HintPath>../../GameBinaries\Sandbox.Graphics.dll</HintPath>
         </Reference>
         <Reference Include="Sandbox.RenderDirect">
-            <HintPath>..\..\Mods\Bin64\Sandbox.RenderDirect.dll</HintPath>
+            <HintPath>../../GameBinaries\Sandbox.RenderDirect.dll</HintPath>
         </Reference>
         <Reference Include="SpaceEngineers.Game">
-            <HintPath>..\..\Mods\Bin64\SpaceEngineers.Game.dll</HintPath>
+            <HintPath>../../GameBinaries\SpaceEngineers.Game.dll</HintPath>
         </Reference>
         <Reference Include="SpaceEngineers.ObjectBuilders">
-            <HintPath>..\..\Mods\Bin64\SpaceEngineers.ObjectBuilders.dll</HintPath>
+            <HintPath>../../GameBinaries\SpaceEngineers.ObjectBuilders.dll</HintPath>
         </Reference>
         <Reference Include="SpaceEngineers.ObjectBuilders.XmlSerializers">
-            <HintPath>..\..\Mods\Bin64\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
+            <HintPath>../../GameBinaries\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
         </Reference>
         <Reference Include="VRage">
-            <HintPath>..\..\Mods\Bin64\VRage.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Ansel">
-            <HintPath>..\..\Mods\Bin64\VRage.Ansel.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Ansel.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Audio">
-            <HintPath>..\..\Mods\Bin64\VRage.Audio.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Audio.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Game">
-            <HintPath>..\..\Mods\Bin64\VRage.Game.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Game.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Game.XmlSerializers">
-            <HintPath>..\..\Mods\Bin64\VRage.Game.XmlSerializers.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Game.XmlSerializers.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Input">
-            <HintPath>..\..\Mods\Bin64\VRage.Input.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Input.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Library">
-            <HintPath>..\..\Mods\Bin64\VRage.Library.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Library.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Math">
-            <HintPath>..\..\Mods\Bin64\VRage.Math.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Math.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Math.XmlSerializers">
-            <HintPath>..\..\Mods\Bin64\VRage.Math.XmlSerializers.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Math.XmlSerializers.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Mod.Io">
-            <HintPath>..\..\Mods\Bin64\VRage.Mod.Io.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Mod.Io.dll</HintPath>
         </Reference>
         <Reference Include="VRage.NativeAftermath">
-            <HintPath>..\..\Mods\Bin64\VRage.NativeAftermath.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.NativeAftermath.dll</HintPath>
         </Reference>
         <Reference Include="VRage.NativeWrapper">
-            <HintPath>..\..\Mods\Bin64\VRage.NativeWrapper.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.NativeWrapper.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Network">
-            <HintPath>..\..\Mods\Bin64\VRage.Network.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Network.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Platform.Windows">
-            <HintPath>..\..\Mods\Bin64\VRage.Platform.Windows.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Platform.Windows.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Render">
-            <HintPath>..\..\Mods\Bin64\VRage.Render.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Render.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Render11">
-            <HintPath>..\..\Mods\Bin64\VRage.Render11.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Render11.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Scripting">
-            <HintPath>..\..\Mods\Bin64\VRage.Scripting.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Scripting.dll</HintPath>
         </Reference>
         <Reference Include="VRage.Steam">
-            <HintPath>..\..\Mods\Bin64\VRage.Steam.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.Steam.dll</HintPath>
         </Reference>
         <Reference Include="VRage.UserInterface">
-            <HintPath>..\..\Mods\Bin64\VRage.UserInterface.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.UserInterface.dll</HintPath>
         </Reference>
         <Reference Include="VRage.XmlSerializers">
-            <HintPath>..\..\Mods\Bin64\VRage.XmlSerializers.dll</HintPath>
+            <HintPath>../../GameBinaries\VRage.XmlSerializers.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup>

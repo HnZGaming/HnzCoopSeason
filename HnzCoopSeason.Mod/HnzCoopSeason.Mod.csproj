@@ -132,6 +132,7 @@
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesEncounterSpawnGroupConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\SpawnMatrixBuilder.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMapView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMerchantConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MissionScreenView.cs" />
@@ -160,6 +161,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\SessionConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Session.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Session_Commands.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\SpawnType.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\StoreItemConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Commands\Command.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Commands\CommandModule.cs" />
@@ -170,8 +172,6 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Pools\DictionaryPool.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Pools\ListPool.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Pools\SetPool.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\SpawnType.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\SpawnUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\VRageUtils.cs" />
     </ItemGroup>
     <ItemGroup>

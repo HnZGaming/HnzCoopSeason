@@ -12,13 +12,13 @@ namespace HnzCoopSeason
         public static SessionConfig Instance { get; private set; }
 
         [XmlElement]
-        public double PoiMapCenterX = 0;
+        public double PoiMapCenterX;
 
         [XmlElement]
-        public double PoiMapCenterY = 0;
+        public double PoiMapCenterY;
 
         [XmlElement]
-        public double PoiMapCenterZ = 0;
+        public double PoiMapCenterZ;
 
         [XmlElement]
         public float PoiMapRadius = 10000000;
@@ -33,7 +33,7 @@ namespace HnzCoopSeason
         public float EncounterRadius = 10000;
 
         [XmlElement]
-        public float EncounterClearance = 1000;
+        public float EncounterClearance = 500;
 
         [XmlElement]
         public float RandomInvasionChance = 0.1f;

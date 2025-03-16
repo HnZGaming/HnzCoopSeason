@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using HnzCoopSeason.MES;
 using HnzCoopSeason.Utils;
-using Sandbox.Game;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
-using VRageMath;
 
 namespace HnzCoopSeason
 {
@@ -67,9 +65,9 @@ namespace HnzCoopSeason
             Despawn();
         }
 
-        public void RequestSpawn(IReadOnlyList<string> spawnGroups, MatrixD targetMatrix, float clearance) // called multiple times
+        public void RequestSpawn(IReadOnlyList<string> spawnGroups, SpawnMatrixBuilder matrixBuilder) // called multiple times
         {
-            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} spawning; group: {spawnGroups.ToStringSeq()}, position: {targetMatrix.Translation}");
+            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} spawning; group: {spawnGroups.ToStringSeq()}, position: {matrixBuilder.Sphere.Center}");
 
             if (_allGrids.Any())
             {
@@ -79,16 +77,10 @@ namespace HnzCoopSeason
 
             for (var i = 0; i < spawnGroups.Count; i++)
             {
-                var spawnGroup = spawnGroups[i];
-
-                // draws a circle around the up vector
-                var matrix = CreateMatrix(targetMatrix, clearance, i, spawnGroups.Count);
-                MyVisualScriptLogicProvider.AddGPS("Spawn", "", matrix.Translation, Color.Green, 10);
-
                 var success = MESApi.Instance.CustomSpawnRequest(new MESApi.CustomSpawnRequestArgs
                 {
-                    SpawnGroups = new List<string> { spawnGroup },
-                    SpawningMatrix = matrix,
+                    SpawnGroups = new List<string> { spawnGroups[i] },
+                    SpawningMatrix = matrixBuilder.Results[i],
                     IgnoreSafetyCheck = true,
                     SpawnProfileId = nameof(HnzCoopSeason),
                     Context = new MesGridContext(Id, i).ToXml(),
@@ -96,7 +88,7 @@ namespace HnzCoopSeason
 
                 if (!success)
                 {
-                    MyLog.Default.Error($"[HnzCoopSeason] MesGrid {Id} failed to spawn: '{spawnGroup}' at '{targetMatrix.Translation}'");
+                    MyLog.Default.Error($"[HnzCoopSeason] MesGrid {Id} failed to spawn: '{spawnGroups[i]}'");
 
                     if (i == 0) // main grid
                     {
@@ -107,18 +99,6 @@ namespace HnzCoopSeason
             }
 
             State = SpawningState.Spawning;
-        }
-
-        static MatrixD CreateMatrix(MatrixD center, float radius, int index, int count)
-        {
-            if (index == 0) return center;
-
-            var step = MathHelper.TwoPi / count;
-            var angle = index * step;
-            var offset = (center.Right * Math.Cos(angle) + center.Forward * Math.Sin(angle)) * radius;
-
-            center.Translation += offset;
-            return center;
         }
 
         void OnMesAnySuccessfulSpawn(IMyCubeGrid grid)

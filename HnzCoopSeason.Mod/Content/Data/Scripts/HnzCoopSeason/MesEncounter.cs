@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
-using HnzCoopSeason.MES;
 using HnzCoopSeason.Utils;
-using Sandbox.Game;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -86,27 +84,26 @@ namespace HnzCoopSeason
 
         void Spawn(int configIndex, Vector3D? playerPosition)
         {
+            MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");
             var config = _configs[configIndex];
-            var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
-            var clearance = SessionConfig.Instance.EncounterClearance;
-            MatrixD matrix;
-            if (!SpawnUtils.TryCalcMatrix(config.SpawnType, sphere, clearance, out matrix))
+
+            var spawnGroupNames = config.SpawnGroups.Select(g => g.SpawnGroup).ToArray();
+            var matrixGenerator = new SpawnMatrixBuilder
+            {
+                Sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius),
+                Clearance = SessionConfig.Instance.EncounterClearance,
+                SnapToVoxel = false,
+                Count = spawnGroupNames.Length,
+                PlayerPosition = playerPosition,
+            };
+
+            if (!matrixGenerator.TryBuild())
             {
                 MyLog.Default.Error($"[HnzCoopSeason] encounter {_gridId} failed to find a spawnable position: {config}");
                 return;
             }
 
-            // rotate so that sidekicks can populate in correct positions
-            if (playerPosition.HasValue && config.SpawnType == SpawnType.SpaceShip)
-            {
-                var up = (playerPosition.Value - matrix.Translation).Normalized();
-                var forward = Vector3D.CalculatePerpendicularVector(up);
-                matrix = MatrixD.CreateWorld(matrix.Translation, forward, up);
-            }
-
-            MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");
-            var spawnGroupNames = config.SpawnGroups.Select(g => g.SpawnGroup).ToArray();
-            _mesGridGroup.RequestSpawn(spawnGroupNames, matrix, SessionConfig.Instance.EncounterClearance);
+            _mesGridGroup.RequestSpawn(spawnGroupNames, matrixGenerator);
         }
 
         int CalcConfigIndex()

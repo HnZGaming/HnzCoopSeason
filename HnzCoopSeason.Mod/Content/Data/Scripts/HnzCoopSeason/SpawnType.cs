@@ -1,8 +1,8 @@
-﻿namespace HnzCoopSeason.Utils
+﻿namespace HnzCoopSeason
 {
     public enum SpawnType
     {
-        PlanetaryShip,
+        AtmosphericShip,
         PlanetaryStation,
         SpaceShip,
         SpaceStation,

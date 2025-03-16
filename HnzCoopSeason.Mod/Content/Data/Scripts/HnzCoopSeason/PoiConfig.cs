@@ -19,6 +19,9 @@ namespace HnzCoopSeason
         [XmlAttribute]
         public double Z;
 
+        [XmlAttribute]
+        public bool Atmospheric;
+
         [XmlIgnore]
         public Vector3D Position
         {
@@ -35,10 +38,11 @@ namespace HnzCoopSeason
         {
         }
 
-        public PoiConfig(string id, Vector3D position)
+        public PoiConfig(string id, Vector3D position, bool atmospheric)
         {
             Id = id;
             Position = position;
+            Atmospheric = atmospheric;
         }
     }
 }

@@ -11,6 +11,7 @@
             <DefaultRelation>Neutral</DefaultRelation>
             <StartingReputation>0</StartingReputation>
             <DiscoveredByDefault>true</DiscoveredByDefault>
+            <StaticReputation>true</StaticReputation>
             <AcceptHumans>false</AcceptHumans>
             <AutoAcceptMember>false</AutoAcceptMember>
         </Faction>

@@ -65,7 +65,7 @@ namespace HnzCoopSeason
                     var underground = position + up * (Sphere.Radius * -1);
                     var line = new LineD(overground, underground);
                     Vector3D intersection;
-                    if (!TryGetVoxelIntersection(line, voxelMaps, out intersection)) continue;
+                    if (!VRageUtils.TryGetVoxelIntersection(line, voxelMaps, out intersection)) continue;
                     if (Sphere.Contains(intersection) != ContainmentType.Contains) continue;
 
                     if (SnapToVoxel)
@@ -94,7 +94,7 @@ namespace HnzCoopSeason
                     }
                     else
                     {
-                        up.CalculatePerpendicularVector(out forward);
+                        forward = Vector3D.CalculatePerpendicularVector(up);
                     }
 
                     matrix = MatrixD.CreateWorld(position, forward, up);
@@ -119,22 +119,6 @@ namespace HnzCoopSeason
             }
 
             return true;
-        }
-
-        static bool TryGetVoxelIntersection(LineD line, IEnumerable<MyVoxelBase> voxels, out Vector3D intersection)
-        {
-            foreach (var v in voxels)
-            {
-                Vector3D? i;
-                if (v.GetIntersectionWithLine(ref line, out i) && i != null)
-                {
-                    intersection = i.Value;
-                    return true;
-                }
-            }
-
-            intersection = Vector3D.Zero;
-            return false;
         }
     }
 }

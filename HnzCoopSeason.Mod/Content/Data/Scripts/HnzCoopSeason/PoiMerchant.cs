@@ -205,6 +205,7 @@ namespace HnzCoopSeason
             if (_grid == null) return;
 
             _grid.Close();
+            _grid = null;
             RemoveSafezone();
             MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} despawned");
         }
@@ -265,7 +266,7 @@ namespace HnzCoopSeason
             var storeBlocks = _grid.GetFatBlocks<IMyStoreBlock>().Where(b => IsStoreBlock(b)).ToArray();
             if (storeBlocks.Length != 1)
             {
-                MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} invalid store block count");
+                MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} invalid store block count; blocks: {storeBlocks.ToStringSeq()}");
                 return;
             }
 

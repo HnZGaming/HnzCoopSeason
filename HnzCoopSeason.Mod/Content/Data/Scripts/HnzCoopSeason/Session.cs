@@ -137,6 +137,15 @@ namespace HnzCoopSeason
             return Math.Min((int)Math.Floor(progress * max) + 1, max);
         }
 
+        public bool TryGetPoiState(string poiId, out PoiState state)
+        {
+            state = PoiState.Occupied;
+            Poi poi;
+            if (!_poiMap.TryGetPoi(poiId, out poi)) return false;
+            state = poi.State;
+            return true;
+        }
+
         public bool SetPoiState(string poiId, PoiState state)
         {
             Poi poi;
@@ -144,7 +153,12 @@ namespace HnzCoopSeason
             if (!poi.SetState(state)) return false;
 
             ProgressionView.UpdateProgress();
-            MyLog.Default.Info($"[HnzCoopSeason] progress: {GetProgress() * 100:0.0}%, level: {GetProgressLevel()}");
+
+            var releasedPoiCount = _poiMap.GetReleasedPoiCount();
+            var allPoisCount = _poiMap.AllPois.Count;
+            var progress = GetProgress() * 100;
+            var progressLevel = GetProgressLevel();
+            MyLog.Default.Info($"[HnzCoopSeason] poi state changed: {poi}, {releasedPoiCount} / {allPoisCount}, progress: {progress:0.0}%, level: {progressLevel}");
 
             PoiMapView.Instance.OnPoiStateUpdated();
             return true;

@@ -103,13 +103,13 @@ namespace HnzCoopSeason
 
         void OnMesAnySuccessfulSpawn(IMyCubeGrid grid)
         {
-            if (State != SpawningState.Spawning) return;
-
             MesGridContext context;
             if (!TryGetMyContext(grid, out context)) return;
 
             grid.OnClosing += OnGridClosing;
             _allGrids.Add(context.Index, grid);
+
+            MESApi.Instance.RegisterDespawnWatcher(grid, OnGridDespawningByMes);
 
             MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} grid spawned; index: {context.Index}");
 
@@ -118,6 +118,17 @@ namespace HnzCoopSeason
                 State = SpawningState.Success;
                 OnMainGridSet?.Invoke(grid);
             }
+        }
+
+        void OnGridDespawningByMes(IMyCubeGrid grid, string cause)
+        {
+            MesGridContext context;
+            if (!TryGetMyContext(grid, out context))
+            {
+                throw new InvalidOperationException("context not found; shouldn't happen");
+            }
+
+            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} grid despawned by MES; index: {context.Index}, cause: {cause}");
         }
 
         void Despawn()

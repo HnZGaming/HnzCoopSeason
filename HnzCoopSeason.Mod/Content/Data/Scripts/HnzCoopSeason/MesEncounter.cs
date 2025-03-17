@@ -84,7 +84,7 @@ namespace HnzCoopSeason
 
         void Spawn(int configIndex, Vector3D? playerPosition)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} requesting spawn; config index: {configIndex}");
             var config = _configs[configIndex];
 
             var spawnGroupNames = config.SpawnGroups.Select(g => g.SpawnGroup).ToArray();

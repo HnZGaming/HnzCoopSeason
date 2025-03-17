@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using HnzCoopSeason.Utils;
 using Sandbox.Game.Entities;
 using VRage.Game.Entity;
-using VRage.Game.ModAPI;
 using VRageMath;
 
 namespace HnzCoopSeason
@@ -94,13 +92,27 @@ namespace HnzCoopSeason
             // check collision with already-built positions
             foreach (var m in _results)
             {
-                if (sphere.Contains(m.Translation) == ContainmentType.Contains) return ResultType.Failure_PlaceholderCollision;
+                var existingSphere = new BoundingSphereD(m.Translation, Clearance);
+                if (sphere.Contains(existingSphere).ContainsOrIntersects())
+                {
+                    return ResultType.Failure_PlaceholderCollision;
+                }
             }
 
+            // check collision with existing grids in the proximity
             var entities = new List<MyEntity>();
             MyGamePruningStructure.GetAllEntitiesInSphere(ref sphere, entities, MyEntityQueryType.Both);
-            var collision = entities.FirstOrDefault(e => e is IMyCubeGrid);
-            if (collision != null) return ResultType.Failure_CubeGridCollision;
+            foreach (var e in entities)
+            {
+                var grid = e as MyCubeGrid;
+                if (grid == null) continue;
+
+                var gridAABB = grid.GetPhysicalGroupAABB();
+                if (sphere.Contains(gridAABB).ContainsOrIntersects())
+                {
+                    return ResultType.Failure_CubeGridCollision;
+                }
+            }
 
             if (gravity != Vector3.Zero) // planet/moon
             {

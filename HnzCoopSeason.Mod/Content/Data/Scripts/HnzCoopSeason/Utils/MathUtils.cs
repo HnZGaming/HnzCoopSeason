@@ -76,5 +76,16 @@ namespace HnzCoopSeason.Utils
 
             return weights.Length - 1;
         }
+
+        public static bool ContainsOrIntersects(this ContainmentType self)
+        {
+            switch (self)
+            {
+                case ContainmentType.Disjoint: return false;
+                case ContainmentType.Contains: return true;
+                case ContainmentType.Intersects: return true;
+                default: throw new InvalidOperationException();
+            }
+        }
     }
 }

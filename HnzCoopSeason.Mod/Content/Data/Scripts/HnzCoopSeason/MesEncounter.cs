@@ -63,7 +63,7 @@ namespace HnzCoopSeason
             var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
             if (!OnlineCharacterCollection.TryGetContainedPlayer(sphere, out player)) return;
 
-            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby");
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby; player: '{player.DisplayName}'");
 
             Spawn(CalcConfigIndex(), player.GetPosition());
         }
@@ -84,7 +84,7 @@ namespace HnzCoopSeason
 
         void Spawn(int configIndex, Vector3D? playerPosition)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] requesting spawn; config index: {configIndex}");
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} requesting spawn; config index: {configIndex}");
             var config = _configs[configIndex];
 
             var spawnGroupNames = config.SpawnGroups.Select(g => g.SpawnGroup).ToArray();

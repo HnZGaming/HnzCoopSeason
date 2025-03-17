@@ -2,7 +2,6 @@
 using HnzCoopSeason.Utils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
-using VRage.Library.Utils;
 using VRage.Utils;
 using VRageMath;
 
@@ -13,12 +12,9 @@ namespace HnzCoopSeason
         readonly string _poiId;
         readonly MesEncounter _encounter;
         readonly Interval _randomInvasionInterval;
-        readonly Vector3D _position;
-        PoiState _poiState;
 
         public PoiOrk(string poiId, Vector3D position, MesEncounterConfig[] configs)
         {
-            _position = position;
             _poiId = poiId;
             _encounter = new MesEncounter($"{poiId}-ork", configs, position);
             _randomInvasionInterval = new Interval();
@@ -43,25 +39,23 @@ namespace HnzCoopSeason
         void IPoiObserver.Update()
         {
             _encounter.Update();
-            AttemptRandomInvasion();
         }
 
         void IPoiObserver.OnStateChanged(PoiState state)
         {
-            _poiState = state;
             _encounter.SetActive(state == PoiState.Occupied);
         }
 
         void OnMainGridSet(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} spawn");
-            grid.OnBlockOwnershipChanged += OnGridOwnershipChanged;
-            
+            grid.OnBlockOwnershipChanged += OnBlockOwnershipChanged;
+
             foreach (var beacon in grid.GetFatBlocks<IMyBeacon>())
             {
                 beacon.HudText = $"[BOSS] {grid.CustomName}";
             }
-            
+
             foreach (var antenna in grid.GetFatBlocks<IMyRadioAntenna>())
             {
                 antenna.HudText = $"[BOSS] {grid.CustomName}";
@@ -73,34 +67,19 @@ namespace HnzCoopSeason
         void OnMainGridUnset(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} despawn");
-            grid.OnBlockOwnershipChanged -= OnGridOwnershipChanged;
+            grid.OnBlockOwnershipChanged -= OnBlockOwnershipChanged;
         }
 
-        void OnGridOwnershipChanged(IMyCubeGrid grid)
+        void OnBlockOwnershipChanged(IMyCubeGrid grid)
         {
-            if (!VRageUtils.IsGridControlledByAI(grid))
-            {
-                MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} defeated by players");
-                Session.Instance.SetPoiState(_poiId, PoiState.Released);
-            }
-        }
+            PoiState state;
+            if (!Session.Instance.TryGetPoiState(_poiId, out state)) return; // shouldn't happen
 
-        void AttemptRandomInvasion()
-        {
-            if (_poiState == PoiState.Occupied) return;
+            if (state == PoiState.Released) return;
+            if (VRageUtils.IsGridControlledByAI(grid)) return;
 
-            var span = SessionConfig.Instance.RandomInvasionInterval * 60;
-            if (!_randomInvasionInterval.Update(span)) return;
-
-            if (Session.Instance.IsPlayerAroundPoi(_poiId, SessionConfig.Instance.EncounterRadius)) return;
-
-            var chance = SessionConfig.Instance.RandomInvasionChance;
-            var random = MyRandom.Instance.NextDouble();
-            if (random <= chance) return;
-
-            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} random invasion");
-            Session.Instance.SetPoiState(_poiId, PoiState.Occupied);
-            Session.Instance.OnRandomInvasion(_poiId, _position);
+            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} defeated by players");
+            Session.Instance.SetPoiState(_poiId, PoiState.Released);
         }
 
         public void Spawn(int configIndex)

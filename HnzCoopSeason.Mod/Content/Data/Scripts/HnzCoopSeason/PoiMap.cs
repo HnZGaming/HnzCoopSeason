@@ -136,7 +136,7 @@ namespace HnzCoopSeason
                    _spacePois.TryGetValue(id, out poi);
         }
 
-        public float GetProgress()
+        public int GetReleasedPoiCount()
         {
             if (_allPois.Count == 0) return 0;
 
@@ -149,8 +149,13 @@ namespace HnzCoopSeason
                 }
             }
 
-            MyLog.Default.Info($"[HnzCoopSeason] {releasedPoiCount} / {_allPois.Count}");
-            return releasedPoiCount / (float)_allPois.Count;
+            return releasedPoiCount;
+        }
+
+        public float GetProgress()
+        {
+            if (_allPois.Count == 0) return 0;
+            return GetReleasedPoiCount() / (float)_allPois.Count;
         }
 
         public bool TryGetClosestPoi(Vector3D position, bool planetary, out Poi poi)

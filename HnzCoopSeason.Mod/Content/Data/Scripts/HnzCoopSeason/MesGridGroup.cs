@@ -44,8 +44,8 @@ namespace HnzCoopSeason
                 MesGridContext context;
                 if (TryGetMyContext(g, out context))
                 {
+                    MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} closing safely on load");
                     g.Close();
-                    MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} closed on load");
                 }
             }
         }
@@ -192,8 +192,8 @@ namespace HnzCoopSeason
                     continue;
                 }
 
+                MyLog.Default.Info($"[HnzCoopSeason] despawning safely: '{g.CustomName}'");
                 g.Close();
-                MyLog.Default.Info($"[HnzCoopSeason] despawned: '{g.CustomName}'");
             }
         }
 

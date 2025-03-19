@@ -154,13 +154,15 @@ namespace HnzCoopSeason
 
             ProgressionView.UpdateProgress();
 
-            var releasedPoiCount = _poiMap.GetReleasedPoiCount();
-            var allPoisCount = _poiMap.AllPois.Count;
-            var progress = GetProgress() * 100;
-            var progressLevel = GetProgressLevel();
-            MyLog.Default.Info($"[HnzCoopSeason] poi state changed: {poi}, {releasedPoiCount} / {allPoisCount}, progress: {progress:0.0}%, level: {progressLevel}");
+            MyLog.Default.Info(
+                "[HnzCoopSeason] poi state changed: {0}, {1} / {2}, progress: {3:0.0}%, level: {4}",
+                poiId,
+                _poiMap.GetReleasedPoiCount(),
+                _poiMap.AllPois.Count,
+                GetProgress() * 100,
+                GetProgressLevel());
 
-            PoiMapView.Instance.OnPoiStateUpdated();
+            PoiMapView.Instance.OnPoiStateUpdated(); // gps hud
             return true;
         }
 

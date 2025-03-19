@@ -43,6 +43,13 @@ namespace HnzCoopSeason
 
         public void OnPoiStateUpdated() // called in server
         {
+            var players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
+
+            foreach (var p in players)
+            {
+                SendMarkersToClient(p.SteamUserId);
+            }
         }
 
         void SendRequest() // called in client
@@ -115,7 +122,7 @@ namespace HnzCoopSeason
             }
         }
 
-        void DeployMap(List<Marker> markers)
+        void DeployMap(List<Marker> markers) // client
         {
             // remove old markers
             foreach (var marker in _markers)

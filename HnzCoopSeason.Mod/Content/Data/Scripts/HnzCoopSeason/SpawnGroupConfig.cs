@@ -4,14 +4,14 @@ using System.Xml.Serialization;
 namespace HnzCoopSeason
 {
     [Serializable]
-    public sealed class MesEncounterSpawnGroupConfig
+    public sealed class SpawnGroupConfig
     {
         [XmlText]
         public string SpawnGroup = "Orks-SpawnGroup-Boss-KillaKrooZa";
 
         public override string ToString()
         {
-            return $"MesEncounterSpawnGroupConfig({nameof(SpawnGroup)}: {SpawnGroup})";
+            return $"SpawnGroupConfig({nameof(SpawnGroup)}: {SpawnGroup})";
         }
     }
 }

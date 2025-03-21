@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Serialization;
 using Sandbox.ModAPI;
 using VRage.Utils;
@@ -50,13 +52,24 @@ namespace HnzCoopSeason
         [XmlElement]
         public string RespawnDatapadTextFormat = "Come here: {0}";
 
+        [XmlArray("ProgressionLevels")]
+        [XmlArrayItem("Level")]
+        public ProgressionLevelConfig[] ProgressionLevelsRaw =
+        {
+            new ProgressionLevelConfig(1, 1),
+            new ProgressionLevelConfig(2, 1),
+            new ProgressionLevelConfig(3, 2),
+            new ProgressionLevelConfig(4, 2),
+            new ProgressionLevelConfig(5, 3),
+        };
+
         [XmlArray]
         [XmlArrayItem("Poi")]
         public PoiConfig[] PlanetaryPois = { new PoiConfig() };
 
         [XmlArray]
         [XmlArrayItem("Ork")]
-        public MesEncounterConfig[] Orks = { new MesEncounterConfig() };
+        public PoiOrkConfig[] Orks = { new PoiOrkConfig() };
 
         [XmlArray]
         [XmlArrayItem("PoiMerchant")]
@@ -65,6 +78,14 @@ namespace HnzCoopSeason
         [XmlArray]
         [XmlArrayItem("StoreItem")]
         public StoreItemConfig[] StoreItems = { new StoreItemConfig() };
+
+        [XmlIgnore]
+        public IReadOnlyDictionary<int, ProgressionLevelConfig> ProgressionLevels { get; private set; }
+
+        void Initialize()
+        {
+            ProgressionLevels = ProgressionLevelsRaw.ToDictionary(c => c.Level);
+        }
 
         public static void Load()
         {
@@ -78,6 +99,7 @@ namespace HnzCoopSeason
                     {
                         var contentText = reader.ReadToEnd();
                         Instance = MyAPIGateway.Utilities.SerializeFromXML<SessionConfig>(contentText);
+                        Instance.Initialize();
                         MyLog.Default.Info("[HnzCoopSeason] config loaded");
                         return;
                     }
@@ -90,6 +112,7 @@ namespace HnzCoopSeason
 
             MyLog.Default.Info("[HnzCoopSeason] config creating");
             Instance = new SessionConfig();
+            Instance.Initialize();
             Save();
         }
 

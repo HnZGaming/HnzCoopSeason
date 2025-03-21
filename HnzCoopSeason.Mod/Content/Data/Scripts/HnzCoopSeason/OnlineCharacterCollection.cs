@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using HnzCoopSeason.Utils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
-using VRage.Utils;
 using VRageMath;
 
 namespace HnzCoopSeason
@@ -26,13 +23,26 @@ namespace HnzCoopSeason
             }
         }
 
+        public static bool GetAllContainedPlayers(BoundingSphereD sphere, ICollection<IMyPlayer> players)
+        {
+            var foundPlayers = false;
+            foreach (var p in _players)
+            {
+                if (ContainsPlayer(sphere, p))
+                {
+                    players.Add(p);
+                    foundPlayers = true;
+                }
+            }
+
+            return foundPlayers;
+        }
+
         public static bool TryGetContainedPlayer(BoundingSphereD sphere, out IMyPlayer player)
         {
             foreach (var p in _players)
             {
-                if (p.Character == null) continue;
-                var position = p.GetPosition();
-                if (sphere.Contains(position) == ContainmentType.Contains)
+                if (ContainsPlayer(sphere, p))
                 {
                     player = p;
                     return true;
@@ -41,6 +51,12 @@ namespace HnzCoopSeason
 
             player = null;
             return false;
+        }
+
+        static bool ContainsPlayer(BoundingSphereD sphere, IMyPlayer player)
+        {
+            if (player.Character == null) return false;
+            return sphere.Contains(player.Character.GetPosition()) == ContainmentType.Contains;
         }
 
         public static bool ContainsPlayer(BoundingSphereD sphere)

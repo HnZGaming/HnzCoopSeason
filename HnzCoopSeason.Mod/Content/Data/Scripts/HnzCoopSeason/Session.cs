@@ -49,7 +49,7 @@ namespace HnzCoopSeason
                 RespawnPodManipulator.Load();
             }
 
-            ProgressionView.Load();
+            ProgressionView.Instance.Load();
 
             MyLog.Default.Info("[HnzCoopSeason] session loaded");
         }
@@ -75,7 +75,7 @@ namespace HnzCoopSeason
                 RespawnPodManipulator.Unload();
             }
 
-            ProgressionView.Unload();
+            ProgressionView.Instance.Unload();
 
             MyLog.Default.Info("[HnzCoopSeason] session unloaded");
         }
@@ -84,7 +84,7 @@ namespace HnzCoopSeason
         {
             SessionConfig.Load();
             _poiMap.LoadConfig();
-            ProgressionView.UpdateProgress();
+            ProgressionView.Instance.UpdateProgress();
         }
 
         void FirstUpdate()
@@ -98,7 +98,7 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                ProgressionView.RequestUpdate();
+                ProgressionView.Instance.RequestUpdate();
             }
 
             PoiMapView.Instance.FirstUpdate();
@@ -157,7 +157,7 @@ namespace HnzCoopSeason
             // potentially overwrites some poi's state
             _poiMap.OnPoiStateChanged();
 
-            ProgressionView.UpdateProgress();
+            ProgressionView.Instance.UpdateProgress();
 
             MyLog.Default.Info(
                 "[HnzCoopSeason] poi state changed: {0}, {1} / {2}, progress: {3:0.0}%, level: {4}",

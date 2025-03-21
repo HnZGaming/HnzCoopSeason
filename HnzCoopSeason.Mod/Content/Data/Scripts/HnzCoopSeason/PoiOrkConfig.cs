@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Xml.Serialization;
 using HnzCoopSeason.Utils;
 
 namespace HnzCoopSeason
 {
     [Serializable]
-    public sealed class MesEncounterConfig
+    public sealed class PoiOrkConfig
     {
         [XmlAttribute]
         public int ProgressLevel = 1;
@@ -17,7 +18,10 @@ namespace HnzCoopSeason
         public float Weight = 1;
 
         [XmlElement("SpawnGroup")]
-        public MesEncounterSpawnGroupConfig[] SpawnGroups = { new MesEncounterSpawnGroupConfig() };
+        public SpawnGroupConfig[] SpawnGroups = { new SpawnGroupConfig() };
+
+        [XmlIgnore]
+        public string[] SpawnGroupNames => SpawnGroups.Select(g => g.SpawnGroup).ToArray();
 
         public override string ToString()
         {

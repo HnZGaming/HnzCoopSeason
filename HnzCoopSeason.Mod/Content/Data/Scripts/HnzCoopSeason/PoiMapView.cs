@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
@@ -101,9 +103,8 @@ namespace HnzCoopSeason
                 return;
             }
 
-            var pois = Session.Instance.GetClosestPois(player.GetPosition(), SessionConfig.Instance.ExposedPoiCount);
             var markers = new List<Marker>();
-            foreach (var poi in pois)
+            foreach (var poi in GetPois(player.GetPosition()).Take(SessionConfig.Instance.ExposedPoiCount))
             {
                 markers.Add(new Marker(poi.Id, poi.Position, poi.State));
             }
@@ -122,6 +123,28 @@ namespace HnzCoopSeason
             }
         }
 
+        static IEnumerable<IPoi> GetPois(Vector3D origin)
+        {
+            var foundMerchant = false;
+            var foundPending = false;
+            foreach (var poi in Session.Instance.GetAllPois().OrderBy(p => Vector3D.Distance(p.Position, origin)))
+            {
+                // ReSharper disable once ConvertIfStatementToSwitchStatement
+                if (poi.State == PoiState.Released)
+                {
+                    if (foundMerchant) continue;
+                    foundMerchant = true;
+                }
+                else if (poi.State == PoiState.Pending)
+                {
+                    if (foundPending) continue;
+                    foundPending = true;
+                }
+
+                yield return poi;
+            }
+        }
+
         void DeployMap(List<Marker> markers) // client
         {
             // remove old markers
@@ -135,12 +158,28 @@ namespace HnzCoopSeason
             // add new markers
             foreach (var marker in markers)
             {
-                var name = marker.State == PoiState.Released ? "Merchant" : "Orks";
-                var gps = MyAPIGateway.Session.GPS.Create(name, "", marker.Position, true, false);
-                gps.GPSColor = marker.State == PoiState.Released ? Color.Green : Color.Brown;
+                var gps = CreateGps(marker);
                 MyAPIGateway.Session.GPS.AddLocalGps(gps);
                 _markers.Add(gps);
             }
+        }
+
+        static IMyGps CreateGps(Marker marker)
+        {
+            switch (marker.State)
+            {
+                case PoiState.Occupied: return CreateGps("Orks", marker.Position, Color.Red, "");
+                case PoiState.Released: return CreateGps("Merchant", marker.Position, Color.Green, "");
+                case PoiState.Pending: return CreateGps("Pending", marker.Position, Color.White, "Planetary POIs must be reclaimed first");
+                default: throw new InvalidOperationException();
+            }
+        }
+
+        static IMyGps CreateGps(string name, Vector3D position, Color color, string description)
+        {
+            var gps = MyAPIGateway.Session.GPS.Create(name, description, position, true, false);
+            gps.GPSColor = color;
+            return gps;
         }
 
         [ProtoContract]

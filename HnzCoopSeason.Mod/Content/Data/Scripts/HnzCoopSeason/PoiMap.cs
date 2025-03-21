@@ -123,11 +123,42 @@ namespace HnzCoopSeason
             MyAPIGateway.Entities.GetEntities(entities);
             var grids = entities.OfType<IMyCubeGrid>().ToArray();
             foreach (var p in _allPois) p.Load(grids);
+
+            OnPoiStateChanged();
         }
 
         public void Update()
         {
             foreach (var p in _allPois) p.Update();
+        }
+
+        public void OnPoiStateChanged()
+        {
+            if (_planetaryPois.Values.Any(p => p.State == PoiState.Occupied)) // some planetary poi's are occupied
+            {
+                var random = new Random(0); // not actually random
+                var pendingSpacePois = _spacePois.Values
+                    .OrderBy(p => p.Id)
+                    .OrderBy(_ => random.Next())
+                    .Take(_planetaryPois.Count)
+                    .Cast<IPoi>()
+                    .ToArray();
+
+                foreach (var p in pendingSpacePois)
+                {
+                    Session.Instance.SetPoiState(p.Id, PoiState.Pending, false);
+                }
+            }
+            else // all planetary poi's are released
+            {
+                foreach (var p in _spacePois.Values)
+                {
+                    if (p.State == PoiState.Pending)
+                    {
+                        Session.Instance.SetPoiState(p.Id, PoiState.Occupied, false);
+                    }
+                }
+            }
         }
 
         public bool TryGetPoi(string id, out Poi poi)
@@ -156,23 +187,6 @@ namespace HnzCoopSeason
         {
             if (_allPois.Count == 0) return 0;
             return GetReleasedPoiCount() / (float)_allPois.Count;
-        }
-
-        public bool TryGetClosestPoi(Vector3D position, bool planetary, out Poi poi)
-        {
-            poi = _allPois
-                .Where(p => p.IsPlanetary == planetary)
-                .OrderBy(p => Vector3D.Distance(p.Position, position))
-                .FirstOrDefault();
-            return poi != null;
-        }
-
-        public Poi[] GetClosestPois(Vector3D position, int count)
-        {
-            return _allPois
-                .OrderBy(p => Vector3D.Distance(p.Position, position))
-                .Take(count)
-                .ToArray();
         }
 
         static bool HasAtmosphere(Vector3D position)

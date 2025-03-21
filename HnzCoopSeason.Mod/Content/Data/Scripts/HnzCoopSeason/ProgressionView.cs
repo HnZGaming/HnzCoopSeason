@@ -9,14 +9,16 @@ using VRageRender;
 
 namespace HnzCoopSeason
 {
-    public static class ProgressionView
+    public sealed class ProgressionView
     {
+        public static readonly ProgressionView Instance = new ProgressionView();
         static readonly ushort ModKey = (ushort)"HnzCoopSeason.ProgressionView".GetHashCode();
 
-        static HudAPIv2 _hudApi;
-        static HudAPIv2.HUDMessage _hudMessage;
+        HudAPIv2 _hudApi;
+        HudAPIv2.HUDMessage _peaceMeter;
+        HudAPIv2.HUDMessage _minPoiPlayercountText;
 
-        public static void Load()
+        public void Load()
         {
             MyLog.Default.Debug("[HnzCoopSeason] ProgressionView.Load()");
 
@@ -29,7 +31,7 @@ namespace HnzCoopSeason
             }
         }
 
-        public static void Unload()
+        public void Unload()
         {
             MyLog.Default.Debug("[HnzCoopSeason] ProgressionView.Unload()");
 
@@ -40,11 +42,13 @@ namespace HnzCoopSeason
             {
                 _hudApi.Close();
                 _hudApi.Unload();
-                // _hudMessage?.DeleteMessage(); fails to unload
+                _hudApi = null;
+                _peaceMeter = null;
+                _minPoiPlayercountText = null;
             }
         }
 
-        public static void RequestUpdate() // called in client
+        public void RequestUpdate() // called in client
         {
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Request());
 
@@ -58,15 +62,15 @@ namespace HnzCoopSeason
             }
         }
 
-        public static void UpdateProgress() //called in server
+        public void UpdateProgress() //called in server
         {
-            var progress = Session.Instance.GetProgress();
-            var bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Update(progress));
+            var payload = CreateUpdatePayload();
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
 
             if (MyAPIGateway.Utilities.IsDedicated) // dedi
             {
                 MyAPIGateway.Multiplayer.SendMessageToOthers(ModKey, bytes, true);
-                MyLog.Default.Info("[HnzCoopSeason] progress sent: {0:0.00}", progress);
+                MyLog.Default.Info("[HnzCoopSeason] progress sent: {0:0.00}", payload.Progress);
             }
             else // single player
             {
@@ -74,15 +78,15 @@ namespace HnzCoopSeason
             }
         }
 
-        static void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
+        void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
         {
             if (modKey != ModKey) return;
 
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
             if (payload.Type == 1) // query
             {
-                var progress = Session.Instance.GetProgress();
-                bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Update(progress));
+                payload = CreateUpdatePayload();
+                bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
 
                 if (MyAPIGateway.Utilities.IsDedicated) // dedi
                 {
@@ -95,22 +99,44 @@ namespace HnzCoopSeason
             }
             else // update
             {
-                var progress = payload.Progress;
-
-                _hudMessage?.DeleteMessage();
-                _hudMessage = new HudAPIv2.HUDMessage(
-                    /*text*/ CreateProgressionHudText(progress),
-                    /*origin*/ new Vector2D(0f, 1f),
-                    /*offset*/ new Vector2D(-0.25f, -0.1f),
-                    /*time to live*/ -1,
-                    /*scale*/ 1,
-                    /*hide hud*/ true,
-                    /*shadowing*/ false,
-                    /*shadow color*/ null,
-                    /*text*/ MyBillboard.BlendTypeEnum.PostPP);
-
-                MyLog.Default.Info("[HnzCoopSeason] progress received: {0:0.00}", progress);
+                Render(payload);
+                MyLog.Default.Info("[HnzCoopSeason] progress received: {0:0.00}", payload.Progress);
             }
+        }
+
+        static Payload CreateUpdatePayload()
+        {
+            var level = Session.Instance.GetProgressLevel();
+            var progress = Session.Instance.GetProgress();
+            var minPoiPlayerCount = SessionConfig.Instance.ProgressionLevels[level].MinPlayerCount;
+            return Payload.Update(progress, minPoiPlayerCount);
+        }
+
+        void Render(Payload payload) // client
+        {
+            _peaceMeter?.DeleteMessage();
+            _peaceMeter = new HudAPIv2.HUDMessage(
+                /*text*/ CreateProgressionHudText(payload.Progress),
+                /*origin*/ new Vector2D(0f, 1f),
+                /*offset*/ new Vector2D(-0.25f, -0.1f),
+                /*time to live*/ -1,
+                /*scale*/ 1,
+                /*hide hud*/ true,
+                /*shadowing*/ false,
+                /*shadow color*/ null,
+                /*text*/ MyBillboard.BlendTypeEnum.PostPP);
+
+            _minPoiPlayercountText?.DeleteMessage();
+            _minPoiPlayercountText = new HudAPIv2.HUDMessage(
+                /*text*/ CreateMinPoiPlayerCountText(payload.MinPoiPlayerCount),
+                /*origin*/ new Vector2D(0f, 1f),
+                /*offset*/ new Vector2D(-0.15f, -0.15f),
+                /*time to live*/ -1,
+                /*scale*/ 1,
+                /*hide hud*/ true,
+                /*shadowing*/ false,
+                /*shadow color*/ null,
+                /*text*/ MyBillboard.BlendTypeEnum.PostPP);
         }
 
         static StringBuilder CreateProgressionHudText(float progress)
@@ -131,6 +157,15 @@ namespace HnzCoopSeason
             return buffer;
         }
 
+        static StringBuilder CreateMinPoiPlayerCountText(int minPlayerCount)
+        {
+            var buffer = new StringBuilder();
+            if (minPlayerCount <= 1) return buffer;
+
+            buffer.Append($"You need {minPlayerCount} players to challenge Orks.");
+            return buffer;
+        }
+
         [ProtoContract]
         sealed class Payload
         {
@@ -139,6 +174,9 @@ namespace HnzCoopSeason
 
             [ProtoMember(2)]
             public float Progress;
+
+            [ProtoMember(3)]
+            public int MinPoiPlayerCount;
 
             // ReSharper disable once EmptyConstructor
             public Payload()
@@ -150,10 +188,11 @@ namespace HnzCoopSeason
                 Type = 1
             };
 
-            public static Payload Update(float progress) => new Payload
+            public static Payload Update(float progress, int minPoiPlayerCount) => new Payload
             {
                 Type = 2,
                 Progress = progress,
+                MinPoiPlayerCount = minPoiPlayerCount,
             };
         }
     }

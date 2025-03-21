@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using HnzCoopSeason.Utils;
 using Sandbox.ModAPI;
@@ -10,16 +11,16 @@ namespace HnzCoopSeason
 {
     public sealed class MesEncounter
     {
+        public delegate bool SpawnDelegateType(int playerCount, List<string> spawnGroupNames);
+
         readonly string _gridId;
-        readonly MesEncounterConfig[] _configs;
         readonly Vector3D _position;
         readonly MesGridGroup _mesGridGroup;
         bool _encounterActive;
 
-        public MesEncounter(string gridId, MesEncounterConfig[] configs, Vector3D position)
+        public MesEncounter(string gridId, Vector3D position)
         {
             _gridId = gridId;
-            _configs = configs;
             _position = position;
             _mesGridGroup = new MesGridGroup(gridId);
         }
@@ -35,6 +36,8 @@ namespace HnzCoopSeason
             add { _mesGridGroup.OnMainGridUnset += value; }
             remove { _mesGridGroup.OnMainGridUnset -= value; }
         }
+
+        public SpawnDelegateType SpawnDelegate { get; set; }
 
         public void Load(IMyCubeGrid[] grids)
         {
@@ -59,16 +62,24 @@ namespace HnzCoopSeason
             if (!_encounterActive) return;
             if (_mesGridGroup.State != MesGridGroup.SpawningState.Idle) return;
 
-            IMyPlayer player;
+            var players = new List<IMyPlayer>();
             var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
-            if (!OnlineCharacterCollection.TryGetContainedPlayer(sphere, out player)) return;
+            if (!OnlineCharacterCollection.GetAllContainedPlayers(sphere, players)) return;
 
-            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby; player: '{player.DisplayName}'");
+            var spawnGroupNames = new List<string>();
+            if (!SpawnDelegate(players.Count, spawnGroupNames)) return;
 
-            Spawn(CalcConfigIndex(), player.GetPosition());
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby; player: '{players.Select(p => p.DisplayName).ToStringSeq()}'");
+
+            var playerPosition = players
+                .Select(p => p.GetPosition())
+                .OrderBy(p => Vector3D.Distance(p, _position))
+                .First();
+
+            Spawn(spawnGroupNames, playerPosition);
         }
 
-        public void ForceSpawn(int configIndex)
+        public void ForceSpawn(IReadOnlyList<string> spawnGroupNames)
         {
             Vector3D? knownPlayerPosition = null;
             IMyPlayer player;
@@ -79,52 +90,27 @@ namespace HnzCoopSeason
             }
 
             MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby");
-            Spawn(configIndex, knownPlayerPosition);
+            Spawn(spawnGroupNames, knownPlayerPosition);
         }
 
-        void Spawn(int configIndex, Vector3D? playerPosition)
+        void Spawn(IReadOnlyList<string> spawnGroupNames, Vector3D? playerPosition)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} requesting spawn; config index: {configIndex}");
-            var config = _configs[configIndex];
-
-            var spawnGroupNames = config.SpawnGroups.Select(g => g.SpawnGroup).ToArray();
             var matrixGenerator = new SpawnMatrixBuilder
             {
                 Sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius),
                 Clearance = SessionConfig.Instance.EncounterClearance,
                 SnapToVoxel = false,
-                Count = spawnGroupNames.Length,
+                Count = spawnGroupNames.Count,
                 PlayerPosition = playerPosition,
             };
 
             if (!matrixGenerator.TryBuild())
             {
-                MyLog.Default.Error($"[HnzCoopSeason] encounter {_gridId} failed to find a spawnable position: {config}");
+                MyLog.Default.Error($"[HnzCoopSeason] encounter {_gridId} failed to find a spawnable position; groups: {spawnGroupNames.ToStringSeq()}");
                 return;
             }
 
             _mesGridGroup.RequestSpawn(spawnGroupNames, matrixGenerator);
-        }
-
-        int CalcConfigIndex()
-        {
-            if (_configs.Length == 1) return 0;
-
-            var progressLevel = Session.Instance.GetProgressLevel();
-            var weights = _configs.Select(c => GetWeight(c, progressLevel)).ToArray();
-            if (weights.Length == 0)
-            {
-                MyLog.Default.Warning($"[HnzCoopSeason] encounter {_gridId} no configs eligible; selecting 0");
-                return 0;
-            }
-
-            return MathUtils.WeightedRandom(weights);
-        }
-
-        static float GetWeight(MesEncounterConfig config, int progressLevel)
-        {
-            if (progressLevel != config.ProgressLevel) return 0;
-            return config.Weight;
         }
 
         public override string ToString()

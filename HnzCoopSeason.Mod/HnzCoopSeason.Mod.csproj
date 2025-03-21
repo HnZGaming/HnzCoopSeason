@@ -131,7 +131,8 @@
     </ItemGroup>
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesEncounterSpawnGroupConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\ProgressionLevelConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\SpawnGroupConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\SpawnMatrixBuilder.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMapView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMerchantConfig.cs" />
@@ -143,7 +144,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoiObserver.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesGridGroup.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesGridContext.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesEncounterConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiOrkConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MES\MESApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MES\NpcData.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\OnlineCharacterCollection.cs" />

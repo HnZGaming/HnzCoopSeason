@@ -38,7 +38,7 @@ namespace HnzCoopSeason
             var gpsList = new List<Gps>();
             foreach (var p in pois)
             {
-                gpsList.Add(new Gps(p.Id, p.Position));
+                gpsList.Add(new Gps($"{p.Id}:{p.State}", p.Position));
             }
 
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(gpsList));

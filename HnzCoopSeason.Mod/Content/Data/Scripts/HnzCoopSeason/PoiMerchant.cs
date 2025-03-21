@@ -105,7 +105,7 @@ namespace HnzCoopSeason
         {
             _poiState = state;
 
-            if (state == PoiState.Occupied)
+            if (state != PoiState.Released)
             {
                 Despawn();
             }

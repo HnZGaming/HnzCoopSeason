@@ -4,5 +4,6 @@
     {
         Occupied,
         Released,
+        Pending,
     }
 }

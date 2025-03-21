@@ -27,16 +27,21 @@ namespace HnzCoopSeason
 
             var grid = (IMyCubeGrid)MyAPIGateway.Entities.GetEntityById(shipEntityId);
             var cockpit = grid.GetFatBlocks<IMyCockpit>().First();
-            var gravity = VRageUtils.CalculateNaturalGravity(grid.GetPosition());
+            var position = grid.GetPosition();
+            var isPlanetary = VRageUtils.CalculateNaturalGravity(position) != Vector3.Zero;
 
-            Vector3D coord;
-            if (!Session.Instance.TryGetClosestPoiPosition(grid.PositionComp.GetPosition(), gravity, out coord))
+            var closestPoi = Session.Instance.GetAllPois()
+                .Where(p => p.IsPlanetary == isPlanetary)
+                .OrderBy(p => Vector3D.Distance(p.Position, position))
+                .FirstOrDefault();
+            
+            if (closestPoi == null)
             {
                 MyLog.Default.Warning("[HnzCoopSeason] POI not found for datapad");
                 return;
             }
 
-            var gps = VRageUtils.FormatGps("Something", coord, "FFFFFF");
+            var gps = VRageUtils.FormatGps("Something", closestPoi.Position, "FFFFFF");
             cockpit.GetInventory(0).AddItems(1, new MyObjectBuilder_Datapad
             {
                 SubtypeName = "Datapad",

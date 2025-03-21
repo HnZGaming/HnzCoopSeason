@@ -8,6 +8,7 @@ namespace HnzCoopSeason
         string Id { get; }
         Vector3D Position { get; }
         PoiState State { get; }
+        bool IsPlanetary { get; }
         IReadOnlyList<IPoiObserver> Observers { get; }
         bool IsPlayerAround(float radius);
     }

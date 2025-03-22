@@ -125,7 +125,8 @@ namespace HnzCoopSeason
             MesGridContext context;
             if (!TryGetMyContext(grid, out context))
             {
-                throw new InvalidOperationException("context not found; shouldn't happen");
+                MyLog.Default.Error("[HnzCoopSeason] context not found; shouldn't happen");
+                return;
             }
 
             MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} grid despawned by MES; index: {context.Index}, cause: {cause}");
@@ -154,7 +155,8 @@ namespace HnzCoopSeason
             MesGridContext context;
             if (!TryGetMyContext(grid, out context))
             {
-                throw new InvalidOperationException("context not found; shouldn't happen");
+                MyLog.Default.Error("[HnzCoopSeason] context not found; shouldn't happen");
+                return;
             }
 
             MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} grid closing; index: {context.Index}");

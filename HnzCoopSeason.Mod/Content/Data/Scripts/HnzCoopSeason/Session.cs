@@ -157,8 +157,6 @@ namespace HnzCoopSeason
             // potentially overwrites some poi's state
             _poiMap.OnPoiStateChanged();
 
-            ProgressionView.Instance.UpdateProgress();
-
             MyLog.Default.Info(
                 "[HnzCoopSeason] poi state changed: {0}, {1} / {2}, progress: {3:0.0}%, level: {4}",
                 poiId,
@@ -167,7 +165,14 @@ namespace HnzCoopSeason
                 GetProgress() * 100,
                 GetProgressLevel());
 
+            ProgressionView.Instance.UpdateProgress();
             PoiMapView.Instance.OnPoiStateUpdated(); // gps hud
+            
+            if (state == PoiState.Released)
+            {
+                OnPoiReleased(poiId, poi.Position);
+            }
+            
             return true;
         }
 
@@ -199,6 +204,12 @@ namespace HnzCoopSeason
         {
             MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have taken over our land!", 10000);
             MyVisualScriptLogicProvider.AddGPS("Invasion", "", position, Color.Red, 10);
+        }
+
+        void OnPoiReleased(string poiId, Vector3D position)
+        {
+            MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have been defeated!", 10000);
+            MyVisualScriptLogicProvider.AddGPS("Orks Defeated", "", position, Color.Green, 10);
         }
 
         public static void SendMessage(ulong steamId, Color color, string message)

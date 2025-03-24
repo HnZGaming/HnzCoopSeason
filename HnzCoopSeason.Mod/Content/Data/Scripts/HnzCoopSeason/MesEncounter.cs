@@ -69,7 +69,7 @@ namespace HnzCoopSeason
             var spawnGroupNames = new List<string>();
             if (!SpawnDelegate(players.Count, spawnGroupNames)) return;
 
-            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby; player: '{players.Select(p => p.DisplayName).ToStringSeq()}'");
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby; players: {players.Select(p => p.DisplayName).ToStringSeq()}");
 
             var playerPosition = players
                 .Select(p => p.GetPosition())
@@ -89,7 +89,7 @@ namespace HnzCoopSeason
                 knownPlayerPosition = player.GetPosition();
             }
 
-            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby");
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} force spawn");
             Spawn(spawnGroupNames, knownPlayerPosition);
         }
 

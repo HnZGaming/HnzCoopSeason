@@ -88,7 +88,7 @@ namespace HnzCoopSeason
 
                 if (!success)
                 {
-                    MyLog.Default.Error($"[HnzCoopSeason] MesGrid {Id} failed to spawn: '{spawnGroups[i]}'");
+                    MyLog.Default.Error($"[HnzCoopSeason] MesGrid {Id} failed to spawn: '{spawnGroups[i]}' ({i})");
 
                     if (i == 0) // main grid
                     {

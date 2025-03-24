@@ -22,6 +22,7 @@ namespace HnzCoopSeason
         PoiMap _poiMap;
         CommandModule _commandModule;
         bool _doneFirstUpdate;
+        ProgressionView _progressionView;
 
         public override void LoadData()
         {
@@ -49,7 +50,8 @@ namespace HnzCoopSeason
                 RespawnPodManipulator.Load();
             }
 
-            ProgressionView.Instance.Load();
+            _progressionView = new ProgressionView();
+            _progressionView.Load();
 
             MyLog.Default.Info("[HnzCoopSeason] session loaded");
         }
@@ -75,7 +77,7 @@ namespace HnzCoopSeason
                 RespawnPodManipulator.Unload();
             }
 
-            ProgressionView.Instance.Unload();
+            _progressionView.Unload();
 
             MyLog.Default.Info("[HnzCoopSeason] session unloaded");
         }
@@ -84,7 +86,7 @@ namespace HnzCoopSeason
         {
             SessionConfig.Load();
             _poiMap.LoadConfig();
-            ProgressionView.Instance.UpdateProgress();
+            _progressionView.UpdateProgress();
         }
 
         void FirstUpdate()
@@ -98,7 +100,7 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                ProgressionView.Instance.RequestUpdate();
+                _progressionView.RequestUpdate();
             }
 
             PoiMapView.Instance.FirstUpdate();
@@ -165,14 +167,14 @@ namespace HnzCoopSeason
                 GetProgress() * 100,
                 GetProgressLevel());
 
-            ProgressionView.Instance.UpdateProgress();
+            _progressionView.UpdateProgress();
             PoiMapView.Instance.OnPoiStateUpdated(); // gps hud
-            
+
             if (state == PoiState.Released)
             {
                 OnPoiReleased(poiId, poi.Position);
             }
-            
+
             return true;
         }
 

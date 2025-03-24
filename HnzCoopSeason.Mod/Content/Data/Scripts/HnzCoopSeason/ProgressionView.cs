@@ -11,12 +11,12 @@ namespace HnzCoopSeason
 {
     public sealed class ProgressionView
     {
-        public static readonly ProgressionView Instance = new ProgressionView();
         static readonly ushort ModKey = (ushort)"HnzCoopSeason.ProgressionView".GetHashCode();
 
         HudAPIv2 _hudApi;
-        HudAPIv2.HUDMessage _peaceMeter;
-        HudAPIv2.HUDMessage _minPoiPlayercountText;
+        TextLineView _peaceMeter;
+        TextLineView _levelText;
+        TextLineView _minPoiPlayerCountText;
 
         public void Load()
         {
@@ -28,6 +28,9 @@ namespace HnzCoopSeason
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
                 _hudApi = new HudAPIv2();
+                _peaceMeter = new TextLineView();
+                _levelText = new TextLineView();
+                _minPoiPlayerCountText = new TextLineView();
             }
         }
 
@@ -44,7 +47,8 @@ namespace HnzCoopSeason
                 _hudApi.Unload();
                 _hudApi = null;
                 _peaceMeter = null;
-                _minPoiPlayercountText = null;
+                _levelText = null;
+                _minPoiPlayerCountText = null;
             }
         }
 
@@ -109,34 +113,14 @@ namespace HnzCoopSeason
             var level = Session.Instance.GetProgressLevel();
             var progress = Session.Instance.GetProgress();
             var minPoiPlayerCount = SessionConfig.Instance.ProgressionLevels[level].MinPlayerCount;
-            return Payload.Update(progress, minPoiPlayerCount);
+            return Payload.Update(progress, minPoiPlayerCount, level);
         }
 
         void Render(Payload payload) // client
         {
-            _peaceMeter?.DeleteMessage();
-            _peaceMeter = new HudAPIv2.HUDMessage(
-                /*text*/ CreateProgressionHudText(payload.Progress),
-                /*origin*/ new Vector2D(0f, 1f),
-                /*offset*/ new Vector2D(-0.25f, -0.1f),
-                /*time to live*/ -1,
-                /*scale*/ 1,
-                /*hide hud*/ true,
-                /*shadowing*/ false,
-                /*shadow color*/ null,
-                /*text*/ MyBillboard.BlendTypeEnum.PostPP);
-
-            _minPoiPlayercountText?.DeleteMessage();
-            _minPoiPlayercountText = new HudAPIv2.HUDMessage(
-                /*text*/ CreateMinPoiPlayerCountText(payload.MinPoiPlayerCount),
-                /*origin*/ new Vector2D(0f, 1f),
-                /*offset*/ new Vector2D(-0.15f, -0.15f),
-                /*time to live*/ -1,
-                /*scale*/ 1,
-                /*hide hud*/ true,
-                /*shadowing*/ false,
-                /*shadow color*/ null,
-                /*text*/ MyBillboard.BlendTypeEnum.PostPP);
+            _peaceMeter.Update(CreateProgressionHudText(payload.Progress), -0.1);
+            _levelText.Update(new StringBuilder($"Orks Level: {payload.ProgressionLevel}"), -0.15f);
+            _minPoiPlayerCountText.Update(new StringBuilder($"You need {payload.MinPoiPlayerCount} players to challenge Orks."), -0.2f);
         }
 
         static StringBuilder CreateProgressionHudText(float progress)
@@ -157,15 +141,6 @@ namespace HnzCoopSeason
             return buffer;
         }
 
-        static StringBuilder CreateMinPoiPlayerCountText(int minPlayerCount)
-        {
-            var buffer = new StringBuilder();
-            if (minPlayerCount <= 1) return buffer;
-
-            buffer.Append($"You need {minPlayerCount} players to challenge Orks.");
-            return buffer;
-        }
-
         [ProtoContract]
         sealed class Payload
         {
@@ -178,6 +153,9 @@ namespace HnzCoopSeason
             [ProtoMember(3)]
             public int MinPoiPlayerCount;
 
+            [ProtoMember(4)]
+            public int ProgressionLevel;
+
             // ReSharper disable once EmptyConstructor
             public Payload()
             {
@@ -188,12 +166,37 @@ namespace HnzCoopSeason
                 Type = 1
             };
 
-            public static Payload Update(float progress, int minPoiPlayerCount) => new Payload
+            public static Payload Update(float progress, int minPoiPlayerCount, int progressionLevel) => new Payload
             {
                 Type = 2,
                 Progress = progress,
                 MinPoiPlayerCount = minPoiPlayerCount,
+                ProgressionLevel = progressionLevel
             };
+        }
+
+        sealed class TextLineView
+        {
+            HudAPIv2.HUDMessage _message;
+
+            public void Update(StringBuilder text, double y)
+            {
+                _message?.DeleteMessage();
+                _message = new HudAPIv2.HUDMessage(
+                    /*text*/ text,
+                    /*origin*/ new Vector2D(0f, 1f),
+                    /*offset*/ new Vector2D(0f, y),
+                    /*time to live*/ -1,
+                    /*scale*/ 1,
+                    /*hide hud*/ true,
+                    /*shadowing*/ false,
+                    /*shadow color*/ null,
+                    /*text*/ MyBillboard.BlendTypeEnum.PostPP);
+
+                // center align in X axis
+                var textLength = _message.GetTextLength().X;
+                _message.Offset = new Vector2D(-textLength / 2, _message.Offset.Y);
+            }
         }
     }
 }

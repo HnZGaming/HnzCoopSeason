@@ -75,6 +75,7 @@ namespace HnzCoopSeason
         {
             UpdateStation();
             UpdateEconomy();
+            UpdatePower();
         }
 
         void UpdateStation()
@@ -321,6 +322,17 @@ namespace HnzCoopSeason
             {
                 var builder = new MyObjectBuilder_Component { SubtypeName = kvp.Key.SubtypeName };
                 inventory.AddItems(kvp.Value, builder);
+            }
+        }
+
+        void UpdatePower()
+        {
+            if (MyAPIGateway.Session.GameplayFrameCounter % 60 != 0) return;
+            if (_grid == null) return;
+
+            foreach (var battery in _grid.GetFatBlocks<MyBatteryBlock>())
+            {
+                battery.CurrentStoredPower = battery.MaxStoredPower;
             }
         }
 

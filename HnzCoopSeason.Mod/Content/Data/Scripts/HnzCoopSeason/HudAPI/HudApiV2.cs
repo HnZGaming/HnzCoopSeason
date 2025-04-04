@@ -7,7 +7,7 @@ using VRage.Utils;
 using VRageMath;
 using VRageRender;
 
-namespace HnzCoopSeason.HudAPI
+namespace HudAPI
 {
 	public class HudAPIv2
 	{

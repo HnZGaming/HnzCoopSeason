@@ -2,7 +2,7 @@
 using Sandbox.ModAPI;
 using VRage;
 
-namespace HnzCoopSeason.FlashGPS
+namespace FlashGPS
 {
     public static class FlashGpsApi
     {

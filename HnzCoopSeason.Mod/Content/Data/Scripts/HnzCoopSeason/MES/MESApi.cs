@@ -7,7 +7,7 @@ using VRage.ModAPI;
 using VRageMath;
 
 //Change namespace to your mod's namespace
-namespace HnzCoopSeason.MES {
+namespace MES {
 	public class MESApi {
 		public static MESApi Instance { get; private set; }
 

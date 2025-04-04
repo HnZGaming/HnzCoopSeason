@@ -2,7 +2,7 @@
 using ProtoBuf;
 using VRageMath;
 
-namespace HnzCoopSeason.FlashGPS
+namespace FlashGPS
 {
     [Serializable]
     [ProtoContract]

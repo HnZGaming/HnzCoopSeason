@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using Sandbox.ModAPI;
 
-namespace HnzCoopSeason.FlashGPS
+namespace FlashGPS
 {
     public static class FlashGpsSerialization
     {

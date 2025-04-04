@@ -3,7 +3,7 @@ using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 
-namespace HnzCoopSeason.MES
+namespace MES
 {
     [ProtoContract]
     // ReSharper disable once ClassNeverInstantiated.Global

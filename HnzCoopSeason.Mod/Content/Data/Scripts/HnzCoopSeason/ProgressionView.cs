@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using HudAPI;
 using ProtoBuf;
@@ -17,6 +18,7 @@ namespace HnzCoopSeason
         TextLineView _peaceMeter;
         TextLineView _levelText;
         TextLineView _minPoiPlayerCountText;
+        List<TextLineView> _textLineViews;
 
         public void Load()
         {
@@ -31,6 +33,7 @@ namespace HnzCoopSeason
                 _peaceMeter = new TextLineView();
                 _levelText = new TextLineView();
                 _minPoiPlayerCountText = new TextLineView();
+                _textLineViews = new List<TextLineView> { _peaceMeter, _levelText, _minPoiPlayerCountText };
             }
         }
 
@@ -49,6 +52,7 @@ namespace HnzCoopSeason
                 _peaceMeter = null;
                 _levelText = null;
                 _minPoiPlayerCountText = null;
+                _textLineViews = null;
             }
         }
 
@@ -118,9 +122,16 @@ namespace HnzCoopSeason
 
         void Render(Payload payload) // client
         {
-            _peaceMeter.Update(CreateProgressionHudText(payload.Progress), -0.1);
-            _levelText.Update(new StringBuilder($"Orks Level: {payload.ProgressionLevel}"), -0.15f);
-            _minPoiPlayerCountText.Update(new StringBuilder($"You need {payload.MinPoiPlayerCount} players to challenge Orks."), -0.2f);
+            _peaceMeter.Update(CreateProgressionHudText(payload.Progress));
+            _levelText.Update(new StringBuilder($"Orks Level: {payload.ProgressionLevel}"));
+            _minPoiPlayerCountText.Update(new StringBuilder($"You need {payload.MinPoiPlayerCount} players to challenge Orks."));
+
+            var offset = -0.1;
+            const double padding = 0.02;
+            foreach (var textLineView in _textLineViews)
+            {
+                offset += textLineView.Render(offset) - padding;
+            }
         }
 
         static StringBuilder CreateProgressionHudText(float progress)
@@ -179,23 +190,29 @@ namespace HnzCoopSeason
         {
             HudAPIv2.HUDMessage _message;
 
-            public void Update(StringBuilder text, double y)
+            public void Update(StringBuilder text)
             {
                 _message?.DeleteMessage();
                 _message = new HudAPIv2.HUDMessage(
                     /*text*/ text,
                     /*origin*/ new Vector2D(0f, 1f),
-                    /*offset*/ new Vector2D(0f, y),
+                    /*offset*/ new Vector2D(0f, 0f),
                     /*time to live*/ -1,
                     /*scale*/ 1,
                     /*hide hud*/ true,
                     /*shadowing*/ false,
                     /*shadow color*/ null,
                     /*text*/ MyBillboard.BlendTypeEnum.PostPP);
+            }
 
-                // center align in X axis
-                var textLength = _message.GetTextLength().X;
-                _message.Offset = new Vector2D(-textLength / 2, _message.Offset.Y);
+            public double Render(double offset)
+            {
+                if (_message == null) return 0;
+
+                var textLength = _message.GetTextLength();
+                _message.Offset = new Vector2D(-textLength.X / 2, offset);
+
+                return textLength.Y;
             }
         }
     }

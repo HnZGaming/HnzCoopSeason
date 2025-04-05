@@ -1,24 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
-using HudAPI;
+using HnzCoopSeason.Utils.ScreenSpace;
 using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Utils;
-using VRageMath;
-using VRageRender;
 
 namespace HnzCoopSeason
 {
     public sealed class ProgressionView
     {
         static readonly ushort ModKey = (ushort)"HnzCoopSeason.ProgressionView".GetHashCode();
+        public static readonly ProgressionView Instance = new ProgressionView();
 
-        HudAPIv2 _hudApi;
-        TextLineView _peaceMeter;
-        TextLineView _levelText;
-        TextLineView _minPoiPlayerCountText;
-        List<TextLineView> _textLineViews;
+        ElementGroup _group;
+        Element _peaceMeter;
+        Element _levelText;
+        Element _minPoiPlayerCountText;
+
+        ProgressionView()
+        {
+        }
 
         public void Load()
         {
@@ -29,11 +30,17 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                _hudApi = new HudAPIv2();
-                _peaceMeter = new TextLineView();
-                _levelText = new TextLineView();
-                _minPoiPlayerCountText = new TextLineView();
-                _textLineViews = new List<TextLineView> { _peaceMeter, _levelText, _minPoiPlayerCountText };
+                _group = new ElementGroup
+                {
+                    Padding = -0.02,
+                    Offset = -0.1,
+                };
+
+                StackView.Instance.AddGroup(_group);
+
+                _peaceMeter = new Element().AddedTo(_group);
+                _levelText = new Element().AddedTo(_group);
+                _minPoiPlayerCountText = new Element().AddedTo(_group);
             }
         }
 
@@ -46,13 +53,8 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                _hudApi.Close();
-                _hudApi.Unload();
-                _hudApi = null;
-                _peaceMeter = null;
-                _levelText = null;
-                _minPoiPlayerCountText = null;
-                _textLineViews = null;
+                _group.Clear();
+                StackView.Instance.RemoveGroup(_group);
             }
         }
 
@@ -107,7 +109,7 @@ namespace HnzCoopSeason
             }
             else // update
             {
-                Render(payload);
+                UpdateTexts(payload);
                 MyLog.Default.Info("[HnzCoopSeason] progress received: {0:0.00}", payload.Progress);
             }
         }
@@ -120,18 +122,11 @@ namespace HnzCoopSeason
             return Payload.Update(progress, minPoiPlayerCount, level);
         }
 
-        void Render(Payload payload) // client
+        void UpdateTexts(Payload payload) // client
         {
-            _peaceMeter.Update(CreateProgressionHudText(payload.Progress));
-            _levelText.Update(new StringBuilder($"Orks Level: {payload.ProgressionLevel}"));
-            _minPoiPlayerCountText.Update(new StringBuilder($"You need {payload.MinPoiPlayerCount} players to challenge Orks."));
-
-            var offset = -0.1;
-            const double padding = 0.02;
-            foreach (var textLineView in _textLineViews)
-            {
-                offset += textLineView.Render(offset) - padding;
-            }
+            _peaceMeter.SetText(CreateProgressionHudText(payload.Progress).ToString());
+            _levelText.SetText($"Orks Level: {payload.ProgressionLevel}");
+            _minPoiPlayerCountText.SetText($"You need {payload.MinPoiPlayerCount} players to challenge Orks.");
         }
 
         static StringBuilder CreateProgressionHudText(float progress)
@@ -168,6 +163,7 @@ namespace HnzCoopSeason
             public int ProgressionLevel;
 
             // ReSharper disable once EmptyConstructor
+            // ReSharper disable once MemberCanBePrivate.Local
             public Payload()
             {
             }
@@ -184,36 +180,6 @@ namespace HnzCoopSeason
                 MinPoiPlayerCount = minPoiPlayerCount,
                 ProgressionLevel = progressionLevel
             };
-        }
-
-        sealed class TextLineView
-        {
-            HudAPIv2.HUDMessage _message;
-
-            public void Update(StringBuilder text)
-            {
-                _message?.DeleteMessage();
-                _message = new HudAPIv2.HUDMessage(
-                    /*text*/ text,
-                    /*origin*/ new Vector2D(0f, 1f),
-                    /*offset*/ new Vector2D(0f, 0f),
-                    /*time to live*/ -1,
-                    /*scale*/ 1,
-                    /*hide hud*/ true,
-                    /*shadowing*/ false,
-                    /*shadow color*/ null,
-                    /*text*/ MyBillboard.BlendTypeEnum.PostPP);
-            }
-
-            public double Render(double offset)
-            {
-                if (_message == null) return 0;
-
-                var textLength = _message.GetTextLength();
-                _message.Offset = new Vector2D(-textLength.X / 2, offset);
-
-                return textLength.Y;
-            }
         }
     }
 }

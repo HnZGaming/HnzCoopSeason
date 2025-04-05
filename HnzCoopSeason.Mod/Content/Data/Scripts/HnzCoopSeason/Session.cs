@@ -4,6 +4,7 @@ using FlashGPS;
 using MES;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
+using HnzCoopSeason.Utils.ScreenSpace;
 using Sandbox.Game;
 using Sandbox.ModAPI;
 using VRage.Game.Components;
@@ -21,7 +22,6 @@ namespace HnzCoopSeason
         PoiMap _poiMap;
         CommandModule _commandModule;
         bool _doneFirstUpdate;
-        ProgressionView _progressionView;
 
         public override void LoadData()
         {
@@ -49,8 +49,7 @@ namespace HnzCoopSeason
                 RespawnPodManipulator.Load();
             }
 
-            _progressionView = new ProgressionView();
-            _progressionView.Load();
+            ProgressionView.Instance.Load();
 
             MyLog.Default.Info("[HnzCoopSeason] session loaded");
         }
@@ -76,7 +75,12 @@ namespace HnzCoopSeason
                 RespawnPodManipulator.Unload();
             }
 
-            _progressionView.Unload();
+            ProgressionView.Instance.Unload();
+
+            if (!MyAPIGateway.Utilities.IsDedicated)
+            {
+                StackView.Instance.Close();
+            }
 
             MyLog.Default.Info("[HnzCoopSeason] session unloaded");
         }
@@ -85,7 +89,7 @@ namespace HnzCoopSeason
         {
             SessionConfig.Load();
             _poiMap.LoadConfig();
-            _progressionView.UpdateProgress();
+            ProgressionView.Instance.UpdateProgress();
         }
 
         void FirstUpdate()
@@ -99,7 +103,7 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                _progressionView.RequestUpdate();
+                ProgressionView.Instance.RequestUpdate();
             }
 
             PoiMapView.Instance.FirstUpdate();
@@ -120,6 +124,12 @@ namespace HnzCoopSeason
             {
                 OnlineCharacterCollection.Update();
                 _poiMap.Update();
+            }
+
+            // client
+            if (!MyAPIGateway.Utilities.IsDedicated)
+            {
+                StackView.Instance.Render();
             }
 
             PoiMapView.Instance.Update();
@@ -166,7 +176,7 @@ namespace HnzCoopSeason
                 GetProgress() * 100,
                 GetProgressLevel());
 
-            _progressionView.UpdateProgress();
+            ProgressionView.Instance.UpdateProgress();
             PoiMapView.Instance.OnPoiStateUpdated(); // gps hud
 
             if (state == PoiState.Released)

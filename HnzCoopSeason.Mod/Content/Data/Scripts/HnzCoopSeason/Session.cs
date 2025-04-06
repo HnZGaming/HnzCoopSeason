@@ -4,7 +4,8 @@ using FlashGPS;
 using MES;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
-using HnzCoopSeason.Utils.ScreenSpace;
+using HnzCoopSeason.Utils.Hud;
+using HudAPI;
 using Sandbox.Game;
 using Sandbox.ModAPI;
 using VRage.Game.Components;
@@ -22,12 +23,15 @@ namespace HnzCoopSeason
         PoiMap _poiMap;
         CommandModule _commandModule;
         bool _doneFirstUpdate;
+        HudAPIv2 _api;
 
         public override void LoadData()
         {
             MyLog.Default.Info("[HnzCoopSeason] session loading");
             base.LoadData();
             Instance = this;
+
+            _api = new HudAPIv2();
 
             _commandModule = new CommandModule("coop");
             _commandModule.Load();
@@ -50,6 +54,7 @@ namespace HnzCoopSeason
             }
 
             ProgressionView.Instance.Load();
+            NpcCaptureView.Instance.Load();
 
             MyLog.Default.Info("[HnzCoopSeason] session loaded");
         }
@@ -58,6 +63,8 @@ namespace HnzCoopSeason
         {
             MyLog.Default.Info("[HnzCoopSeason] session unloading");
             base.UnloadData();
+
+            _api = null;
 
             _commandModule.Unload();
             PoiMapDebugView.Unload();
@@ -76,10 +83,11 @@ namespace HnzCoopSeason
             }
 
             ProgressionView.Instance.Unload();
+            NpcCaptureView.Instance.Unload();
 
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                StackView.Instance.Close();
+                ScreenTopView.Instance.Close();
             }
 
             MyLog.Default.Info("[HnzCoopSeason] session unloaded");
@@ -129,7 +137,12 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                StackView.Instance.Render();
+                NpcCaptureView.Instance.Update();
+
+                if (_api.Heartbeat)
+                {
+                    ScreenTopView.Instance.Render();
+                }
             }
 
             PoiMapView.Instance.Update();

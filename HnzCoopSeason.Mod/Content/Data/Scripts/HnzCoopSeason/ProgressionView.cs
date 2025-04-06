@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-using HnzCoopSeason.Utils.ScreenSpace;
+using HnzCoopSeason.Utils.Hud;
 using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Utils;
@@ -12,14 +12,11 @@ namespace HnzCoopSeason
         static readonly ushort ModKey = (ushort)"HnzCoopSeason.ProgressionView".GetHashCode();
         public static readonly ProgressionView Instance = new ProgressionView();
 
-        ElementGroup _group;
-        Element _peaceMeter;
-        Element _levelText;
-        Element _minPoiPlayerCountText;
-
-        ProgressionView()
-        {
-        }
+        HudElementStack _group;
+        HudElement _progressElement;
+        HudElement _titleElement;
+        HudElement _subitleElement;
+        HudElement _descriptionElement;
 
         public void Load()
         {
@@ -30,17 +27,20 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                _group = new ElementGroup
+                _group = new HudElementStack
                 {
                     Padding = -0.02,
                     Offset = -0.1,
                 };
 
-                StackView.Instance.AddGroup(_group);
+                ScreenTopView.Instance.AddGroup(nameof(ProgressionView), _group, 0);
 
-                _peaceMeter = new Element().AddedTo(_group);
-                _levelText = new Element().AddedTo(_group);
-                _minPoiPlayerCountText = new Element().AddedTo(_group);
+                _progressElement = new HudElement().AddTo(_group);
+                _titleElement = new HudElement().AddTo(_group);
+                _subitleElement = new HudElement().AddTo(_group);
+                _descriptionElement = new HudElement().AddTo(_group);
+
+                _subitleElement.Apply("Beat the Orks away from our trading hubs!");
             }
         }
 
@@ -53,8 +53,12 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
+                _progressElement.Clear();
+                _titleElement.Clear();
+                _subitleElement.Clear();
+                _descriptionElement.Clear();
                 _group.Clear();
-                StackView.Instance.RemoveGroup(_group);
+                ScreenTopView.Instance.RemoveGroup(nameof(ProgressionView));
             }
         }
 
@@ -124,27 +128,23 @@ namespace HnzCoopSeason
 
         void UpdateTexts(Payload payload) // client
         {
-            _peaceMeter.SetText(CreateProgressionHudText(payload.Progress).ToString());
-            _levelText.SetText($"Orks Level: {payload.ProgressionLevel}");
-            _minPoiPlayerCountText.SetText($"You need {payload.MinPoiPlayerCount} players to challenge Orks.");
+            _progressElement.Apply(CreateProgressionBar(payload.Progress));
+            _titleElement.Apply($"Orks Level: {payload.ProgressionLevel}", 1.5);
+            _descriptionElement.Apply($"You need {payload.MinPoiPlayerCount} players to challenge Orks.", active: payload.MinPoiPlayerCount > 1);
         }
 
-        static StringBuilder CreateProgressionHudText(float progress)
+        static string CreateProgressionBar(double progress)
         {
             var buffer = new StringBuilder();
             buffer.Append("PEACEMETER ");
 
-            for (var i = 0; i < 100; i++)
-            {
-                var c = (float)i / 100 < progress ? "0,255,0" : "200,0,0";
-                buffer.Append($"<color={c}>|");
-            }
+            buffer.Append(HudElement.CreateProgressionBar(progress));
 
             var p100 = progress * 100;
             var pstr = p100 == 0 ? "0" : p100 < 1f ? $"{p100:0.0}" : $"{p100:0}";
-            buffer.Append($"<reset> {pstr}%");
+            buffer.Append($" {pstr}%");
 
-            return buffer;
+            return buffer.ToString();
         }
 
         [ProtoContract]

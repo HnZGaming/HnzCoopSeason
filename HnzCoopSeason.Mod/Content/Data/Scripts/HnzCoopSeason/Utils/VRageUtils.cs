@@ -13,6 +13,11 @@ namespace HnzCoopSeason.Utils
 {
     public static class VRageUtils
     {
+        public static bool IsNpc(long identityId)
+        {
+            return MyAPIGateway.Players.TryGetSteamId(identityId) == 0;
+        }
+        
         public static void UpdateStorageValue(this IMyEntity entity, Guid key, string value)
         {
             var storage = entity.Storage ?? new MyModStorageComponent();
@@ -40,23 +45,6 @@ namespace HnzCoopSeason.Utils
         {
             float _;
             return MyAPIGateway.Physics.CalculateNaturalGravityAt(point, out _);
-        }
-
-        public static bool IsGridControlledByAI(IMyCubeGrid grid)
-        {
-            var terminalSystems = MyAPIGateway.TerminalActionsHelper.GetTerminalSystemForGrid(grid);
-            var controlBlocks = new List<IMyTerminalBlock>();
-            terminalSystems.GetBlocksOfType<IMyRemoteControl>(controlBlocks);
-            terminalSystems.GetBlocksOfType<IMyCockpit>(controlBlocks);
-            foreach (var block in controlBlocks)
-            {
-                if (MyAPIGateway.Players.TryGetSteamId(block.OwnerId) == 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         public static void AddTemporaryGps(string name, Color color, double discardAt, Vector3D coords)
@@ -133,6 +121,19 @@ namespace HnzCoopSeason.Utils
             }
 
             intersection = Vector3D.Zero;
+            return false;
+        }
+
+        public static bool IsInAnySafeZone(long entityId)
+        {
+            foreach (var zone in MySessionComponentSafeZones.SafeZones)
+            {
+                if (MySessionComponentSafeZones.IsInSafezone(entityId, zone))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
     }

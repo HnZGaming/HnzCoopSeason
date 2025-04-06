@@ -1,32 +1,14 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
 
 namespace HnzCoopSeason.Utils.Pools
 {
-    public static class ListPool<T>
+    public sealed class ListPool<T> : Pool<List<T>>
     {
-        static readonly ConcurrentBag<List<T>> _pool;
+        public static readonly ListPool<T> Instance = new ListPool<T>();
 
-        static ListPool()
+        ListPool() : base(() => new List<T>(), l => l.Clear())
         {
-            _pool = new ConcurrentBag<List<T>>();
-        }
-
-        public static List<T> Get()
-        {
-            List<T> list;
-            if (_pool.TryTake(out list))
-            {
-                return list;
-            }
-
-            return new List<T>();
-        }
-
-        public static void Release(List<T> list)
-        {
-            list.Clear();
-            _pool.Add(list);
         }
     }
 }

@@ -47,17 +47,6 @@ namespace HnzCoopSeason.Utils
             return MyAPIGateway.Physics.CalculateNaturalGravityAt(point, out _);
         }
 
-        public static void AddTemporaryGps(string name, Color color, double discardAt, Vector3D coords)
-        {
-            if (MyAPIGateway.Utilities.IsDedicated) return;
-
-            var gps = MyAPIGateway.Session.GPS.Create(name, "", coords, true, true);
-            gps.GPSColor = color;
-            gps.DiscardAt = TimeSpan.FromSeconds(discardAt);
-            gps.UpdateHash();
-            MyAPIGateway.Session.GPS.AddLocalGps(gps);
-        }
-
         public static bool TryGetCharacter(ulong steamId, out IMyCharacter character)
         {
             var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);

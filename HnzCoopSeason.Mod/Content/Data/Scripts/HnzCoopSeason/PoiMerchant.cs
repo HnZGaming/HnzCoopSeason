@@ -148,7 +148,7 @@ namespace HnzCoopSeason
                     resultGrids, _config.Prefab, matrix.Translation, matrix.Forward, matrix.Up,
                     ownerId: ownerId,
                     spawningOptions: SpawningOptions.RotateFirstCockpitTowardsDirection,
-                    callback: () => OnGridSpawned(resultGrids, matrix));
+                    callback: () => OnGridSpawned(resultGrids));
             }
             catch (Exception e)
             {
@@ -157,16 +157,12 @@ namespace HnzCoopSeason
             }
         }
 
-        void OnGridSpawned(List<IMyCubeGrid> resultGrids, MatrixD matrix)
+        void OnGridSpawned(List<IMyCubeGrid> resultGrids)
         {
             if (resultGrids.Count == 0)
             {
                 MyLog.Default.Error($"[HnzCoopSeason] poi merchant {_poiId} failed to spawn via SpawnPrefab()");
                 _spawnState = SpawnState.Failure;
-
-                // debug
-                var gps = MyAPIGateway.Session.GPS.Create(_config.Prefab, "", matrix.Translation, true);
-                MyAPIGateway.Session.GPS.AddLocalGps(gps);
                 return;
             }
 

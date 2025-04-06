@@ -40,7 +40,7 @@ namespace HnzCoopSeason
                 _subitleElement = new HudElement().AddTo(_group);
                 _descriptionElement = new HudElement().AddTo(_group);
 
-                _subitleElement.Apply("Beat the Orks away from our trading hubs!");
+                _subitleElement.Apply("Beat the intruders away from our trading hubs!");
             }
         }
 
@@ -129,7 +129,7 @@ namespace HnzCoopSeason
         void UpdateTexts(Payload payload) // client
         {
             _progressElement.Apply(CreateProgressionBar(payload.Progress));
-            _titleElement.Apply($"Orks Level: {payload.ProgressionLevel}", 1.5);
+            _titleElement.Apply($"Peace Restoration Level: {payload.ProgressionLevel}", 1.5);
             _descriptionElement.Apply($"You need {payload.MinPoiPlayerCount} players to challenge Orks.", active: payload.MinPoiPlayerCount > 1);
         }
 

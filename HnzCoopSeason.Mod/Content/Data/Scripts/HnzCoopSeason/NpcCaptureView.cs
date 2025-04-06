@@ -117,11 +117,11 @@ namespace HnzCoopSeason
 
             var titleText = target.Analysis.Grid.CustomName;
             var subtitleText = target.Analysis.IsOrksLeader
-                ? "<color=0,255,255>This is the boss Ork! Neutralize this grid to reclaim the trading hub!"
+                ? "<color=0,255,255>This is the boss Ork! Neutralize it to reclaim the trading hub!"
                 : "";
 
             var descriptionText = !takeoverComplete
-                ? "To neutralize a wild grid, destroy or take over all their remote blocks and control seats."
+                ? "To neutralize a wild grid, take over all their remote blocks and control seats."
                 : "You can capture a neutralized grid into a garage block.";
 
             _progressElement.Apply(CreateProgressionBar(takeoverSuccessCount, takeoverTargetCount));
@@ -135,7 +135,7 @@ namespace HnzCoopSeason
         {
             if (grid.Analysis.Owner == CoopGrids.Owner.Player) return false;
             if (VRageUtils.IsInAnySafeZone(grid.Analysis.Grid.EntityId)) return false;
-            if (grid.ScreenDistance > 0.2 && !grid.Enclosing) return false;
+            if (grid.ScreenDistance > 0.4 && !grid.Enclosing) return false;
             return true;
         }
 

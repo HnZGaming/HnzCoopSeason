@@ -25,11 +25,9 @@ namespace HnzCoopSeason.Torch
         static void Close(MyEntity entity)
         {
             if (entity is not IMyCubeGrid) return;
+            if (!(entity.DisplayName?.Contains("(NPC-ORK)") ?? false)) return;
 
-            if (entity.DisplayName?.Contains("(NPC-ORK)") ?? false)
-            {
-                Log.Info($"ork grid closed: {entity.DisplayName} ({entity}); stacktrace: {new StackTrace()}");
-            }
+            Log.Info($"ork grid closed: {entity.DisplayName} ({entity}); stacktrace: {new StackTrace()}");
         }
     }
 }

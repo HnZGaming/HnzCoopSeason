@@ -55,8 +55,7 @@ namespace HnzCoopSeason
                 Vector3D position;
                 if (!positionQueue.TryDequeue(out position)) return false;
 
-                var rt = TryBuild(position);
-                VRageUtils.AddTemporaryGps($"{rt}", rt == ResultType.Success ? Color.Green : Color.Yellow, 5, position);
+                TryBuild(position);
             }
 
             return true;

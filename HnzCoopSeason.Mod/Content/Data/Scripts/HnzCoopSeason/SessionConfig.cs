@@ -59,8 +59,8 @@ namespace HnzCoopSeason
             new ProgressionLevelConfig(1, 1),
             new ProgressionLevelConfig(2, 1),
             new ProgressionLevelConfig(3, 2),
-            new ProgressionLevelConfig(4, 2),
-            new ProgressionLevelConfig(5, 3),
+            new ProgressionLevelConfig(4, 3),
+            new ProgressionLevelConfig(5, 4),
         };
 
         [XmlArray]

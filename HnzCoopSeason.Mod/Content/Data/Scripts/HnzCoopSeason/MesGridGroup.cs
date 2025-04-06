@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HnzCoopSeason.MES;
+using MES;
 using HnzCoopSeason.Utils;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -177,6 +177,11 @@ namespace HnzCoopSeason
 
         bool TryGetMyContext(IMyCubeGrid grid, out MesGridContext context)
         {
+            return TryGetSpawnContext(grid, out context) && context.Id == Id;
+        }
+
+        public static bool TryGetSpawnContext(IMyCubeGrid grid, out MesGridContext context)
+        {
             context = null;
             if (grid == null) return false;
 
@@ -185,7 +190,7 @@ namespace HnzCoopSeason
             if (string.IsNullOrEmpty(npcData.Context)) return false;
 
             if (!MesGridContext.FromXml(npcData.Context, out context)) return false;
-            return context.Id == Id;
+            return true;
         }
 
         static void CloseGridSafely(IMyCubeGrid grid)
@@ -198,7 +203,8 @@ namespace HnzCoopSeason
             grid.GetGridGroup(GridLinkTypeEnum.Logical).GetGrids(grids);
             foreach (var g in grids)
             {
-                if (!VRageUtils.IsGridControlledByAI(g))
+                var analysis = CoopGrids.Analyze(g);
+                if (analysis.Owner == CoopGrids.Owner.Player)
                 {
                     MyLog.Default.Info($"[HnzCoopSeason] not despawned: '{g.CustomName}'");
                     NpcData.RemoveNpcData(g);

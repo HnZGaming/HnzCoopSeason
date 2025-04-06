@@ -23,6 +23,8 @@ namespace HnzCoopSeason
         HudElement _subtitleElement;
         HudElement _progressElement;
         HudElement _descriptionElement;
+        NpcCaptureReticle _reticle;
+        Vector3D? _reticlePosition;
 
         public void Load()
         {
@@ -40,6 +42,7 @@ namespace HnzCoopSeason
             _titleElement = new HudElement().AddTo(_group);
             _subtitleElement = new HudElement().AddTo(_group);
             _descriptionElement = new HudElement().AddTo(_group);
+            _reticle = new NpcCaptureReticle();
         }
 
         public void Unload()
@@ -57,8 +60,12 @@ namespace HnzCoopSeason
         public void Update()
         {
             if (MyAPIGateway.Utilities.IsDedicated) return; // client
+
+            _reticle.Update(_reticlePosition ?? Vector3D.Zero, _reticlePosition.HasValue, 1000);
+
             if (MyAPIGateway.Session.GameplayFrameCounter % 5 != 0) return;
 
+            _reticlePosition = null;
             var canRender = TryApplyHudElements();
             ScreenTopView.Instance.SetActive(nameof(NpcCaptureView), canRender);
         }
@@ -109,6 +116,8 @@ namespace HnzCoopSeason
                 .OrderBy(g => OrderGrid(g))
                 .FirstOrDefault();
 
+            _reticlePosition = target?.Analysis.Grid.WorldMatrix.Translation;
+
             if (target == null) return false;
 
             int takeoverSuccessCount;
@@ -135,14 +144,14 @@ namespace HnzCoopSeason
         {
             if (grid.Analysis.Owner == CoopGrids.Owner.Player) return false;
             if (VRageUtils.IsInAnySafeZone(grid.Analysis.Grid.EntityId)) return false;
-            if (grid.ScreenDistance > 0.4 && !grid.Enclosing) return false;
+            if (grid.ScreenDistance > 0.4 && !grid.Enclosing && !grid.Analysis.IsOrksLeader) return false;
             return true;
         }
 
         static double OrderGrid(GridSearch grid)
         {
             var value = 0d;
-            //value += grid.Analysis.IsOrksLeader ? -1000 : 0; //todo impl w/ gps
+            value += grid.Analysis.IsOrksLeader ? -1000 : 0;
             value += grid.Enclosing ? -100 : 0;
             value += grid.ScreenDistance;
             return value;

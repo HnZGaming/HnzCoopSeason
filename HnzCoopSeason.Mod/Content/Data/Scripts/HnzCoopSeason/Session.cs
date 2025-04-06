@@ -134,10 +134,9 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                NpcCaptureView.Instance.Update();
-
                 if (_api.Heartbeat)
                 {
+                    NpcCaptureView.Instance.Update();
                     ScreenTopView.Instance.Render();
                 }
             }

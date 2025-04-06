@@ -132,6 +132,7 @@
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcCaptureReticle.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcCaptureView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\ProgressionLevelConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\ScreenTopView.cs" />

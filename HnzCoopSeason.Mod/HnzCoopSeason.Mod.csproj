@@ -140,9 +140,6 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMapView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMerchantConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MissionScreenView.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\FlashGpsApi.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\FlashGpsSerialization.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\FlashGpsSource.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudAPI\HudApiV2.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoiObserver.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesGridGroup.cs" />
@@ -182,7 +179,6 @@
     <ItemGroup>
       <Content Include="Content\Data\Factions.sbc" />
       <Content Include="Content\Data\ModStorageComponents.sbc" />
-      <Content Include="Content\Data\Scripts\HnzCoopSeason\FlashGPS\readme.md" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\HudAPI\readme.md" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\MES\readme.md" />
       <Content Include="upload.bat" />

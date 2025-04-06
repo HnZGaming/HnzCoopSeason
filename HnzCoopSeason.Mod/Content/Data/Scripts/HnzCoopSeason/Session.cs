@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using FlashGPS;
 using MES;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
-using HnzCoopSeason.Utils.Hud;
 using HudAPI;
 using Sandbox.Game;
 using Sandbox.ModAPI;
@@ -48,7 +46,6 @@ namespace HnzCoopSeason
                 _poiMap = new PoiMap();
 
                 MESApi.Load();
-                FlashGpsApi.Load(nameof(HnzCoopSeason).GetHashCode());
                 PlanetCollection.Load();
                 RespawnPodManipulator.Load();
             }

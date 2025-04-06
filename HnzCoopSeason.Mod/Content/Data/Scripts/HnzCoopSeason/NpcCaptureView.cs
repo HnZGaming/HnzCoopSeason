@@ -10,6 +10,7 @@ using Sandbox.ModAPI;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace HnzCoopSeason
@@ -54,6 +55,7 @@ namespace HnzCoopSeason
             _progressElement.Clear();
             _descriptionElement.Clear();
             _group.Clear();
+            _reticle.ClearBody();
             ScreenTopView.Instance.RemoveGroup(nameof(NpcCaptureView));
         }
 
@@ -137,6 +139,7 @@ namespace HnzCoopSeason
             _titleElement.Apply(titleText, 1.5);
             _subtitleElement.Apply(subtitleText);
             _descriptionElement.Apply(descriptionText);
+
             return true;
         }
 

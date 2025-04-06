@@ -23,8 +23,9 @@ namespace HnzCoopSeason
             public Owner Owner;
             public MyRelationsBetweenFactions Relation;
             public int SpawnGroupIndex;
+            public string FactionTag;
 
-            public bool IsOrksLeader => SpawnGroupIndex == 0;
+            public bool IsOrksLeader => SpawnGroupIndex == 0 && FactionTag == "PORKS";
         }
 
         public static Analysis Analyze(IMyCubeGrid grid, long playerId = 0)
@@ -40,6 +41,7 @@ namespace HnzCoopSeason
             {
                 var ownerId = grid.BigOwners[0];
                 analysis.Owner = VRageUtils.IsNpc(ownerId) ? Owner.NPC : Owner.Player;
+                analysis.FactionTag = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId)?.Tag;
 
                 if (playerId != 0)
                 {

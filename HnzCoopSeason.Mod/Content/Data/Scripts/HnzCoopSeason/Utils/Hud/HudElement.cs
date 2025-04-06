@@ -38,9 +38,10 @@ namespace HnzCoopSeason.Utils.Hud
 
         public void Apply(string text, double scale = 1d, bool active = true)
         {
-            _populated &= _text == text;
-            _populated &= Math.Abs(_scale - scale) < 0.001;
-            _populated &= _active == active;
+            _populated = false;
+            _populated |= _text != text;
+            _populated |= Math.Abs(_scale - scale) > 0.001;
+            _populated |= _active != active;
 
             _text = text;
             _scale = scale;

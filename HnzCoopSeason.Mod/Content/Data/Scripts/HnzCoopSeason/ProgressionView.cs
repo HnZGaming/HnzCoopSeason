@@ -15,7 +15,7 @@ namespace HnzCoopSeason
         HudElementStack _group;
         HudElement _progressElement;
         HudElement _titleElement;
-        HudElement _subitleElement;
+        HudElement _subtitleElement;
         HudElement _descriptionElement;
 
         public void Load()
@@ -37,10 +37,10 @@ namespace HnzCoopSeason
 
                 _progressElement = new HudElement().AddTo(_group);
                 _titleElement = new HudElement().AddTo(_group);
-                _subitleElement = new HudElement().AddTo(_group);
+                _subtitleElement = new HudElement().AddTo(_group);
                 _descriptionElement = new HudElement().AddTo(_group);
 
-                _subitleElement.Apply("Beat the intruders away from our trading hubs!");
+                _subtitleElement.Apply("Beat the intruders away from our trading hubs!");
             }
         }
 
@@ -55,7 +55,7 @@ namespace HnzCoopSeason
             {
                 _progressElement.Clear();
                 _titleElement.Clear();
-                _subitleElement.Clear();
+                _subtitleElement.Clear();
                 _descriptionElement.Clear();
                 _group.Clear();
                 ScreenTopView.Instance.RemoveGroup(nameof(ProgressionView));

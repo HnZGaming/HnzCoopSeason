@@ -13,7 +13,7 @@ namespace HnzCoopSeason
     {
         HudAPIv2.HUDMessage _body;
 
-        static HudAPIv2.HUDMessage Create()
+        static HudAPIv2.HUDMessage CreateBody()
         {
             return new HudAPIv2.HUDMessage(
                 /*text*/ new StringBuilder("<color=255,0,0>\u00a4"),
@@ -27,7 +27,7 @@ namespace HnzCoopSeason
                 /*text*/ MyBillboard.BlendTypeEnum.PostPP);
         }
 
-        public void Close()
+        public void ClearBody()
         {
             try
             {
@@ -45,19 +45,20 @@ namespace HnzCoopSeason
             var camera = MyAPIGateway.Session.Camera;
             if (camera == null) return;
 
-            if (!active || Vector3D.Distance(camera.WorldMatrix.Translation, targetPosition) < minDistance)
+            var screenPosition = WorldToScreen(camera, targetPosition);
+            var dot = Vector3D.Dot(targetPosition - camera.Position, camera.WorldMatrix.Forward);
+            var tooClose = Vector3D.Distance(camera.Position, targetPosition) < minDistance;
+            if (!active || dot < 0 || tooClose)
             {
-                _body?.DeleteMessage();
-                _body = null;
+                ClearBody();
                 return;
             }
 
             if (_body == null)
             {
-                _body = Create();
+                _body = CreateBody();
             }
 
-            var screenPosition = WorldToScreen(camera, targetPosition);
             screenPosition += _body.GetTextLength() / 2 * -1;
 
             _body.Offset = new Vector2D(

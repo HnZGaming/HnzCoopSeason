@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using VRageMath;
+﻿using VRageMath;
 
 namespace HnzCoopSeason
 {
@@ -9,7 +8,5 @@ namespace HnzCoopSeason
         Vector3D Position { get; }
         PoiState State { get; }
         bool IsPlanetary { get; }
-        IReadOnlyList<IPoiObserver> Observers { get; }
-        bool IsPlayerAround(float radius);
     }
 }

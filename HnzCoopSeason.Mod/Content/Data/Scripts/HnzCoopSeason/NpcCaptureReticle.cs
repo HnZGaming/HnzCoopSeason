@@ -16,7 +16,7 @@ namespace HnzCoopSeason
         static HudAPIv2.HUDMessage CreateBody()
         {
             return new HudAPIv2.HUDMessage(
-                /*text*/ new StringBuilder("<color=255,0,0>\u00a4"),
+                /*text*/ new StringBuilder("<color=0,255,255>\u00a4"),
                 /*origin*/ new Vector2D(0f, 0f),
                 /*offset*/ new Vector2D(0f, 0f),
                 /*time to live*/ -1,

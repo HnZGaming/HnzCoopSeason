@@ -84,7 +84,7 @@ namespace HnzCoopSeason.Utils
                 case ContainmentType.Disjoint: return false;
                 case ContainmentType.Contains: return true;
                 case ContainmentType.Intersects: return true;
-                default: throw new InvalidOperationException();
+                default: throw new InvalidOperationException($"unknown containment type: {self}");
             }
         }
     }

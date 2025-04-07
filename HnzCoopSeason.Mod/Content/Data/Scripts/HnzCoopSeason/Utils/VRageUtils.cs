@@ -4,6 +4,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using VRage.Game;
+using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
@@ -13,11 +14,33 @@ namespace HnzCoopSeason.Utils
 {
     public static class VRageUtils
     {
+        public static NetworkType NetworkType
+        {
+            get
+            {
+                if (MyAPIGateway.Utilities.IsDedicated) return NetworkType.DediServer;
+                return MyAPIGateway.Session.IsServer ? NetworkType.SinglePlayer : NetworkType.DediClient;
+            }
+        }
+
+        public static bool NetworkTypeIn(NetworkType networkTypes)
+        {
+            return (networkTypes & NetworkType) == NetworkType;
+        }
+
+        public static void AssertNetworkType(NetworkType networkTypes, string message = "invalid network type")
+        {
+            if (!NetworkTypeIn(networkTypes))
+            {
+                throw new InvalidOperationException(message);
+            }
+        }
+
         public static bool IsNpc(long identityId)
         {
             return MyAPIGateway.Players.TryGetSteamId(identityId) == 0;
         }
-        
+
         public static void UpdateStorageValue(this IMyEntity entity, Guid key, string value)
         {
             var storage = entity.Storage ?? new MyModStorageComponent();
@@ -124,6 +147,16 @@ namespace HnzCoopSeason.Utils
             }
 
             return false;
+        }
+
+        public static void PlaySound(string cueName)
+        {
+            var character = MyAPIGateway.Session?.LocalHumanPlayer?.Character;
+            if (character == null) return;
+
+            var emitter = new MyEntity3DSoundEmitter(character as MyEntity);
+            var sound = new MySoundPair(cueName);
+            emitter.PlaySound(sound);
         }
     }
 }

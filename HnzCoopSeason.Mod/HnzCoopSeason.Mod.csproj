@@ -131,12 +131,14 @@
     </ItemGroup>
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcCaptureReticle.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcCaptureView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\ProgressionLevelConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\ScreenTopView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\SpawnGroupConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiRandomInvasion.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\SpawnMatrixBuilder.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMapView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMerchantConfig.cs" />
@@ -175,6 +177,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Hud\HudElementStack.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Pools\ListPool.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Pools\Pool.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\NetworkType.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\VRageUtils.cs" />
     </ItemGroup>
     <ItemGroup>

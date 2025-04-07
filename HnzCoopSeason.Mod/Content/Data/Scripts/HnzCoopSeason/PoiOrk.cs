@@ -49,7 +49,9 @@ namespace HnzCoopSeason
 
         void IPoiObserver.OnStateChanged(PoiState state)
         {
-            _encounter.SetActive(state == PoiState.Occupied);
+            _encounter.SetActive(
+                state == PoiState.Occupied ||
+                state == PoiState.Invaded);
         }
 
         void OnMainGridSet(IMyCubeGrid grid)
@@ -113,7 +115,7 @@ namespace HnzCoopSeason
         {
             if (_configs.Length == 1) return 0;
 
-            var progressLevel = Session.Instance.GetProgressLevel();
+            var progressLevel = GetProgressLevel();
             var weights = _configs.Select(c => GetWeight(c, progressLevel)).ToArray();
             if (weights.Length == 0)
             {
@@ -122,6 +124,20 @@ namespace HnzCoopSeason
             }
 
             return MathUtils.WeightedRandom(weights);
+        }
+
+        int GetProgressLevel()
+        {
+            var sessionLevel = Session.Instance.GetProgressLevel();
+
+            // invasion
+            PoiState state;
+            if (Session.Instance.TryGetPoiState(_poiId, out state) && state == PoiState.Invaded)
+            {
+                return Math.Max(1, sessionLevel - 2);
+            }
+
+            return sessionLevel;
         }
 
         static float GetWeight(PoiOrkConfig config, int progressLevel)

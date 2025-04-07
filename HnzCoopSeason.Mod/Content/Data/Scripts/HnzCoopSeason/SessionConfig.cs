@@ -38,13 +38,10 @@ namespace HnzCoopSeason
         public float EncounterClearance = 500;
 
         [XmlElement]
-        public float RandomInvasionChance = 0.1f;
+        public int InvasionIntervalHours = 4;
 
         [XmlElement]
-        public int RandomInvasionInterval = 600;
-
-        [XmlElement]
-        public int EconomyUpdateInterval = 1200;
+        public int EconomyUpdateIntervalMinutes = 20;
 
         [XmlElement]
         public int ExposedPoiCount = 3;

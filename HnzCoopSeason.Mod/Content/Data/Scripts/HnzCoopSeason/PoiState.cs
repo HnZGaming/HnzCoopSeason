@@ -5,5 +5,6 @@
         Occupied,
         Released,
         Pending,
+        Invaded,
     }
 }

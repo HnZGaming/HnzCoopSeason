@@ -98,7 +98,7 @@ namespace HnzCoopSeason
         {
             if (_grid == null) return;
 
-            var i = SessionConfig.Instance.EconomyUpdateInterval * 60;
+            var i = SessionConfig.Instance.EconomyUpdateIntervalMinutes * 60 * 60;
             if (!_economyInterval.Update(i)) return;
 
             UpdateStore();

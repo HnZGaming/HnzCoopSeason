@@ -134,7 +134,7 @@ namespace HnzCoopSeason
 
         public void OnPoiStateChanged()
         {
-            if (_planetaryPois.Values.Any(p => p.State == PoiState.Occupied)) // some planetary poi's are occupied
+            if (_planetaryPois.Values.Any(p => p.State == PoiState.Occupied)) // if some planetary poi's are occupied
             {
                 var random = new Random(0); // not actually random
                 var pendingSpacePois = _spacePois.Values
@@ -149,7 +149,7 @@ namespace HnzCoopSeason
                     Session.Instance.SetPoiState(p.Id, PoiState.Pending, false);
                 }
             }
-            else // all planetary poi's are released
+            else // if all planetary poi's are released
             {
                 foreach (var p in _spacePois.Values)
                 {

@@ -40,7 +40,7 @@ namespace HnzCoopSeason
                 _subtitleElement = new HudElement().AddTo(_group);
                 _descriptionElement = new HudElement().AddTo(_group);
 
-                _subtitleElement.Apply("Orks have taken over our trading hubs... Send help!");
+                _subtitleElement.Apply("Orks have taken over Merchants' trading hubs... Send help!");
             }
         }
 

@@ -126,7 +126,7 @@ namespace HnzCoopSeason
             int takeoverTargetCount;
             var takeoverComplete = CoopGrids.GetTakeoverProgress(target.Analysis.Grid, true, out takeoverSuccessCount, out takeoverTargetCount);
 
-            var titleText = target.Analysis.Grid.CustomName;
+            var titleText = $"<color=0,255,255>{target.Analysis.Grid.CustomName}";
             var subtitleText = target.Analysis.IsOrksLeader
                 ? "<color=0,255,255>This is the boss Ork! Neutralize it to reclaim the trading hub!"
                 : "";
@@ -147,7 +147,7 @@ namespace HnzCoopSeason
         {
             if (grid.Analysis.Owner == CoopGrids.Owner.Player) return false;
             if (VRageUtils.IsInAnySafeZone(grid.Analysis.Grid.EntityId)) return false;
-            if (grid.ScreenDistance > 0.4 && !grid.Enclosing && !grid.Analysis.IsOrksLeader) return false;
+            if (grid.ScreenDistance > 0.3 && !grid.Enclosing && !grid.Analysis.IsOrksLeader) return false;
             return true;
         }
 

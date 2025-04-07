@@ -136,7 +136,7 @@ namespace HnzCoopSeason
                 : "You can capture a neutralized grid into a garage block.";
 
             _progressElement.Apply(CreateProgressionBar(takeoverSuccessCount, takeoverTargetCount));
-            _titleElement.Apply(titleText, 1.5);
+            _titleElement.Apply(titleText, 1.2);
             _subtitleElement.Apply(subtitleText);
             _descriptionElement.Apply(descriptionText);
 

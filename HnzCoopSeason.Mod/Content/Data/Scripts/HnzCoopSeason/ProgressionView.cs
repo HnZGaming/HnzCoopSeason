@@ -15,6 +15,7 @@ namespace HnzCoopSeason
         HudElementStack _group;
         HudElement _progressElement;
         HudElement _titleElement;
+        HudElement _subtitleElement;
         HudElement _descriptionElement;
 
         public void Load()
@@ -36,7 +37,10 @@ namespace HnzCoopSeason
 
                 _progressElement = new HudElement().AddTo(_group);
                 _titleElement = new HudElement().AddTo(_group);
+                _subtitleElement = new HudElement().AddTo(_group);
                 _descriptionElement = new HudElement().AddTo(_group);
+
+                _subtitleElement.Apply("Orks have taken over our trading hubs... Send help!");
             }
         }
 
@@ -51,6 +55,7 @@ namespace HnzCoopSeason
             {
                 _progressElement.Clear();
                 _titleElement.Clear();
+                _subtitleElement.Clear();
                 _descriptionElement.Clear();
                 _group.Clear();
                 ScreenTopView.Instance.RemoveGroup(nameof(ProgressionView));
@@ -124,7 +129,7 @@ namespace HnzCoopSeason
         void UpdateTexts(Payload payload) // client
         {
             _progressElement.Apply(CreateProgressionBar(payload.Progress));
-            _titleElement.Apply($"Peace Restoration Level: {payload.ProgressionLevel}", 1.5);
+            _titleElement.Apply($"Peace Restoration Level: {payload.ProgressionLevel}", 1.2);
             _descriptionElement.Apply($"You need {payload.MinPoiPlayerCount} players to challenge Orks.", active: payload.MinPoiPlayerCount > 1);
         }
 

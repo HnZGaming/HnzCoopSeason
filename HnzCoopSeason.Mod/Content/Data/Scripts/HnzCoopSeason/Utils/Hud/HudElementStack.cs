@@ -29,7 +29,11 @@ namespace HnzCoopSeason.Utils.Hud
             var offset = Offset;
             foreach (var e in _elements)
             {
-                offset += e.Render(offset, forceHide) + Padding;
+                var height = e.Render(offset, forceHide);
+                if (height != 0)
+                {
+                    offset += height + Padding;
+                }
             }
         }
     }

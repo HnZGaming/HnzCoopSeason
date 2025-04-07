@@ -39,6 +39,7 @@ namespace HnzCoopSeason
             PoiMapDebugView.Load();
             PoiSpectatorCamera.Load();
             PoiMapView.Instance.Load();
+            FlashGps.Instance.Load();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -48,6 +49,7 @@ namespace HnzCoopSeason
                 MESApi.Load();
                 PlanetCollection.Load();
                 RespawnPodManipulator.Load();
+                PoiRandomInvasion.Instance.Load();
             }
 
             ProgressionView.Instance.Load();
@@ -68,6 +70,7 @@ namespace HnzCoopSeason
             MissionScreenView.Unload();
             PoiSpectatorCamera.Unload();
             PoiMapView.Instance.Unload();
+            FlashGps.Instance.Unload();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -77,6 +80,7 @@ namespace HnzCoopSeason
                 _poiMap.Unload();
                 OnlineCharacterCollection.Unload();
                 RespawnPodManipulator.Unload();
+                PoiRandomInvasion.Instance.Unload();
             }
 
             ProgressionView.Instance.Unload();
@@ -129,6 +133,7 @@ namespace HnzCoopSeason
             {
                 OnlineCharacterCollection.Update();
                 _poiMap.Update();
+                PoiRandomInvasion.Instance.Update();
             }
 
             // client
@@ -142,6 +147,7 @@ namespace HnzCoopSeason
             }
 
             PoiMapView.Instance.Update();
+            FlashGps.Instance.Update();
         }
 
         public float GetProgress()
@@ -171,6 +177,7 @@ namespace HnzCoopSeason
         {
             Poi poi;
             if (!_poiMap.TryGetPoi(poiId, out poi)) return false;
+            if (state == PoiState.Invaded && poi.State != PoiState.Released) return false;
             if (!poi.SetState(state)) return false;
             if (!invokeCallbacks) return true;
 
@@ -191,6 +198,11 @@ namespace HnzCoopSeason
             if (state == PoiState.Released)
             {
                 OnPoiReleased(poiId, poi.Position);
+            }
+
+            if (state == PoiState.Invaded)
+            {
+                OnPoiInvaded(poiId, poi.Position);
             }
 
             return true;
@@ -217,19 +229,32 @@ namespace HnzCoopSeason
         void OnPoiDiscovered(string name, Vector3D position)
         {
             MyVisualScriptLogicProvider.ShowNotificationToAll("Someone just discovered something!", 10000);
-            MyVisualScriptLogicProvider.AddGPS($"{name} Discovery", "", position, Color.Red, 10);
-        }
-
-        public void OnRandomInvasion(string poiId, Vector3D position)
-        {
-            MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have taken over our land!", 10000);
-            MyVisualScriptLogicProvider.AddGPS("Invasion", "", position, Color.Red, 10);
+            FlashGps.Instance.Send(new FlashGps.Entry
+            {
+                Id = "POI Discovery".GetHashCode(),
+                Name = $"{name} Discovery",
+                Position = position,
+                Color = Color.Red,
+                Duration = 10,
+            });
         }
 
         void OnPoiReleased(string poiId, Vector3D position)
         {
             MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have been defeated!", 10000);
-            MyVisualScriptLogicProvider.AddGPS("Orks Defeated", "", position, Color.Green, 10);
+            FlashGps.Instance.Send(new FlashGps.Entry
+            {
+                Id = "POI Release".GetHashCode(),
+                Name = "Orks Defeated",
+                Position = position,
+                Color = Color.Green,
+                Duration = 10,
+            });
+        }
+
+        void OnPoiInvaded(string poiId, Vector3D position)
+        {
+            MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have came back to our trading hub!", 10 * 1000);
         }
 
         public static void SendMessage(ulong steamId, Color color, string message)

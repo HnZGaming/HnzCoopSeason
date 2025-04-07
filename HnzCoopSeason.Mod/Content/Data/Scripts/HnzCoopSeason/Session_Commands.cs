@@ -16,6 +16,7 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("reload", false, MyPromoteLevel.Admin, Command_ReloadConfig, "reload config."));
             _commandModule.Register(new Command("poi list", false, MyPromoteLevel.None, Command_SendPoiList, "show the list of POIs.\n--gps: create GPS points.\n--gps-remove: remove GPS points.\n--limit N: show N POIs."));
             _commandModule.Register(new Command("poi release", false, MyPromoteLevel.Moderator, Command_ReleasePoi, "release a POI."));
+            _commandModule.Register(new Command("poi occupy", false, MyPromoteLevel.Moderator, Command_OccupyPoi, "invade a POI."));
             _commandModule.Register(new Command("poi invade", false, MyPromoteLevel.Moderator, Command_InvadePoi, "invade a POI."));
             _commandModule.Register(new Command("poi spawn", false, MyPromoteLevel.Moderator, Command_Spawn, "spawn grids at a POI given encounter config index."));
             _commandModule.Register(new Command("poi print", false, MyPromoteLevel.Moderator, Command_PrintPoi, "print out the POI state."));
@@ -77,9 +78,17 @@ namespace HnzCoopSeason
             Command_SetPoiState(args, PoiState.Released, steamId);
         }
 
-        void Command_InvadePoi(string args, ulong steamId)
+        void Command_OccupyPoi(string args, ulong steamId)
         {
             Command_SetPoiState(args, PoiState.Occupied, steamId);
+        }
+
+        void Command_InvadePoi(string args, ulong steamId)
+        {
+            if (!SetPoiState(args, PoiState.Invaded))
+            {
+                SendMessage(steamId, Color.Red, $"POI {args} not found or already set to the same state");
+            }
         }
 
         void Command_SetPoiState(string poiId, PoiState state, ulong steamId)

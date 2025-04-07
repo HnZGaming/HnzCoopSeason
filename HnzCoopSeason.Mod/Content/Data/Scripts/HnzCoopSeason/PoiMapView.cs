@@ -103,8 +103,20 @@ namespace HnzCoopSeason
                 return;
             }
 
-            var markers = new List<Marker>();
+            var pois = new List<IPoi>();
             foreach (var poi in GetPois(player.GetPosition()).Take(SessionConfig.Instance.ExposedPoiCount))
+            {
+                pois.Add(poi);
+            }
+
+            // invasion
+            foreach (var poi in Session.Instance.GetAllPois().Where(p => p.State == PoiState.Invaded))
+            {
+                pois.Add(poi);
+            }
+
+            var markers = new List<Marker>();
+            foreach (var poi in pois)
             {
                 markers.Add(new Marker(poi.Id, poi.Position, poi.State));
             }
@@ -168,10 +180,11 @@ namespace HnzCoopSeason
         {
             switch (marker.State)
             {
-                case PoiState.Occupied: return CreateGps("Orks", marker.Position, Color.Red, "");
-                case PoiState.Released: return CreateGps("Merchant", marker.Position, Color.Green, "");
-                case PoiState.Pending: return CreateGps("Pending", marker.Position, Color.White, "Planetary POIs must be reclaimed first");
-                default: throw new InvalidOperationException();
+                case PoiState.Occupied: return CreateGps("Orks", marker.Position, Color.Red, "Beat the Orks away from our trading hub!");
+                case PoiState.Released: return CreateGps("Merchant", marker.Position, Color.Green, "Our trading hub has been released and in business!");
+                case PoiState.Pending: return CreateGps("Pending", marker.Position, Color.White, "All planetary POIs must be released first!");
+                case PoiState.Invaded: return CreateGps("Orks [INVASION]", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!");
+                default: throw new InvalidOperationException($"invalid poi state: {marker.State}");
             }
         }
 

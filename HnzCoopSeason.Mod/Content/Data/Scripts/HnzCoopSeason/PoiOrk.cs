@@ -107,7 +107,7 @@ namespace HnzCoopSeason
             if (!Session.Instance.TryGetPoiState(_poiId, out state)) return; // shouldn't happen
 
             if (state == PoiState.Released) return;
-            if (CoopGrids.IsAiControlled(grid)) return;
+            if (!CoopGrids.IsTakenOver(grid)) return;
 
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} defeated by players");
             Session.Instance.SetPoiState(_poiId, PoiState.Released);

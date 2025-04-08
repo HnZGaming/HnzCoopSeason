@@ -116,7 +116,7 @@ namespace HnzCoopSeason
                 weight += enclosing ? -100 : 0;
                 weight += screenDistance;
 
-                grids.Add(weight, analysis);
+                grids[weight] = analysis;
             }
 
             ListPool<MyEntity>.Instance.Release(result);

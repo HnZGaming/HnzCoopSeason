@@ -106,12 +106,12 @@ namespace HnzCoopSeason
             MesGridContext context;
             if (!TryGetMyContext(grid, out context)) return;
 
+            MyLog.Default.WriteLine($"[HnzCoopSeason] MesGrid {Id} grid spawned; index: {context.Index}");
+
             grid.OnClosing += OnGridClosing;
             _allGrids.Add(context.Index, grid);
 
             MESApi.Instance.RegisterDespawnWatcher(grid, OnGridDespawningByMes);
-
-            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} grid spawned; index: {context.Index}");
 
             if (context.Index == 0)
             {
@@ -146,6 +146,7 @@ namespace HnzCoopSeason
             }
 
             _allGrids.Clear();
+            MyLog.Default.Error($"[HnzCoopSeason] MesGrid {Id} all grids clear");
         }
 
         void OnGridClosing(IMyEntity entity)
@@ -193,7 +194,7 @@ namespace HnzCoopSeason
             return true;
         }
 
-        static void CloseGridSafely(IMyCubeGrid grid)
+        void CloseGridSafely(IMyCubeGrid grid)
         {
             if (grid.Closed) return;
             if (grid.MarkedForClose) return;
@@ -206,12 +207,12 @@ namespace HnzCoopSeason
                 var analysis = CoopGrids.Analyze(g);
                 if (analysis.Owner == CoopGrids.Owner.Player)
                 {
-                    MyLog.Default.Info($"[HnzCoopSeason] not despawned: '{g.CustomName}'");
+                    MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} not despawned: '{g.CustomName}'");
                     NpcData.RemoveNpcData(g);
                     continue;
                 }
 
-                MyLog.Default.Info($"[HnzCoopSeason] despawning safely: '{g.CustomName}'");
+                MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} despawning safely: '{g.CustomName}'");
                 g.Close();
             }
         }

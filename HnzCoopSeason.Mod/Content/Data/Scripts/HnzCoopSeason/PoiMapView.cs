@@ -180,7 +180,7 @@ namespace HnzCoopSeason
         {
             switch (marker.State)
             {
-                case PoiState.Occupied: return CreateGps("Trading Hub [Orks]", marker.Position, Color.Red, "Beat the Orks away from our trading hub!");
+                case PoiState.Occupied: return CreateGps("Trading Hub [Orks]", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!");
                 case PoiState.Released: return CreateGps("Trading Hub [Merchant]", marker.Position, Color.Green, "Our trading hub has been released and in business!");
                 case PoiState.Pending: return CreateGps("Trading Hub [Pending]", marker.Position, Color.White, "All planetary POIs must be released first!");
                 case PoiState.Invaded: return CreateGps("Trading Hub [Ork Mobs]", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!");

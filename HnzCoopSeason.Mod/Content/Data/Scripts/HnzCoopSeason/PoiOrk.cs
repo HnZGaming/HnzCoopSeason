@@ -93,8 +93,7 @@ namespace HnzCoopSeason
         // called upon encounter spawn
         bool EncounterSpawnDelegate(int playerCount, List<string> spawnGroupNames)
         {
-            var progressLevel = Session.Instance.GetProgressLevel();
-            var minPlayerCount = SessionConfig.Instance.ProgressionLevels[progressLevel].MinPlayerCount;
+            var minPlayerCount = GetMinPlayerCount();
             if (playerCount < minPlayerCount) return false;
 
             var configIndex = CalcConfigIndex();
@@ -103,6 +102,15 @@ namespace HnzCoopSeason
             var config = _configs[configIndex];
             spawnGroupNames.AddRange(config.SpawnGroupNames);
             return true;
+        }
+
+        int GetMinPlayerCount()
+        {
+            PoiState state;
+            if (Session.Instance.TryGetPoiState(_poiId, out state) && state == PoiState.Invaded) return 1;
+
+            var progressLevel = GetProgressLevel();
+            return SessionConfig.Instance.ProgressionLevels[progressLevel].MinPlayerCount;
         }
 
         public void Spawn(int configIndex)

@@ -12,7 +12,7 @@ namespace HnzCoopSeason
     {
         public enum Owner
         {
-            Unowned,
+            Nobody,
             NPC,
             Player,
         }
@@ -35,12 +35,12 @@ namespace HnzCoopSeason
 
             if (grid.BigOwners.Count == 0)
             {
-                analysis.Owner = Owner.Unowned;
+                analysis.Owner = Owner.Nobody;
             }
             else
             {
                 var ownerId = grid.BigOwners[0];
-                analysis.Owner = VRageUtils.IsNpc(ownerId) ? Owner.NPC : Owner.Player;
+                analysis.Owner = GetOwnerType(ownerId);
                 analysis.FactionTag = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId)?.Tag;
 
                 if (playerId != 0)
@@ -58,6 +58,12 @@ namespace HnzCoopSeason
             return analysis;
         }
 
+        static Owner GetOwnerType(long ownerId)
+        {
+            if (ownerId == 0) return Owner.Nobody;
+            return VRageUtils.IsNpc(ownerId) ? Owner.NPC : Owner.Player;
+        }
+
         static MyRelationsBetweenFactions GetFactionRelation(long u1, long u2)
         {
             if (u1 == u2) return MyRelationsBetweenFactions.Friends;
@@ -72,6 +78,12 @@ namespace HnzCoopSeason
         public static bool GetTakeoverProgress(IMyCubeGrid grid, bool countAll, out int successCount, out int totalCount)
         {
             totalCount = successCount = 0;
+
+            if (grid.BigOwners.Count == 0) return true;
+
+            var ownerId = grid.BigOwners[0];
+            if (GetOwnerType(ownerId) != Owner.NPC) return true;
+
             List<IMyTerminalBlock> blocks;
             using (ListPool<IMyTerminalBlock>.Instance.GetUntilDispose(out blocks))
             {
@@ -91,13 +103,13 @@ namespace HnzCoopSeason
                 }
             }
 
-            return successCount == totalCount;
+            return successCount == totalCount; // 0/0 -> success
         }
 
-        public static bool IsAiControlled(IMyCubeGrid grid)
+        public static bool IsTakenOver(IMyCubeGrid grid)
         {
             int _;
-            return !GetTakeoverProgress(grid, false, out _, out _);
+            return GetTakeoverProgress(grid, false, out _, out _);
         }
     }
 }

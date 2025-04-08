@@ -234,7 +234,7 @@ namespace HnzCoopSeason
                 Id = "POI Discovery".GetHashCode(),
                 Name = $"{name} Discovery",
                 Position = position,
-                Color = Color.Red,
+                Color = Color.Orange,
                 Duration = 10,
             });
         }

@@ -15,6 +15,7 @@ namespace HnzCoopSeason
         readonly MesEncounter _encounter;
         readonly Interval _randomInvasionInterval;
         readonly PoiOrkConfig[] _configs;
+        IMyCubeGrid _mainGrid;
 
         public PoiOrk(string poiId, Vector3D position, PoiOrkConfig[] configs)
         {
@@ -45,6 +46,25 @@ namespace HnzCoopSeason
         void IPoiObserver.Update()
         {
             _encounter.Update();
+            UpdateBossGps();
+        }
+
+        void UpdateBossGps()
+        {
+            if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 1) != 0) return;
+            if (_mainGrid == null) return;
+
+            FlashGps.Instance.Send(new FlashGps.Entry
+            {
+                Id = $"{nameof(PoiOrk)}-boss-{_poiId}".GetHashCode(),
+                Name = "ORK BOSS",
+                Position = _mainGrid.GetPosition(),
+                Color = Color.Orange,
+                Duration = 3,
+                Radius = SessionConfig.Instance.EncounterRadius * 3,
+                EntityId = _mainGrid.EntityId,
+                Mute = true,
+            });
         }
 
         void IPoiObserver.OnStateChanged(PoiState state)
@@ -70,12 +90,15 @@ namespace HnzCoopSeason
             }
 
             Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
+
+            _mainGrid = grid;
         }
 
         void OnMainGridUnset(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} despawn");
             grid.OnBlockOwnershipChanged -= OnBlockOwnershipChanged;
+            _mainGrid = null;
         }
 
         void OnBlockOwnershipChanged(IMyCubeGrid grid)
@@ -84,7 +107,7 @@ namespace HnzCoopSeason
             if (!Session.Instance.TryGetPoiState(_poiId, out state)) return; // shouldn't happen
 
             if (state == PoiState.Released) return;
-            if (CoopGrids.IsAiControlled(grid)) return;
+            if (!CoopGrids.IsTakenOver(grid)) return;
 
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} defeated by players");
             Session.Instance.SetPoiState(_poiId, PoiState.Released);
@@ -93,8 +116,7 @@ namespace HnzCoopSeason
         // called upon encounter spawn
         bool EncounterSpawnDelegate(int playerCount, List<string> spawnGroupNames)
         {
-            var progressLevel = Session.Instance.GetProgressLevel();
-            var minPlayerCount = SessionConfig.Instance.ProgressionLevels[progressLevel].MinPlayerCount;
+            var minPlayerCount = GetMinPlayerCount();
             if (playerCount < minPlayerCount) return false;
 
             var configIndex = CalcConfigIndex();
@@ -103,6 +125,15 @@ namespace HnzCoopSeason
             var config = _configs[configIndex];
             spawnGroupNames.AddRange(config.SpawnGroupNames);
             return true;
+        }
+
+        int GetMinPlayerCount()
+        {
+            PoiState state;
+            if (Session.Instance.TryGetPoiState(_poiId, out state) && state == PoiState.Invaded) return 1;
+
+            var progressLevel = GetProgressLevel();
+            return SessionConfig.Instance.ProgressionLevels[progressLevel].MinPlayerCount;
         }
 
         public void Spawn(int configIndex)

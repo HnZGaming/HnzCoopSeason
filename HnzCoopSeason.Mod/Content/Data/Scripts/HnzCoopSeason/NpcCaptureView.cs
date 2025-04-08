@@ -9,8 +9,6 @@ using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
-using VRage.ModAPI;
-using VRage.Utils;
 using VRageMath;
 
 namespace HnzCoopSeason
@@ -18,6 +16,11 @@ namespace HnzCoopSeason
     public sealed class NpcCaptureView
     {
         public static readonly NpcCaptureView Instance = new NpcCaptureView();
+
+        static readonly Pool<SortedList<double, CoopGrids.Analysis>> GridSearchPool =
+            new Pool<SortedList<double, CoopGrids.Analysis>>(
+                () => new SortedList<double, CoopGrids.Analysis>(),
+                l => l.Clear());
 
         HudElementStack _group;
         HudElement _titleElement;
@@ -77,57 +80,60 @@ namespace HnzCoopSeason
             var character = MyAPIGateway.Session.Player?.Character;
             if (character == null) return false;
 
-            List<GridSearch> grids;
-            using (ListPool<GridSearch>.Instance.GetUntilDispose(out grids))
+            var camera = MyAPIGateway.Session.Camera;
+            const double distance = 10 * 1000;
+
+            var characterPosition = character.WorldMatrix.Translation;
+            var sphere = new BoundingSphereD(characterPosition, distance);
+
+            var result = ListPool<MyEntity>.Instance.Get();
+            MyGamePruningStructure.GetAllEntitiesInSphere(ref sphere, result, MyEntityQueryType.Both);
+
+            IHitInfo raycastHitInfo;
+            MyAPIGateway.Physics.CastLongRay(camera.Position, camera.Position + camera.WorldMatrix.Forward * distance, out raycastHitInfo, true);
+
+            var grids = GridSearchPool.Get();
+            foreach (var entity in result)
             {
-                CollectNearbyGrids(MyAPIGateway.Session.Camera, character, 10 * 1000, grids);
-                if (TryApplyHudElements(grids)) return true;
+                var grid = entity as IMyCubeGrid;
+                if (grid == null) continue;
+                if (VRageUtils.IsInAnySafeZone(grid.EntityId)) continue;
+
+                var gridPosition = grid.WorldMatrix.Translation;
+                var screenPosition = camera.WorldToScreen(ref gridPosition);
+                var dot = Vector3D.Dot((gridPosition - camera.WorldMatrix.Translation).Normalized(), camera.WorldMatrix.Forward);
+                var screenDistance = dot < 0 ? 2 : Vector3D.Distance(screenPosition, new Vector3(0, 0, screenPosition.Z));
+                var enclosing = grid.WorldAABB.Contains(characterPosition) != ContainmentType.Disjoint;
+                if (screenDistance > 0.3 && !enclosing) continue;
+
+                var analysis = CoopGrids.Analyze(grid);
+                if (analysis.Owner == CoopGrids.Owner.Player) continue; // non pvp
+
+                var raycastHit = raycastHitInfo?.HitEntity == grid;
+
+                var weight = 0d;
+                weight += raycastHit ? -1000 : 0;
+                weight += enclosing ? -100 : 0;
+                weight += screenDistance;
+
+                grids.Add(weight, analysis);
             }
 
-            return false;
-        }
+            ListPool<MyEntity>.Instance.Release(result);
 
-        static void CollectNearbyGrids(IMyCamera camera, IMyCharacter character, double distance, ICollection<GridSearch> grids)
-        {
-            List<MyEntity> result;
-            using (ListPool<MyEntity>.Instance.GetUntilDispose(out result))
-            {
-                var characterPosition = character.WorldMatrix.Translation;
-                var sphere = new BoundingSphereD(characterPosition, distance);
-                MyGamePruningStructure.GetAllEntitiesInSphere(ref sphere, result, MyEntityQueryType.Both);
-                foreach (var entity in result)
-                {
-                    var grid = entity as IMyCubeGrid;
-                    if (grid == null) continue;
+            var target = grids.FirstOrDefault().Value;
+            GridSearchPool.Release(grids);
 
-                    var gridPosition = grid.WorldMatrix.Translation;
-                    var screenPosition = camera.WorldToScreen(ref gridPosition);
-                    var dot = Vector3D.Dot((gridPosition - camera.WorldMatrix.Translation).Normalized(), camera.WorldMatrix.Forward);
-                    var screenDistance = dot < 0 ? 2 : Vector3D.Distance(screenPosition, new Vector3(0, 0, screenPosition.Z));
-                    var enclosing = grid.WorldAABB.Contains(characterPosition) != ContainmentType.Disjoint;
-                    var analysis = CoopGrids.Analyze(grid);
-                    grids.Add(new GridSearch(analysis, screenDistance, enclosing));
-                }
-            }
-        }
+            _reticlePosition = target.Grid == null ? (Vector3D?)null : GetReticlePosition(target.Grid);
 
-        bool TryApplyHudElements(List<GridSearch> grids)
-        {
-            var target = grids
-                .Where(g => FilterGrid(g))
-                .OrderBy(g => OrderGrid(g))
-                .FirstOrDefault();
-
-            _reticlePosition = target?.Analysis.Grid.WorldMatrix.Translation;
-
-            if (target == null) return false;
+            if (target.Grid == null) return false;
 
             int takeoverSuccessCount;
             int takeoverTargetCount;
-            var takeoverComplete = CoopGrids.GetTakeoverProgress(target.Analysis.Grid, true, out takeoverSuccessCount, out takeoverTargetCount);
+            var takeoverComplete = CoopGrids.GetTakeoverProgress(target.Grid, true, out takeoverSuccessCount, out takeoverTargetCount);
 
-            var titleText = $"<color=0,255,255>{target.Analysis.Grid.CustomName}";
-            var subtitleText = target.Analysis.IsOrksLeader
+            var titleText = $"<color=0,255,255>{target.Grid.CustomName}";
+            var subtitleText = target.IsOrksLeader
                 ? "<color=0,255,255>This is the boss Ork! Neutralize it to reclaim the trading hub!"
                 : "";
 
@@ -143,21 +149,9 @@ namespace HnzCoopSeason
             return true;
         }
 
-        static bool FilterGrid(GridSearch grid)
+        static Vector3D GetReticlePosition(IMyCubeGrid grid)
         {
-            if (grid.Analysis.Owner == CoopGrids.Owner.Player) return false;
-            if (VRageUtils.IsInAnySafeZone(grid.Analysis.Grid.EntityId)) return false;
-            if (grid.ScreenDistance > 0.3 && !grid.Enclosing && !grid.Analysis.IsOrksLeader) return false;
-            return true;
-        }
-
-        static double OrderGrid(GridSearch grid)
-        {
-            var value = 0d;
-            value += grid.Analysis.IsOrksLeader ? -1000 : 0;
-            value += grid.Enclosing ? -100 : 0;
-            value += grid.ScreenDistance;
-            return value;
+            return grid.WorldAABB.Center;
         }
 
         static string CreateProgressionBar(int takeoverCount, int totalCount)
@@ -171,20 +165,6 @@ namespace HnzCoopSeason
             buffer.Append($" {takeoverCount}/{totalCount}");
 
             return buffer.ToString();
-        }
-
-        sealed class GridSearch
-        {
-            public readonly CoopGrids.Analysis Analysis;
-            public readonly double ScreenDistance;
-            public readonly bool Enclosing;
-
-            public GridSearch(CoopGrids.Analysis analysis, double screenDistance, bool enclosing)
-            {
-                Analysis = analysis;
-                ScreenDistance = screenDistance;
-                Enclosing = enclosing;
-            }
         }
     }
 }

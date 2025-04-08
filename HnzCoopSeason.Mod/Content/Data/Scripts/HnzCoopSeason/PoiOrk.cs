@@ -15,6 +15,7 @@ namespace HnzCoopSeason
         readonly MesEncounter _encounter;
         readonly Interval _randomInvasionInterval;
         readonly PoiOrkConfig[] _configs;
+        IMyCubeGrid _mainGrid;
 
         public PoiOrk(string poiId, Vector3D position, PoiOrkConfig[] configs)
         {
@@ -45,6 +46,25 @@ namespace HnzCoopSeason
         void IPoiObserver.Update()
         {
             _encounter.Update();
+            UpdateBossGps();
+        }
+
+        void UpdateBossGps()
+        {
+            if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 1) != 0) return;
+            if (_mainGrid == null) return;
+
+            FlashGps.Instance.Send(new FlashGps.Entry
+            {
+                Id = $"{nameof(PoiOrk)}-boss-{_poiId}".GetHashCode(),
+                Name = "ORK BOSS",
+                Position = _mainGrid.GetPosition(),
+                Color = Color.Orange,
+                Duration = 3,
+                Radius = SessionConfig.Instance.EncounterRadius * 3,
+                EntityId = _mainGrid.EntityId,
+                Mute = true,
+            });
         }
 
         void IPoiObserver.OnStateChanged(PoiState state)
@@ -70,12 +90,15 @@ namespace HnzCoopSeason
             }
 
             Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
+
+            _mainGrid = grid;
         }
 
         void OnMainGridUnset(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} despawn");
             grid.OnBlockOwnershipChanged -= OnBlockOwnershipChanged;
+            _mainGrid = null;
         }
 
         void OnBlockOwnershipChanged(IMyCubeGrid grid)

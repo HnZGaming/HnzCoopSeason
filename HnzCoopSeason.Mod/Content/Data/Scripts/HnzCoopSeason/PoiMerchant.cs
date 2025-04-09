@@ -6,7 +6,6 @@ using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
-using VRage;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Definitions;
@@ -28,7 +27,7 @@ namespace HnzCoopSeason
         readonly IMyFaction _faction;
         readonly string _variableKey;
         readonly Interval _economyInterval;
-        readonly PoiMerchantConfig _config;
+        readonly PoiMerchantConfig[] _configs;
         long _safeZoneId;
         IMyCubeGrid _grid;
         PoiState _poiState;
@@ -41,7 +40,7 @@ namespace HnzCoopSeason
             _faction = faction;
             _variableKey = $"HnzCoopSeason.PoiMerchant.{_poiId}";
             _economyInterval = new Interval();
-            _config = configs[Math.Abs(poiId.GetHashCode()) % configs.Length];
+            _configs = configs;
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
@@ -91,7 +90,7 @@ namespace HnzCoopSeason
 
             MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} player nearby");
 
-            Spawn();
+            Spawn(Math.Abs(_poiId.GetHashCode()));
         }
 
         void UpdateEconomy()
@@ -114,17 +113,19 @@ namespace HnzCoopSeason
             }
         }
 
-        public void Spawn()
+        public void Spawn(int configIndex)
         {
             MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} Spawn()");
 
             Despawn();
 
+            var config = _configs[configIndex % _configs.Length];
+
             var matrixBuilder = new SpawnMatrixBuilder
             {
                 Sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius),
                 Clearance = SessionConfig.Instance.EncounterClearance,
-                SnapToVoxel = _config.SpawnType == SpawnType.PlanetaryStation,
+                SnapToVoxel = config.SpawnType == SpawnType.PlanetaryStation,
                 Count = 1,
                 PlayerPosition = null,
             };
@@ -136,7 +137,7 @@ namespace HnzCoopSeason
             }
 
             var matrix = matrixBuilder.Results[0];
-            matrix.Translation += matrix.Up * _config.OffsetY;
+            matrix.Translation += matrix.Up * config.OffsetY;
 
             try
             {
@@ -145,7 +146,7 @@ namespace HnzCoopSeason
                 var resultGrids = new List<IMyCubeGrid>();
                 var ownerId = _faction.FounderId;
                 MyAPIGateway.PrefabManager.SpawnPrefab(
-                    resultGrids, _config.Prefab, matrix.Translation, matrix.Forward, matrix.Up,
+                    resultGrids, config.Prefab, matrix.Translation, matrix.Forward, matrix.Up,
                     ownerId: ownerId,
                     spawningOptions: SpawningOptions.RotateFirstCockpitTowardsDirection,
                     callback: () => OnGridSpawned(resultGrids));
@@ -166,39 +167,8 @@ namespace HnzCoopSeason
                 return;
             }
 
-            // name manipulation
             var grid = resultGrids[0];
-            grid.CustomName = $"[{_faction.Tag}] {grid.CustomName}";
-            ReplaceContractBlockWithShipyard(grid);
-
             OnGridSet(grid, false);
-        }
-
-        void ReplaceContractBlockWithShipyard(IMyCubeGrid grid)
-        {
-            var contractBlock = grid.GetFatBlocks<IMyTerminalBlock>().FirstOrDefault(b => b.IsContractBlock());
-            if (contractBlock == null)
-            {
-                MyLog.Default.Warning($"[HnzCoopSeason] poi merchant {_poiId} no contract blocks found");
-                return;
-            }
-
-            var ob = contractBlock.GetObjectBuilderCubeBlock(false);
-            var shipyardBuilder = new MyObjectBuilder_Projector
-            {
-                SubtypeName = "MES-Blocks-ShipyardTerminal",
-                Name = "Shipyard",
-                BlockOrientation = ob.BlockOrientation,
-                Min = ob.Min,
-                ColorMaskHSV = ob.ColorMaskHSV,
-                Owner = ob.Owner,
-            };
-
-            grid.RemoveBlock(contractBlock.SlimBlock);
-
-            var shipyard = grid.AddBlock(shipyardBuilder, true).FatBlock;
-            var storage = shipyard.Storage = new MyModStorageComponent();
-            storage.SetValue(Guid.Parse("88334d52-3f3b-47cb-83c7-426fbc0553fa"), "MERC-Shipyard-Profile");
         }
 
         void OnGridSet(IMyCubeGrid grid, bool recovery)
@@ -209,21 +179,41 @@ namespace HnzCoopSeason
             _grid.UpdateStorageValue(StorageKey, _poiId);
             _spawnState = SpawnState.Success;
 
+            // change name
+            grid.CustomName = $"[{_faction.Tag}] {grid.CustomName}";
+
+            DisableContractBlocks(grid);
+            ActivateShipyards(grid);
+
             UpdateStore(!recovery);
             SetUpSafezone();
             SaveToSandbox();
 
-            // disable contract blocks
+            if (!recovery) // new spawn
+            {
+                Session.Instance.OnMerchantDiscovered(_poiId, grid.GetPosition());
+            }
+        }
+
+        static void DisableContractBlocks(IMyCubeGrid grid)
+        {
             var contractBlocks = new List<IMySlimBlock>();
-            _grid.GetBlocks(contractBlocks, b => b.FatBlock?.IsContractBlock() ?? false);
+            grid.GetBlocks(contractBlocks, b => b.FatBlock?.IsContractBlock() ?? false);
             foreach (var b in contractBlocks)
             {
                 ((IMyFunctionalBlock)b.FatBlock).Enabled = false;
             }
+        }
 
-            if (!recovery) // new spawn
+        static void ActivateShipyards(IMyCubeGrid grid)
+        {
+            foreach (var p in grid.GetFatBlocks<IMyProjector>())
             {
-                Session.Instance.OnMerchantDiscovered(_poiId, grid.GetPosition());
+                if (p.BlockDefinition.SubtypeName == "MES-Blocks-ShipyardTerminal")
+                {
+                    var storage = p.Storage = new MyModStorageComponent();
+                    storage.SetValue(Guid.Parse("88334d52-3f3b-47cb-83c7-426fbc0553fa"), "MERC-Shipyard-Profile");
+                }
             }
         }
 

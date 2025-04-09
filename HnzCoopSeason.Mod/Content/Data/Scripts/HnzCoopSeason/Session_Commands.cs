@@ -120,7 +120,7 @@ namespace HnzCoopSeason
             else
             {
                 var merchant = poi.Observers.OfType<PoiMerchant>().First();
-                merchant.Spawn();
+                merchant.Spawn(configIndex);
             }
         }
 

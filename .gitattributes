@@ -1,0 +1,2 @@
+assets/coopcontracts.blend filter=lfs diff=lfs merge=lfs -text
+*.mwm filter=lfs diff=lfs merge=lfs -text

@@ -103,6 +103,8 @@ namespace HnzCoopSeason
 
         void OnBlockOwnershipChanged(IMyCubeGrid grid)
         {
+            if (grid == null) return; // potential crash cause
+
             PoiState state;
             if (!Session.Instance.TryGetPoiState(_poiId, out state)) return; // shouldn't happen
 

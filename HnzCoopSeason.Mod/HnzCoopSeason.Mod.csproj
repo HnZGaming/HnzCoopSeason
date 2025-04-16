@@ -130,6 +130,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopContractUseObject.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />
@@ -340,7 +341,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\VRageUtils.cs" />
     </ItemGroup>
     <ItemGroup>
-      <Content Include="Content\Data\CubeBlocks\CoopContractsBlock.sbc" />
+      <Content Include="Content\Data\CubeBlocks\CoopContractBlock.sbc" />
       <Content Include="Content\Data\Factions.sbc" />
       <Content Include="Content\Data\ModStorageComponents.sbc" />
       <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_1.sbc" />

@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<CubeBlocks>
-		<Definition>
+        <Definition xsi:type="MyObjectBuilder_ContractBlockDefinition">
 			<Id>
 				<TypeId>ContractBlock</TypeId>
 				<SubtypeId>CoopContractBlock</SubtypeId>
 			</Id>
-            <DisplayName>Coop Contract Block</DisplayName>
+            <DisplayName>Co-op Contract Block</DisplayName>
             <Icon>Textures\GUI\Icons\Cubes\ContractsBlock.dds</Icon>
             <Description>Description_ContractBlock</Description>
 			<CubeSize>Large</CubeSize>
@@ -15,18 +15,13 @@
 			<ModelOffset x="0" y="0" z="0"/>
 			<Model>Models\Cubes\large\CoopContractsBlock.mwm</Model>
             <Components>
-                <Component Subtype="SteelPlate" Count="20" />
-                <Component Subtype="Construction" Count="20" />
-                <Component Subtype="Motor" Count="6" />
-                <Component Subtype="Display" Count="4" />
-                <Component Subtype="Computer" Count="10" />
-                <Component Subtype="SteelPlate" Count="10" />
+                <Component Subtype="AdminOnly" Count="1" />
             </Components>
-            <CriticalComponent Subtype="Computer" Index="0" />
             <ScreenAreas>
                 <ScreenArea Name="ContractsScreen_01" DisplayName="DisplayName_Screen_Large" TextureResolution="512" ScreenWidth="16" ScreenHeight="10" />
                 <ScreenArea Name="ContractsScreen_02" DisplayName="DisplayName_Screen_Keyboard" TextureResolution="256" ScreenWidth="5" ScreenHeight="2" />
             </ScreenAreas>
+            <CriticalComponent Subtype="AdminOnly" Index="0" />
             <BuildProgressModels>
                 <Model BuildPercentUpperBound="0.33" File="Models\Cubes\large\ContractsBlockConstruction_1.mwm" />
                 <Model BuildPercentUpperBound="0.66" File="Models\Cubes\large\ContractsBlockConstruction_2.mwm" />

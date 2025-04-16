@@ -6,6 +6,14 @@ namespace HnzCoopSeason.Utils
 {
     public static class LangUtils
     {
+        public static void AssertNull(object obj, string message)
+        {
+            if (obj == null)
+            {
+                throw new InvalidOperationException(message);
+            }
+        }
+        
         public static string ToStringSeq<T>(this IEnumerable<T> self)
         {
             return $"[{string.Join(", ", self)}]";

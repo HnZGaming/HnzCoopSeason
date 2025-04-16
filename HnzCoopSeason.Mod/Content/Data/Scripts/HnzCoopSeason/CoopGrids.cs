@@ -77,9 +77,11 @@ namespace HnzCoopSeason
 
         public static bool GetTakeoverProgress(IMyCubeGrid grid, bool countAll, out int successCount, out int totalCount)
         {
+            LangUtils.AssertNull(grid, "grid null");
+            
             totalCount = successCount = 0;
 
-            if (grid.BigOwners.Count == 0) return true;
+            if ((grid.BigOwners?.Count ?? 0) == 0) return true;
 
             var ownerId = grid.BigOwners[0];
             if (GetOwnerType(ownerId) != Owner.NPC) return true;

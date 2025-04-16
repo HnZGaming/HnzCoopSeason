@@ -1,26 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace HnzCoopSeason.Utils.Pools
 {
     public class Pool<T>
     {
-        readonly Queue<T> _queue;
+        readonly ConcurrentQueue<T> _queue;
         readonly Func<T> _factory;
         readonly Action<T> _cleanup;
 
         public Pool(Func<T> factory, Action<T> cleanup)
         {
-            _queue = new Queue<T>();
+            _queue = new ConcurrentQueue<T>();
             _factory = factory;
             _cleanup = cleanup;
         }
 
         public T Get()
         {
-            return _queue.Count == 0
-                ? _factory()
-                : _queue.Dequeue();
+            T element;
+            if (_queue.TryDequeue(out element))
+            {
+                return element;
+            }
+
+            return _factory();
         }
 
         public void Release(T item)
@@ -33,11 +37,6 @@ namespace HnzCoopSeason.Utils.Pools
         {
             item = Get();
             return new UntilDispose(this, item);
-        }
-
-        public void Clear()
-        {
-            _queue.Clear();
         }
 
         struct UntilDispose : IDisposable

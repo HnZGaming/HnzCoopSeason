@@ -4079,7 +4079,7 @@
               <Min x="2" y="12" z="2" />
             </MyObjectBuilder_CubeBlock>
             <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_ContractBlock">
-              <SubtypeName>ContractBlock</SubtypeName>
+              <SubtypeName>CoopContractBlock</SubtypeName>
               <EntityId>76176691403531150</EntityId>
               <Min x="4" y="10" z="0" />
               <BlockOrientation Forward="Backward" Up="Up" />

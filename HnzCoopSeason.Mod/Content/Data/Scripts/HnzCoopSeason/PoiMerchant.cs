@@ -185,7 +185,6 @@ namespace HnzCoopSeason
                 grid.CustomName = $"[{_faction.Tag}] {grid.CustomName}";
             }
 
-            ReplaceContractBlocks(grid);
             ActivateShipyards(grid);
 
             UpdateStore(!recovery);
@@ -196,30 +195,6 @@ namespace HnzCoopSeason
             {
                 Session.Instance.OnMerchantDiscovered(_poiId, grid.GetPosition());
             }
-        }
-
-        void ReplaceContractBlocks(IMyCubeGrid grid)
-        {
-            var oldBlock = grid.GetFatBlocks<IMyTerminalBlock>().FirstOrDefault(b => b.IsContractBlock());
-            if (oldBlock == null)
-            {
-                MyLog.Default.Warning($"[HnzCoopSeason] poi merchant {_poiId} no contract blocks found");
-                return;
-            }
-
-            var ob = oldBlock.GetObjectBuilderCubeBlock(false);
-            var nb = new MyObjectBuilder_ContractBlock
-            {
-                SubtypeName = "CoopContractBlock",
-                Name = "Coop Contract Block",
-                BlockOrientation = ob.BlockOrientation,
-                Min = ob.Min,
-                ColorMaskHSV = ob.ColorMaskHSV,
-                Owner = ob.Owner,
-            };
-
-            grid.RemoveBlock(oldBlock.SlimBlock);
-            grid.AddBlock(nb, true);
         }
 
         static void ActivateShipyards(IMyCubeGrid grid)

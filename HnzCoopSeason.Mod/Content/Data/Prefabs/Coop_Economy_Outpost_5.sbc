@@ -4213,7 +4213,7 @@
               <Scale>1</Scale>
             </MyObjectBuilder_CubeBlock>
             <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_ContractBlock">
-              <SubtypeName>ContractBlock</SubtypeName>
+              <SubtypeName>CoopContractBlock</SubtypeName>
               <EntityId>108452798093172110</EntityId>
               <Min x="-6" y="6" z="3" />
               <ColorMaskHSV x="0.333333343" y="-0.33" z="-0.05" />

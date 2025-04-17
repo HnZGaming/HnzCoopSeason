@@ -3653,7 +3653,7 @@
               <BlockOrientation Forward="Up" Up="Left" />
             </MyObjectBuilder_CubeBlock>
             <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_ContractBlock">
-              <SubtypeName>ContractBlock</SubtypeName>
+              <SubtypeName>CoopContractBlock</SubtypeName>
               <EntityId>103848315340158882</EntityId>
               <Min x="5" y="5" z="-3" />
               <BlockOrientation Forward="Right" Up="Up" />

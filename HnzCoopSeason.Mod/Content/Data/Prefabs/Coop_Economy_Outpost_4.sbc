@@ -7639,7 +7639,7 @@
               <Min x="-7" y="14" z="6" />
             </MyObjectBuilder_CubeBlock>
             <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_ContractBlock">
-              <SubtypeName>ContractBlock</SubtypeName>
+              <SubtypeName>CoopContractBlock</SubtypeName>
               <EntityId>92098135685444629</EntityId>
               <Min x="-5" y="11" z="3" />
               <ColorMaskHSV x="0.333333343" y="-0.33" z="-0.05" />

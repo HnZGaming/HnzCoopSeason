@@ -9693,7 +9693,7 @@
               <ColorMaskHSV x="0" y="-0.8" z="0.4" />
             </MyObjectBuilder_CubeBlock>
             <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_ContractBlock">
-              <SubtypeName>ContractBlock</SubtypeName>
+              <SubtypeName>CoopContractBlock</SubtypeName>
               <EntityId>77934264685300692</EntityId>
               <Min x="7" y="-1" z="-1" />
               <BlockOrientation Forward="Left" Up="Up" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HnzCoopSeason.Contracts;
 using MES;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
@@ -10,6 +11,7 @@ using Sandbox.ModAPI;
 using VRage.Game.Components;
 using VRage.Utils;
 using VRageMath;
+using RichHudFramework.Client;
 
 namespace HnzCoopSeason
 {
@@ -42,8 +44,7 @@ namespace HnzCoopSeason
             PoiMapView.Instance.Load();
             FlashGps.Instance.Load();
 
-            // server or single player
-            if (MyAPIGateway.Session.IsServer)
+            if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
                 _poiMap = new PoiMap();
 
@@ -54,10 +55,20 @@ namespace HnzCoopSeason
                 RevengeOrkManager.Instance.Load();
             }
 
+            if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
+            {
+                RichHudClient.Init(nameof(HnzCoopSeason), RichHudInit, RichHudClosed);
+            }
+
             ProgressionView.Instance.Load();
             NpcHud.Instance.Load();
 
             MyLog.Default.Info("[HnzCoopSeason] session loaded");
+        }
+
+        void RichHudInit() // client
+        {
+            TextEditor.Load();
         }
 
         protected override void UnloadData()
@@ -95,6 +106,11 @@ namespace HnzCoopSeason
             }
 
             MyLog.Default.Info("[HnzCoopSeason] session unloaded");
+        }
+
+        void RichHudClosed() // client
+        {
+            TextEditor.Instance.Unload();
         }
 
         void LoadConfig()

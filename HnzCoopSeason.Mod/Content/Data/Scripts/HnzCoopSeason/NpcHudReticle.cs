@@ -9,7 +9,7 @@ using VRageRender;
 
 namespace HnzCoopSeason
 {
-    public sealed class NpcCaptureReticle
+    public sealed class NpcHudReticle
     {
         HudAPIv2.HUDMessage _body;
 

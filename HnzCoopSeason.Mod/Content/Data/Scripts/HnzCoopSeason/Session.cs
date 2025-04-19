@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using MES;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
+using HnzCoopSeason.Utils.Hud;
 using HudAPI;
 using Sandbox.Game;
 using Sandbox.ModAPI;
@@ -35,7 +36,7 @@ namespace HnzCoopSeason
             _commandModule.Load();
             InitializeCommands();
 
-            MissionScreenView.Load();
+            MissionScreen.Load((ushort)nameof(MissionScreen).GetHashCode());
             PoiMapDebugView.Load();
             PoiSpectatorCamera.Load();
             PoiMapView.Instance.Load();
@@ -53,7 +54,7 @@ namespace HnzCoopSeason
             }
 
             ProgressionView.Instance.Load();
-            NpcCaptureView.Instance.Load();
+            NpcHud.Instance.Load();
 
             MyLog.Default.Info("[HnzCoopSeason] session loaded");
         }
@@ -67,7 +68,7 @@ namespace HnzCoopSeason
 
             _commandModule.Unload();
             PoiMapDebugView.Unload();
-            MissionScreenView.Unload();
+            MissionScreen.Unload();
             PoiSpectatorCamera.Unload();
             PoiMapView.Instance.Unload();
             FlashGps.Instance.Unload();
@@ -84,11 +85,11 @@ namespace HnzCoopSeason
             }
 
             ProgressionView.Instance.Unload();
-            NpcCaptureView.Instance.Unload();
+            NpcHud.Instance.Unload();
 
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                ScreenTopView.Instance.Close();
+                ScreenTopHud.Instance.Close();
             }
 
             MyLog.Default.Info("[HnzCoopSeason] session unloaded");
@@ -141,8 +142,8 @@ namespace HnzCoopSeason
             {
                 if (_api.Heartbeat)
                 {
-                    NpcCaptureView.Instance.Update();
-                    ScreenTopView.Instance.Render();
+                    NpcHud.Instance.Update();
+                    ScreenTopHud.Instance.Render();
                 }
             }
 

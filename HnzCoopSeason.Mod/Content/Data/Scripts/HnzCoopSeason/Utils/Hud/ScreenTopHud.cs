@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using HnzCoopSeason.Utils.Hud;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Utils.Hud
 {
-    public sealed class ScreenTopView
+    public sealed class ScreenTopHud
     {
-        public static readonly ScreenTopView Instance = new ScreenTopView();
+        public static readonly ScreenTopHud Instance = new ScreenTopHud();
         readonly Dictionary<string, Entry> _entries = new Dictionary<string, Entry>();
         string _targetKey;
 

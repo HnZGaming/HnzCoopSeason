@@ -3,32 +3,33 @@ using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Utils
 {
-    public static class MissionScreenView
+    public static class MissionScreen
     {
-        static readonly ushort ModKey = (ushort)"HnzCoopSeason.MissionScreenView".GetHashCode();
+        static ushort _modKey;
 
-        public static void Load()
+        public static void Load(ushort modKey)
         {
-            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(ModKey, OnMessageReceived);
+            _modKey = modKey;
+            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(modKey, OnMessageReceived);
         }
 
         public static void Unload()
         {
-            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
+            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(_modKey, OnMessageReceived);
         }
 
-        public static void ShowScreenMessage(ulong steamId, string title, string message, bool clipboard)
+        public static void Send(ulong steamId, string title, string message, bool clipboard)
         {
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(title, message, clipboard));
-            MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, steamId, true);
+            MyAPIGateway.Multiplayer.SendMessageTo(_modKey, bytes, steamId, true);
             MyLog.Default.Debug("[HnzCoopSeason] screen message sent");
         }
 
         static void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
         {
-            if (modKey != ModKey) return;
+            if (modKey != _modKey) return;
 
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
             MyAPIGateway.Utilities.ShowMissionScreen(

@@ -13,9 +13,9 @@ using VRageMath;
 
 namespace HnzCoopSeason
 {
-    public sealed class NpcCaptureView
+    public sealed class NpcHud
     {
-        public static readonly NpcCaptureView Instance = new NpcCaptureView();
+        public static readonly NpcHud Instance = new NpcHud();
 
         static readonly Pool<SortedList<double, CoopGrids.Analysis>> GridSearchPool =
             new Pool<SortedList<double, CoopGrids.Analysis>>(
@@ -27,7 +27,7 @@ namespace HnzCoopSeason
         HudElement _subtitleElement;
         HudElement _progressElement;
         HudElement _descriptionElement;
-        NpcCaptureReticle _reticle;
+        NpcHudReticle _reticle;
         Vector3D? _reticlePosition;
 
         public void Load()
@@ -40,13 +40,13 @@ namespace HnzCoopSeason
                 Offset = -0.1,
             };
 
-            ScreenTopView.Instance.AddGroup(nameof(NpcCaptureView), _group, 1);
+            ScreenTopHud.Instance.AddGroup(nameof(NpcHud), _group, 1);
 
             _progressElement = new HudElement().AddTo(_group);
             _titleElement = new HudElement().AddTo(_group);
             _subtitleElement = new HudElement().AddTo(_group);
             _descriptionElement = new HudElement().AddTo(_group);
-            _reticle = new NpcCaptureReticle();
+            _reticle = new NpcHudReticle();
         }
 
         public void Unload()
@@ -59,7 +59,7 @@ namespace HnzCoopSeason
             _descriptionElement.Clear();
             _group.Clear();
             _reticle.ClearBody();
-            ScreenTopView.Instance.RemoveGroup(nameof(NpcCaptureView));
+            ScreenTopHud.Instance.RemoveGroup(nameof(NpcHud));
         }
 
         public void Update()
@@ -72,7 +72,7 @@ namespace HnzCoopSeason
 
             _reticlePosition = null;
             var canRender = TryApplyHudElements();
-            ScreenTopView.Instance.SetActive(nameof(NpcCaptureView), canRender);
+            ScreenTopHud.Instance.SetActive(nameof(NpcHud), canRender);
         }
 
         bool TryApplyHudElements() // false if deactivating the view

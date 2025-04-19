@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Pools;
 using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
-using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Utils
 {
     public sealed class FlashGps
     {

@@ -69,7 +69,7 @@ namespace HnzCoopSeason
                     sb.AppendLine($"> {poi.Id} -- {poi.State}");
                 }
 
-                MissionScreenView.ShowScreenMessage(steamId, "Points of Interest", sb.ToString(), true);
+                MissionScreen.Send(steamId, "Points of Interest", sb.ToString(), true);
             }
         }
 
@@ -147,12 +147,12 @@ namespace HnzCoopSeason
                 return;
             }
 
-            MissionScreenView.ShowScreenMessage(steamId, "Print", poi.ToString(), true);
+            MissionScreen.Send(steamId, "Print", poi.ToString(), true);
         }
 
         void Command_Print(string args, ulong steamId)
         {
-            MissionScreenView.ShowScreenMessage(steamId, "Print", ToString(), true);
+            MissionScreen.Send(steamId, "Print", ToString(), true);
         }
     }
 }

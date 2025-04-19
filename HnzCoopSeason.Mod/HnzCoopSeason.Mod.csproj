@@ -131,18 +131,15 @@
     </ItemGroup>
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcCaptureReticle.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcCaptureView.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcHudReticle.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcHud.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\ProgressionLevelConfig.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\ScreenTopView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\SpawnGroupConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiRandomInvasion.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\SpawnMatrixBuilder.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMapView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiMerchantConfig.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\MissionScreenView.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudAPI\HudApiV2.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoiObserver.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesGridGroup.cs" />
@@ -150,7 +147,6 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiOrkConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MES\MESApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MES\NpcData.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\OnlineCharacterCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MesEncounter.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Poi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\PoiConfig.cs" />
@@ -169,9 +165,13 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\StoreItemConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Commands\Command.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Commands\CommandModule.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\FlashGps.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Hud\ScreenTopHud.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Interval.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\LangUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\MathUtils.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\MissionScreen.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\OnlineCharacterCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\PlanetCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Hud\HudElement.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Hud\HudElementStack.cs" />
@@ -186,6 +186,29 @@
       <Content Include="Content\Data\Scripts\HnzCoopSeason\HudAPI\readme.md" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\MES\readme.md" />
       <Content Include="upload.bat" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Client\UI\BindManager\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Client\UI\HUD\Rendering\FontManager\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Client\UI\SettingsMenu\Controls\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Client\UI\SettingsMenu\Pages\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\General\Extensions\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\General\PoolPolicies\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\General\Utilities\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\Internal\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\IO\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\BindManager\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\HudElementBases\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\HudElementInterfaces\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\Buttons\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\SelectionBoxes\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\HudElements\ClickableHudElements\Sliders\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\HudElements\ContainerInterfaces\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\HudElements\Containers\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\HudSpaceNodes\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\Rendering\TextBuilderInterfaces\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\HUD\RichText\" />
+      <Folder Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\UI\SettingsMenu\" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -130,7 +130,8 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopContractUseObject.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\CoopContractBlock.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\CoopContractBlockUseObject.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />

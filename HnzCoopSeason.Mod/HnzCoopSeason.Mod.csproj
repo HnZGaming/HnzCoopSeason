@@ -132,6 +132,11 @@
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\CoopContractBlock.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\CoopContractBlockUseObject.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorDropdown.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorTextBox.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorToggleButton.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorToolBar.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorWindow.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />

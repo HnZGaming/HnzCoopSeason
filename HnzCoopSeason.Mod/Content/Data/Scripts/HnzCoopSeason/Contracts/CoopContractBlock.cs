@@ -1,4 +1,5 @@
 ﻿using Sandbox.Common.ObjectBuilders;
+using Sandbox.ModAPI;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
@@ -15,9 +16,12 @@ namespace HnzCoopSeason.Contracts
             MyLog.Default.Info("[HnzCoopSeason] contract block init");
         }
 
-        public void Use(IMyCharacter character) // called when the block's panel interacts with player
+        public void Use(IMyCharacter character) // client; called when the block's panel interacts with player
         {
-            MyLog.Default.Info($"[HnzCoopSeason] coopcontract; user: {character.DisplayName}");
+            //if (character != MyAPIGateway.Session.Player.Character) return;
+
+            MyLog.Default.Info($"[HnzCoopSeason] coopcontract; user: '{character.DisplayName}'");
+            TextEditor.Instance.Visible = true;
         }
     }
 }

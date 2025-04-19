@@ -108,6 +108,7 @@ namespace HnzCoopSeason
 
                 var analysis = CoopGrids.Analyze(grid);
                 if (analysis.Owner == CoopGrids.Owner.Player) continue; // non pvp
+                if (analysis.IsMerchant) continue;
 
                 var raycastHit = raycastHitInfo?.HitEntity == grid;
 

@@ -26,6 +26,7 @@ namespace HnzCoopSeason
             public string FactionTag;
 
             public bool IsOrksLeader => SpawnGroupIndex == 0 && FactionTag == "PORKS";
+            public bool IsMerchant => FactionTag == "MERC";
         }
 
         public static Analysis Analyze(IMyCubeGrid grid, long playerId = 0)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HnzCoopSeason.Utils;
 using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
@@ -13,11 +14,11 @@ namespace HnzCoopSeason
     {
         static readonly ushort ModKey = (ushort)"HnzCoopSeason.PoiMapView".GetHashCode();
         public static readonly PoiMapView Instance = new PoiMapView();
-        readonly List<IMyGps> _markers;
+        readonly LocalGpsCollection<string> _markers;
 
         PoiMapView()
         {
-            _markers = new List<IMyGps>();
+            _markers = new LocalGpsCollection<string>();
         }
 
         public void Load()
@@ -160,39 +161,45 @@ namespace HnzCoopSeason
         void DeployMap(List<Marker> markers) // client
         {
             // remove old markers
-            foreach (var marker in _markers)
-            {
-                MyAPIGateway.Session.GPS.RemoveLocalGps(marker);
-            }
-
-            _markers.Clear();
+            _markers.RemoveExceptFor(markers.Select(m => m.Id));
 
             // add new markers
             foreach (var marker in markers)
             {
-                var gps = CreateGps(marker);
-                MyAPIGateway.Session.GPS.AddLocalGps(gps);
-                _markers.Add(gps);
+                IMyGps gps;
+                if (_markers.TryGet(marker.Id, out gps))
+                {
+                    UpdateGps(gps, marker);
+                    // note: do not update hash
+                }
+                else // new gps
+                {
+                    gps = MyAPIGateway.Session.GPS.Create("", "", Vector3D.Zero, true, false);
+                    UpdateGps(gps, marker);
+                    gps.UpdateHash(); // init hash
+                    _markers.Add(marker.Id, gps);
+                }
             }
         }
 
-        static IMyGps CreateGps(Marker marker)
+        static void UpdateGps(IMyGps gps, Marker marker)
         {
             switch (marker.State)
             {
-                case PoiState.Occupied: return CreateGps("Trading Hub [Orks]", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!");
-                case PoiState.Released: return CreateGps("Trading Hub [Merchant]", marker.Position, Color.Green, "Our trading hub has been released and in business!");
-                case PoiState.Pending: return CreateGps("Trading Hub [Pending]", marker.Position, Color.White, "All planetary POIs must be released first!");
-                case PoiState.Invaded: return CreateGps("Trading Hub [Ork Mobs]", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!");
+                case PoiState.Occupied: UpdateGps(gps, "Trading Hub [Orks]", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!"); break;
+                case PoiState.Released: UpdateGps(gps, "Trading Hub [Merchant]", marker.Position, Color.Green, "Our trading hub has been released and in business!"); break;
+                case PoiState.Pending: UpdateGps(gps, "Trading Hub [Pending]", marker.Position, Color.White, "All planetary POIs must be released first!"); break;
+                case PoiState.Invaded: UpdateGps(gps, "Trading Hub [Ork Mobs]", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!"); break;
                 default: throw new InvalidOperationException($"invalid poi state: {marker.State}");
             }
         }
 
-        static IMyGps CreateGps(string name, Vector3D position, Color color, string description)
+        static void UpdateGps(IMyGps gps, string name, Vector3D position, Color color, string description)
         {
-            var gps = MyAPIGateway.Session.GPS.Create(name, description, position, true, false);
+            gps.Name = name;
+            gps.Coords = position;
             gps.GPSColor = color;
-            return gps;
+            gps.Description = description;
         }
 
         [ProtoContract]

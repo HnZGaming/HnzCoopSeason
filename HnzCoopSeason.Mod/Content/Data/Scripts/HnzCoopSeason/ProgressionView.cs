@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Hud;
 using ProtoBuf;
 using Sandbox.ModAPI;
@@ -33,7 +34,7 @@ namespace HnzCoopSeason
                     Offset = -0.1,
                 };
 
-                ScreenTopView.Instance.AddGroup(nameof(ProgressionView), _group, 0);
+                ScreenTopHud.Instance.AddGroup(nameof(ProgressionView), _group, 0);
 
                 _progressElement = new HudElement().AddTo(_group);
                 _titleElement = new HudElement().AddTo(_group);
@@ -58,7 +59,7 @@ namespace HnzCoopSeason
                 _subtitleElement.Clear();
                 _descriptionElement.Clear();
                 _group.Clear();
-                ScreenTopView.Instance.RemoveGroup(nameof(ProgressionView));
+                ScreenTopHud.Instance.RemoveGroup(nameof(ProgressionView));
             }
         }
 

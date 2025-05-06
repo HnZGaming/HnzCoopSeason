@@ -2,15 +2,15 @@
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 
-namespace HnzCoopSeason.Contracts
+namespace HnzCoopSeason.Missions
 {
     // example:
     // https://github.com/THDigi/SE-ModScript-Examples/blob/master/Data/Scripts/Examples/Example_CustomUseObject.cs
 
     [MyUseObject("coopcontract")]
-    public class CoopContractBlockUseObject : MyUseObjectBase
+    public class MissionBlockUseObject : MyUseObjectBase
     {
-        public CoopContractBlockUseObject(IMyEntity owner, string dummyName, IMyModelDummy dummyData, uint shapeKey) : base(owner, dummyData)
+        public MissionBlockUseObject(IMyEntity owner, string dummyName, IMyModelDummy dummyData, uint shapeKey) : base(owner, dummyData)
         {
             // This class gets instanced per entity that has this detector useobject on it.
             // NOTE: this exact constructor signature is required, will throw errors mid-loading (and prevent world from loading) otherwise.
@@ -26,7 +26,7 @@ namespace HnzCoopSeason.Contracts
 
         public override void Use(UseActionEnum actionEnum, IMyEntity user)
         {
-            Owner.GameLogic.GetAs<CoopContractBlock>().Use((IMyCharacter)user);
+            MissionWindow.Instance.SetVisible(true);
         }
     }
 }

@@ -130,13 +130,13 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\CoopContractBlock.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\CoopContractBlockUseObject.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorDropdown.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorTextBox.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorToggleButton.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorToolBar.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Contracts\EditorWindow.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\HudElements\MissionListElement.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\Mission.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionBlock.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionBlockUseObject.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionService.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionType.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionWindow.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />

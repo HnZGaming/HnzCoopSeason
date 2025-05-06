@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using HnzCoopSeason.Contracts;
+using HnzCoopSeason.Missions;
 using FlashGps;
 using MES;
 using HnzCoopSeason.Utils;
@@ -43,6 +43,7 @@ namespace HnzCoopSeason
             PoiMapDebugView.Load();
             PoiSpectatorCamera.Load();
             PoiMapView.Instance.Load();
+            MissionService.Instance.Load();
 
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
@@ -68,7 +69,7 @@ namespace HnzCoopSeason
 
         void RichHudInit() // client
         {
-            TextEditor.Load();
+            MissionWindow.Load();
         }
 
         protected override void UnloadData()
@@ -83,6 +84,7 @@ namespace HnzCoopSeason
             MissionScreen.Unload();
             PoiSpectatorCamera.Unload();
             PoiMapView.Instance.Unload();
+            MissionService.Instance.Unload();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -109,7 +111,7 @@ namespace HnzCoopSeason
 
         void RichHudClosed() // client
         {
-            TextEditor.Instance.Unload();
+            MissionWindow.Instance.Unload();
         }
 
         void LoadConfig()
@@ -117,6 +119,7 @@ namespace HnzCoopSeason
             SessionConfig.Load();
             _poiMap.LoadConfig();
             ProgressionView.Instance.UpdateProgress();
+            MissionService.Instance.OnConfigLoad();
         }
 
         void FirstUpdate()

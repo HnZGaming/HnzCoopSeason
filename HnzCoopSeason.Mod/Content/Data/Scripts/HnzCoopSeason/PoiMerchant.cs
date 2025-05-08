@@ -179,8 +179,11 @@ namespace HnzCoopSeason
             _grid.UpdateStorageValue(StorageKey, _poiId);
             _spawnState = SpawnState.Success;
 
-            // change name
-            grid.CustomName = $"[{_faction.Tag}] {grid.CustomName}";
+            if (!recovery)
+            {
+                // change name
+                grid.CustomName = $"[{_faction.Tag}] {grid.CustomName}";
+            }
 
             DisableContractBlocks(grid);
             ActivateShipyards(grid);

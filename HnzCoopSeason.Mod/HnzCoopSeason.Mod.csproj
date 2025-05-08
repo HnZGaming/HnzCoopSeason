@@ -340,6 +340,20 @@
     <ItemGroup>
       <Content Include="Content\Data\Factions.sbc" />
       <Content Include="Content\Data\ModStorageComponents.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_1.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_2.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_3.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_4.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_5.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_6.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_7.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_8.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_9.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_SpaceStation_1.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_SpaceStation_2.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_SpaceStation_3.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_SpaceStation_4.sbc" />
+      <Content Include="Content\Data\Prefabs\Coop_Economy_SpaceStation_5.sbc" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\HudAPI\readme.md" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\MES\readme.md" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\.editorconfig" />

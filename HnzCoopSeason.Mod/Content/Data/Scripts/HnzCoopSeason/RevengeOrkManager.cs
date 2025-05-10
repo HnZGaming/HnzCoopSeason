@@ -1,0 +1,37 @@
+﻿using System;
+using HnzCoopSeason.Utils;
+using VRage.Game.ModAPI;
+using VRage.Utils;
+using VRageMath;
+
+namespace HnzCoopSeason
+{
+    public sealed class RevengeOrkManager
+    {
+        public static readonly RevengeOrkManager Instance = new RevengeOrkManager();
+
+        RevengeOrk _revengeOrk;
+        int _increment;
+
+        public void Load()
+        {
+        }
+
+        public void Unload()
+        {
+            _revengeOrk?.Unload(true);
+        }
+
+        public void Update()
+        {
+            _revengeOrk?.Update();
+        }
+
+        public void Spawn(Vector3 position, string[] spawnGroupNames)
+        {
+            _revengeOrk?.Unload(false);
+            _revengeOrk = new RevengeOrk($"{_increment++}", position, spawnGroupNames);
+            _revengeOrk.Load(Array.Empty<IMyCubeGrid>());
+        }
+    }
+}

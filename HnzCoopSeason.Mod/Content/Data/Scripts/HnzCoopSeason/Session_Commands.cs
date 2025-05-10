@@ -3,7 +3,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
+using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace HnzCoopSeason
@@ -23,6 +25,7 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("stores update", false, MyPromoteLevel.Moderator, Command_UpdateStores, "update all merchant stores."));
             _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
+            _commandModule.Register(new Command("revenge", false, MyPromoteLevel.Moderator, Command_Revenge, "spawn revenge orks"));
         }
 
         void Command_ReloadConfig(string args, ulong steamId)
@@ -148,6 +151,37 @@ namespace HnzCoopSeason
             }
 
             MissionScreen.Send(steamId, "Print", poi.ToString(), true);
+        }
+
+        void Command_Revenge(string configIndexStr, ulong steamId)
+        {
+            MyLog.Default.Info($"[HnzCoopSeason] revenge; params: '{configIndexStr}'");
+            
+            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
+
+            int configIndex;
+            if (!int.TryParse(configIndexStr, out configIndex))
+            {
+                SendMessage(steamId, Color.Red, $"invalid config index: {configIndexStr}");
+                return;
+            }
+
+            PoiOrkConfig config;
+            if (!SessionConfig.Instance.Orks.TryGetElementAt(configIndex, out config))
+            {
+                SendMessage(steamId, Color.Red, $"invalid config index: {configIndexStr}");
+                return;
+            }
+
+            var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
+            var character = MyAPIGateway.Players.TryGetIdentityId(playerId)?.Character;
+            if (character == null)
+            {
+                SendMessage(steamId, Color.Red, $"character not found: {steamId}");
+                return;
+            }
+
+            RevengeOrkManager.Instance.Spawn(character.GetPosition(), config.SpawnGroupNames);
         }
 
         void Command_Print(string args, ulong steamId)

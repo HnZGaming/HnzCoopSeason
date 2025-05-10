@@ -135,6 +135,8 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcHudReticle.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcHud.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\ProgressionLevelConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\RevengeOrk.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\RevengeOrkManager.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Client\RichHudClient.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Client\UI\BindManager\Bind.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Client\UI\BindManager\BindGroup.cs" />

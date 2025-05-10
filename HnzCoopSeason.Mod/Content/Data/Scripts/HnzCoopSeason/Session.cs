@@ -51,6 +51,7 @@ namespace HnzCoopSeason
                 PlanetCollection.Load();
                 RespawnPodManipulator.Load();
                 PoiRandomInvasion.Instance.Load();
+                RevengeOrkManager.Instance.Load();
             }
 
             ProgressionView.Instance.Load();
@@ -82,6 +83,7 @@ namespace HnzCoopSeason
                 OnlineCharacterCollection.Unload();
                 RespawnPodManipulator.Unload();
                 PoiRandomInvasion.Instance.Unload();
+                RevengeOrkManager.Instance.Unload();
             }
 
             ProgressionView.Instance.Unload();
@@ -135,6 +137,7 @@ namespace HnzCoopSeason
                 OnlineCharacterCollection.Update();
                 _poiMap.Update();
                 PoiRandomInvasion.Instance.Update();
+                RevengeOrkManager.Instance.Update();
             }
 
             // client

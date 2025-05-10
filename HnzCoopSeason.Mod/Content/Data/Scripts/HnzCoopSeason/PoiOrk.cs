@@ -13,7 +13,6 @@ namespace HnzCoopSeason
     {
         readonly string _poiId;
         readonly MesEncounter _encounter;
-        readonly Interval _randomInvasionInterval;
         readonly PoiOrkConfig[] _configs;
         IMyCubeGrid _mainGrid;
 
@@ -22,7 +21,6 @@ namespace HnzCoopSeason
             _configs = configs;
             _poiId = poiId;
             _encounter = new MesEncounter($"{poiId}-ork", position);
-            _randomInvasionInterval = new Interval();
         }
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
@@ -31,8 +29,6 @@ namespace HnzCoopSeason
             _encounter.OnMainGridUnset += OnMainGridUnset;
             _encounter.SpawnDelegate = EncounterSpawnDelegate;
             _encounter.Load(grids);
-
-            _randomInvasionInterval.Initialize();
         }
 
         void IPoiObserver.Unload(bool sessionUnload)

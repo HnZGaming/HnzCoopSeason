@@ -13,7 +13,7 @@ namespace HnzCoopSeason.Utils
                 throw new InvalidOperationException(message);
             }
         }
-        
+
         public static string ToStringSeq<T>(this IEnumerable<T> self)
         {
             return $"[{string.Join(", ", self)}]";
@@ -22,6 +22,18 @@ namespace HnzCoopSeason.Utils
         public static string ToStringDic<K, V>(this IReadOnlyDictionary<K, V> self)
         {
             return $"[{string.Join(", ", self.Select(p => $"{p.Key}: {p.Value}"))}]";
+        }
+
+        public static bool TryGetElementAt<T>(this IReadOnlyList<T> self, int index, out T element)
+        {
+            if (index < self.Count)
+            {
+                element = self[index];
+                return true;
+            }
+
+            element = default(T);
+            return false;
         }
 
         public static T GetValueOrDefault<T>(this Dictionary<string, object> self, string key, T defaultValue)

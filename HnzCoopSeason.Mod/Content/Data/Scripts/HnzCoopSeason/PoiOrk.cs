@@ -41,7 +41,7 @@ namespace HnzCoopSeason
 
         void IPoiObserver.Update()
         {
-            _encounter.Update();
+            _encounter.TrySpawn();
             UpdateBossGps();
         }
 

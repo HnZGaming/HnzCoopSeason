@@ -172,10 +172,6 @@ namespace HnzCoopSeason
             }
         }
 
-        public void Update()
-        {
-        }
-
         bool TryGetMyContext(IMyCubeGrid grid, out MesGridContext context)
         {
             return TryGetSpawnContext(grid, out context) && context.Id == Id;

@@ -1,7 +1,5 @@
 ﻿using System;
-using HnzCoopSeason.Utils;
 using VRage.Game.ModAPI;
-using VRage.Utils;
 using VRageMath;
 
 namespace HnzCoopSeason
@@ -20,11 +18,6 @@ namespace HnzCoopSeason
         public void Unload()
         {
             _revengeOrk?.Unload(true);
-        }
-
-        public void Update()
-        {
-            _revengeOrk?.Update();
         }
 
         public void Spawn(Vector3 position, string[] spawnGroupNames)

@@ -54,7 +54,7 @@ namespace HnzCoopSeason
             _encounterActive = active;
         }
 
-        public void Update()
+        public void TrySpawn()
         {
             if (MyAPIGateway.Session.GameplayFrameCounter % 60 != 0) return;
             if (!_encounterActive) return;

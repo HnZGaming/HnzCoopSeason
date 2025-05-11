@@ -153,23 +153,22 @@ namespace HnzCoopSeason
             MissionScreen.Send(steamId, "Print", poi.ToString(), true);
         }
 
-        void Command_Revenge(string configIndexStr, ulong steamId)
+        void Command_Revenge(string args, ulong steamId)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] revenge; params: '{configIndexStr}'");
-            
+            MyLog.Default.Info($"[HnzCoopSeason] revenge; args: '{args}'");
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
 
             int configIndex;
-            if (!int.TryParse(configIndexStr, out configIndex))
+            if (!int.TryParse(args, out configIndex))
             {
-                SendMessage(steamId, Color.Red, $"invalid config index: {configIndexStr}");
+                SendMessage(steamId, Color.Red, $"invalid config index: {args}");
                 return;
             }
 
             PoiOrkConfig config;
             if (!SessionConfig.Instance.Orks.TryGetElementAt(configIndex, out config))
             {
-                SendMessage(steamId, Color.Red, $"invalid config index: {configIndexStr}");
+                SendMessage(steamId, Color.Red, $"invalid config index: {args}");
                 return;
             }
 

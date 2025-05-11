@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using VRage.Game.ModAPI;
+﻿using VRage.Game.ModAPI;
 using VRageMath;
 
 namespace HnzCoopSeason
@@ -17,26 +16,13 @@ namespace HnzCoopSeason
 
         public void Load(IMyCubeGrid[] grids)
         {
-            _encounter.SpawnDelegate = EncounterSpawnDelegate;
             _encounter.Load(grids);
-            _encounter.SetActive(true);
+            _encounter.ForceSpawn(_spawnGroupNames);
         }
 
         public void Unload(bool sessionUnload)
         {
             _encounter.Unload(sessionUnload);
-            _encounter.SpawnDelegate = null;
-        }
-
-        public void Update()
-        {
-            _encounter.Update();
-        }
-
-        bool EncounterSpawnDelegate(int playerCount, List<string> spawnGroupNames)
-        {
-            spawnGroupNames.AddRange(_spawnGroupNames);
-            return true;
         }
     }
 }

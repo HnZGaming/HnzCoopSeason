@@ -54,10 +54,8 @@ namespace HnzCoopSeason
             _encounterActive = active;
         }
 
-        public void Update()
+        public void TrySpawn()
         {
-            _mesGridGroup.Update();
-
             if (MyAPIGateway.Session.GameplayFrameCounter % 60 != 0) return;
             if (!_encounterActive) return;
             if (_mesGridGroup.State != MesGridGroup.SpawningState.Idle) return;

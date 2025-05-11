@@ -137,7 +137,6 @@ namespace HnzCoopSeason
                 OnlineCharacterCollection.Update();
                 _poiMap.Update();
                 PoiRandomInvasion.Instance.Update();
-                RevengeOrkManager.Instance.Update();
             }
 
             // client

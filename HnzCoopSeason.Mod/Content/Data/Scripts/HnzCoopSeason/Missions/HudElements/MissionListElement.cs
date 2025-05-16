@@ -50,7 +50,7 @@ namespace HnzCoopSeason.Missions.HudElements
 
             _typeLabel.Text = $"{mission.Type}";
 
-            var progressPercentage = (mission.Progress / mission.TotalProgress) * 100;
+            var progressPercentage = (float)mission.Progress / mission.TotalProgress * 100;
             _progressLabel.Text = $"{progressPercentage:0}%";
         }
 

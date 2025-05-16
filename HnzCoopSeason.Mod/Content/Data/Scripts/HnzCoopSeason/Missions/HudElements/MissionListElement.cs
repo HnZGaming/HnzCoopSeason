@@ -10,6 +10,9 @@ namespace HnzCoopSeason.Missions.HudElements
         readonly Label _progressLabel;
         readonly MouseInputElement _mouseInputElement;
 
+        public long MissionId { get; private set; }
+        public event Action<long> OnClicked;
+
         public MissionListElement(Vector2 size) : base(null)
         {
             ParentAlignment = ParentAlignments.Inner | ParentAlignments.Top | ParentAlignments.Left;
@@ -27,42 +30,37 @@ namespace HnzCoopSeason.Missions.HudElements
             {
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Right,
                 Offset = new Vector2(-12, 0),
-                Text = "1/300",
+                Text = "[0%]",
             };
 
             _mouseInputElement = new MouseInputElement(this);
             _mouseInputElement.LeftClicked += OnMissionListElementClicked;
         }
 
-        public Mission Mission { get; private set; }
-        public event Action<MissionListElement> OnSelected;
-
         public override bool Unregister()
         {
-            OnSelected = null;
+            OnClicked = null;
             _mouseInputElement.LeftClicked -= OnMissionListElementClicked;
             return base.Unregister();
         }
 
         public void SetMission(Mission mission)
         {
-            Mission = mission;
+            MissionId = mission.Id;
 
             _typeLabel.Text = $"{mission.Type}";
 
-            var progressPercentage = (float)mission.Progress / mission.TotalProgress * 100;
-            _progressLabel.Text = $"{progressPercentage:0}%";
+            _progressLabel.Text = $"[ {mission.ProgressPercentage:0}% ]";
         }
 
         void OnMissionListElementClicked(object sender, EventArgs e)
         {
-            Color = Color.White;
-            OnSelected?.Invoke(this);
+            OnClicked?.Invoke(MissionId);
         }
 
-        public void Deselect()
+        public void SetSelected(bool selected)
         {
-            Color = Color.Transparent;
+            Color = selected ? Color.White : Color.Transparent;
         }
     }
 }

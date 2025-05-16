@@ -10,15 +10,24 @@ namespace HnzCoopSeason.Missions
         public MissionType Type;
 
         [XmlElement]
+        public long Id;
+
+        [XmlElement]
         public string Title;
 
         [XmlElement]
         public string Description;
 
         [XmlElement]
-        public int Progress;
+        public long Progress;
 
         [XmlElement]
-        public int TotalProgress;
+        public long TotalProgress;
+
+        [XmlElement]
+        public string AcquisitionItemType;
+
+        [XmlIgnore]
+        public double ProgressPercentage => (double)Progress / TotalProgress * 100;
     }
 }

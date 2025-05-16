@@ -1,4 +1,5 @@
-﻿using RichHudFramework.UI;
+﻿using System;
+using RichHudFramework.UI;
 using VRageMath;
 
 namespace HnzCoopSeason.Missions.HudElements
@@ -8,6 +9,13 @@ namespace HnzCoopSeason.Missions.HudElements
         readonly BorderBox _buttonBorder;
         readonly LabelButton _button;
         readonly Label _noteLabel;
+
+        public event Action OnSubmit;
+
+        public string SubmitNote
+        {
+            set { _noteLabel.Text = value; }
+        }
 
         public SubmitButtonElement(HudParentBase parent = null) : base(false, parent)
         {
@@ -33,6 +41,8 @@ namespace HnzCoopSeason.Missions.HudElements
                 ParentAlignment = ParentAlignments.Inner,
                 Text = "You must find the contract block",
             };
+
+            _button.MouseInput.LeftClicked += OnLeftClicked;
         }
 
         public void Initialize()
@@ -41,15 +51,25 @@ namespace HnzCoopSeason.Missions.HudElements
             Add(_buttonBorder);
         }
 
-        public void SetInputEnabled(bool enabled)
+        public override bool Unregister()
+        {
+            OnSubmit = null;
+            _button.MouseInput.LeftClicked -= OnLeftClicked;
+            return base.Unregister();
+        }
+
+        public void SetEnabled(bool enabled)
         {
             _button.InputEnabled = enabled;
 
             var color = enabled ? Color.White : Color.Gray;
             _button.Format = new GlyphFormat(color);
             _buttonBorder.Color = color;
+        }
 
-            _noteLabel.Visible = !enabled;
+        void OnLeftClicked(object sender, EventArgs e)
+        {
+            OnSubmit?.Invoke();
         }
     }
 }

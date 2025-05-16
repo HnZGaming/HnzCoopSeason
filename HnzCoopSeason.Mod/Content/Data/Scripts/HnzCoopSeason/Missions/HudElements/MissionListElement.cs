@@ -1,49 +1,47 @@
 ﻿using System;
 using RichHudFramework.UI;
-using VRage.Utils;
 using VRageMath;
 
 namespace HnzCoopSeason.Missions.HudElements
 {
-    public sealed class MissionListElement : HudChain<HudElementContainer<Label>, Label>
+    public sealed class MissionListElement : BorderBox
     {
+        static readonly Vector2 ConstSize = new Vector2(150, 30);
+
         readonly Label _typeLabel;
         readonly Label _progressLabel;
         readonly MouseInputElement _mouseInputElement;
 
-        public MissionListElement(HudParentBase parent = null) : base(false, parent)
+        public MissionListElement(HudParentBase parent = null) : base(parent)
         {
-            SizingMode = HudChainSizingModes.FitMembersOffAxis | HudChainSizingModes.FitChainOffAxis;
-            ParentAlignment = ParentAlignments.Top | ParentAlignments.Inner | ParentAlignments.Left;
-            Size = new Vector2(250, 30);
-            Padding = new Vector2(6, 6);
-            Spacing = 12;
+            ParentAlignment = ParentAlignments.Inner | ParentAlignments.Top | ParentAlignments.Left;
+            Size = ConstSize;
+            Color = Color.Transparent;
 
-            _typeLabel = new Label
+            _typeLabel = new Label(this)
             {
-                ParentAlignment = ParentAlignments.Center | ParentAlignments.Inner | ParentAlignments.Left,
-                Size = new Vector2(200, 20),
+                ParentAlignment = ParentAlignments.Inner | ParentAlignments.Left,
+                Offset = new Vector2(12, 0),
                 Text = "Acquisition",
             };
 
-            _progressLabel = new Label
+            _progressLabel = new Label(this)
             {
-                ParentAlignment = ParentAlignments.Center | ParentAlignments.Inner | ParentAlignments.Right,
-                Size = new Vector2(50, 20),
+                ParentAlignment = ParentAlignments.Inner | ParentAlignments.Right,
+                Offset = new Vector2(-12, 0),
                 Text = "1/300",
             };
 
             _mouseInputElement = new MouseInputElement(this);
             _mouseInputElement.LeftClicked += OnMissionListElementClicked;
-
-            Add(_typeLabel);
-            Add(_progressLabel);
         }
 
         public Mission Mission { get; private set; }
+        public event Action<MissionListElement> OnSelected;
 
         public override bool Unregister()
         {
+            OnSelected = null;
             _mouseInputElement.LeftClicked -= OnMissionListElementClicked;
             return base.Unregister();
         }
@@ -57,7 +55,13 @@ namespace HnzCoopSeason.Missions.HudElements
 
         void OnMissionListElementClicked(object sender, EventArgs e)
         {
-            MissionWindow.Instance.OnMissionListElementClicked(Mission);
+            Color = Color.White;
+            OnSelected?.Invoke(this);
+        }
+
+        public void Deselect()
+        {
+            Color = Color.Transparent;
         }
     }
 }

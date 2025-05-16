@@ -132,11 +132,15 @@
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\HudElements\MissionListElement.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\HudElements\SubmitButtonElement.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\IMissionLogic.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\Mission.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionBlock.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionBlockUseObject.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionClient.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionLogics\AcquisitionMissionLogic.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionService.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionType.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionWindow.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps\FlashGpsApi.cs" />

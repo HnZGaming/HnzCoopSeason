@@ -1,10 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using Sandbox.Game.Entities;
-using Sandbox.ModAPI;
-using VRage.Game.Entity;
-using VRage.ModAPI;
-using VRageMath;
 
 namespace HnzCoopSeason.Missions
 {
@@ -28,55 +22,39 @@ namespace HnzCoopSeason.Missions
             {
                 new Mission
                 {
+                    Id = 1,
                     Type = MissionType.Acquisition,
                     Title = "Acquisition Contract Title Acquisition Contract Title Acquisition Contract Title ",
                     Description = "Acquisition Contract Description Acquisition Contract Description Acquisition Contract Description ",
                     Progress = 1,
                     TotalProgress = 10,
+                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
                 },
                 new Mission
                 {
+                    Id = 2,
                     Type = MissionType.Acquisition,
-                    Title = "Acquisition Contract Title Acquisition Contract Title Acquisition Contract Title ",
-                    Description = "Acquisition Contract Description Acquisition Contract Description Acquisition Contract Description ",
-                    Progress = 1,
-                    TotalProgress = 10,
+                    Title = "Unironically, not enough stones",
+                    Description = "Our pet bird just threw up due to a hangover the other day and she needs a bulk of stones to reset her gastroliths. Please collect as much as you can.",
+                    Progress = 94485,
+                    TotalProgress = 2400000,
+                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
                 },
                 new Mission
                 {
+                    Id = 3,
                     Type = MissionType.Acquisition,
                     Title = "Acquisition Contract Title Acquisition Contract Title Acquisition Contract Title ",
                     Description = "Acquisition Contract Description Acquisition Contract Description Acquisition Contract Description ",
-                    Progress = 1,
+                    Progress = 4,
                     TotalProgress = 10,
+                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
                 },
             });
         }
 
-        public static bool CanSubmit()
+        public void Submit(long missionId)
         {
-            var character = MyAPIGateway.Session.LocalHumanPlayer?.Character;
-            if (character == null) return false;
-
-            var sphere = new BoundingSphereD(character.GetPosition(), 5);
-            var result = new List<MyEntity>();
-            MyGamePruningStructure.GetAllEntitiesInSphere(ref sphere, result, MyEntityQueryType.Static);
-            if (result.Count == 0) return false;
-
-            foreach (var entity in result)
-            {
-                if (IsMissionBlock(entity)) return true;
-            }
-
-            return false;
-        }
-
-        static bool IsMissionBlock(IMyEntity entity)
-        {
-            var block = entity as IMyFunctionalBlock;
-            if (block == null) return false;
-
-            return block.BlockDefinition.SubtypeId == "CoopContractBlock";
         }
     }
 }

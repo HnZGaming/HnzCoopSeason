@@ -45,6 +45,7 @@ namespace HnzCoopSeason
             PoiMapView.Instance.Load();
             MissionService.Instance.Load();
 
+            // server
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
                 _poiMap = new PoiMap();
@@ -56,9 +57,11 @@ namespace HnzCoopSeason
                 RevengeOrkManager.Instance.Load();
             }
 
+            // client
             if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
             {
                 RichHudClient.Init(nameof(HnzCoopSeason), RichHudInit, RichHudClosed);
+                MissionClient.Instance.Load();
             }
 
             ProgressionView.Instance.Load();
@@ -104,6 +107,12 @@ namespace HnzCoopSeason
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
                 ScreenTopHud.Instance.Close();
+            }
+            
+            // client
+            if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
+            {
+                MissionClient.Instance.Unload();
             }
 
             MyLog.Default.Info("[HnzCoopSeason] session unloaded");
@@ -164,7 +173,7 @@ namespace HnzCoopSeason
                 {
                     NpcHud.Instance.Update();
                     ScreenTopHud.Instance.Render();
-                    MissionWindow.Instance.Update();
+                    MissionClient.Instance.Update();
                 }
             }
 

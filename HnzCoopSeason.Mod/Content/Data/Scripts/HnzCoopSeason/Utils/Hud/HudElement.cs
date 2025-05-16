@@ -13,7 +13,7 @@ namespace HnzCoopSeason.Utils.Hud
         string _text;
         double _scale;
         bool _active;
-        bool _populated;
+        bool _dirty;
         double _height;
 
         public void Clear()
@@ -22,7 +22,7 @@ namespace HnzCoopSeason.Utils.Hud
             {
                 _message?.DeleteMessage();
                 _message = null;
-                _populated = false;
+                _dirty = true;
             }
             catch (Exception e)
             {
@@ -38,10 +38,10 @@ namespace HnzCoopSeason.Utils.Hud
 
         public void Apply(string text, double scale = 1d, bool active = true)
         {
-            _populated = false;
-            _populated |= _text != text;
-            _populated |= Math.Abs(_scale - scale) > 0.001;
-            _populated |= _active != active;
+            _dirty = false;
+            _dirty |= _text != text;
+            _dirty |= Math.Abs(_scale - scale) > 0.001;
+            _dirty |= _active != active;
 
             _text = text;
             _scale = scale;
@@ -50,10 +50,10 @@ namespace HnzCoopSeason.Utils.Hud
 
         public double Render(double offset, bool forceHide = false)
         {
-            if (!forceHide && _populated) return _height;
+            if (!_dirty && !forceHide) return _height;
 
+            _dirty = false;
             _message?.DeleteMessage();
-            _populated = false;
 
             if (forceHide) return 0;
             if (!_active) return 0;
@@ -72,8 +72,6 @@ namespace HnzCoopSeason.Utils.Hud
 
             var textLength = _message.GetTextLength();
             _message.Offset = new Vector2D(-textLength.X / 2, offset);
-
-            _populated = true;
             _height = textLength.Y;
 
             return textLength.Y;

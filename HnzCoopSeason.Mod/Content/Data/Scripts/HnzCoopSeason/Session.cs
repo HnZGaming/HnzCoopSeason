@@ -165,6 +165,7 @@ namespace HnzCoopSeason
                 {
                     NpcHud.Instance.Update();
                     ScreenTopHud.Instance.Render();
+                    MissionWindow.Instance.Update();
                 }
             }
 

@@ -3,6 +3,8 @@ using System.Linq;
 using HnzCoopSeason.Missions.HudElements;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
+using RichHudFramework.UI.Rendering;
+using Sandbox.ModAPI;
 using VRage.Input;
 using VRage.Utils;
 using VRageMath;
@@ -14,12 +16,16 @@ namespace HnzCoopSeason.Missions
     /// </summary>
     public class MissionWindow : WindowBase
     {
+        static readonly Vector2 _missionElementSize = new Vector2(200, 30);
+        static readonly Vector2 _windowBodySize = new Vector2(700, 270);
+        static readonly float _windowHeaderHeight = 30;
+
         readonly IBindGroup _keyBinds;
         readonly ScrollBox<ScrollBoxEntry<MissionListElement>, MissionListElement> _missionList;
         readonly HudChain _detailPane;
         readonly Label _titleLabel;
         readonly Label _descriptionLabel;
-        readonly LabelBoxButton _submitButton;
+        readonly SubmitButtonElement _submitLayout;
 
         public static MissionWindow Instance { get; private set; }
 
@@ -31,8 +37,7 @@ namespace HnzCoopSeason.Missions
                 Instance = new MissionWindow(HudMain.HighDpiRoot)
                 {
                     Visible = true,
-                    HeaderText = "Contracts (open/close with tilda [~] key)",
-                    Size = new Vector2(500f, 300f),
+                    Size = new Vector2(_windowBodySize.X, _windowBodySize.Y + _windowHeaderHeight),
                     BodyColor = new Color(41, 54, 62, 150),
                     BorderColor = new Color(58, 68, 77),
                 };
@@ -50,9 +55,10 @@ namespace HnzCoopSeason.Missions
 
         MissionWindow(HudParentBase parent = null) : base(parent)
         {
+            header.Text = "Contracts -- open/close this window with tilda [~] key";
             header.Format = new GlyphFormat(GlyphFormat.Blueish.Color, TextAlignment.Center, 1.08f);
-            header.Height = 30;
-            body.Size = new Vector2(500, 270);
+            header.Height = _windowHeaderHeight;
+            body.Size = _windowBodySize;
 
             _keyBinds = BindManager.GetOrCreateGroup("CoopContractBinds");
             _keyBinds.RegisterBinds(new BindGroupInitializer
@@ -66,45 +72,45 @@ namespace HnzCoopSeason.Missions
             {
                 SizingMode = HudChainSizingModes.FitMembersOffAxis,
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Top | ParentAlignments.Left,
-                Offset = Vector2.Zero,
-                Size = new Vector2(150, 270),
+                Size = new Vector2(_missionElementSize.X, _windowBodySize.Y),
                 Padding = new Vector2(6, 6),
             };
+
+            var scrollBarWidth = _missionList.ScrollBar.Width + _missionList.Divider.Width + 20;
 
             _detailPane = new HudChain(true, bodyBg)
             {
                 SizingMode = HudChainSizingModes.FitMembersOffAxis,
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Top | ParentAlignments.Right,
-                Offset = Vector2.Zero,
-                Size = new Vector2(270, 270),
-                Padding = new Vector2(6, 6),
+                Size = new Vector2(_windowBodySize.X - _missionElementSize.X - scrollBarWidth, _windowBodySize.Y),
+                Padding = new Vector2(12, 12),
                 Spacing = 12,
             };
 
             _titleLabel = new Label
             {
-                ParentAlignment = ParentAlignments.Center | ParentAlignments.Inner | ParentAlignments.Left,
-                Size = new Vector2(250, 20),
+                ParentAlignment = ParentAlignments.Inner | ParentAlignments.Left,
+                BuilderMode = TextBuilderModes.Wrapped,
+                Format = new GlyphFormat(GlyphFormat.White.Color, TextAlignment.Left, 1, FontStyles.Underline),
                 Text = "Acquisition",
             };
 
             _descriptionLabel = new Label
             {
-                ParentAlignment = ParentAlignments.Center | ParentAlignments.Inner | ParentAlignments.Left,
-                Size = new Vector2(250, 60),
+                ParentAlignment = ParentAlignments.Inner | ParentAlignments.Left,
+                BuilderMode = TextBuilderModes.Wrapped,
                 Text = "Acquisition",
             };
 
-            _submitButton = new LabelBoxButton
+            _submitLayout = new SubmitButtonElement(bodyBg)
             {
-                ParentAlignment = ParentAlignments.Center | ParentAlignments.Inner | ParentAlignments.Left,
-                Size = new Vector2(200, 20),
-                Text = "Submit",
+                ParentAlignment = ParentAlignments.Inner | ParentAlignments.Bottom | ParentAlignments.Right,
             };
+
+            _submitLayout.Initialize();
 
             _detailPane.Add(_titleLabel);
             _detailPane.Add(_descriptionLabel);
-            _detailPane.Add(_submitButton);
             _detailPane.Visible = false;
         }
 
@@ -130,9 +136,10 @@ namespace HnzCoopSeason.Missions
         void OnMissionsUpdated(Mission[] missions)
         {
             _missionList.Clear();
+
             foreach (var mission in missions)
             {
-                var element = new MissionListElement();
+                var element = new MissionListElement(_missionElementSize);
                 element.SetMission(mission);
                 element.OnSelected += OnMissionListElementClicked;
                 _missionList.Add(element);
@@ -155,6 +162,15 @@ namespace HnzCoopSeason.Missions
                     e.Deselect();
                 }
             }
+        }
+
+        public void Update()
+        {
+            if (MyAPIGateway.Session.GameplayFrameCounter % 10 != 0) return;
+            if (!Visible) return;
+
+            var canSubmit = MissionService.CanSubmit();
+            _submitLayout.SetInputEnabled(canSubmit);
         }
     }
 }

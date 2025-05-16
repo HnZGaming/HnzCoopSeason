@@ -1,0 +1,55 @@
+﻿using RichHudFramework.UI;
+using VRageMath;
+
+namespace HnzCoopSeason.Missions.HudElements
+{
+    public sealed class SubmitButtonElement : HudChain
+    {
+        readonly BorderBox _buttonBorder;
+        readonly LabelButton _button;
+        readonly Label _noteLabel;
+
+        public SubmitButtonElement(HudParentBase parent = null) : base(false, parent)
+        {
+            SizingMode = HudChainSizingModes.FitChainBoth;
+            Padding = new Vector2(24, 24);
+            Spacing = 12;
+
+            _buttonBorder = new BorderBox
+            {
+                Size = new Vector2(100, 30),
+                Color = Color.White,
+            };
+
+            _button = new LabelButton(_buttonBorder)
+            {
+                ParentAlignment = ParentAlignments.Inner,
+                Padding = new Vector2(6, 6),
+                Text = "Submit",
+            };
+
+            _noteLabel = new Label
+            {
+                ParentAlignment = ParentAlignments.Inner,
+                Text = "You must find the contract block",
+            };
+        }
+
+        public void Initialize()
+        {
+            Add(_noteLabel);
+            Add(_buttonBorder);
+        }
+
+        public void SetInputEnabled(bool enabled)
+        {
+            _button.InputEnabled = enabled;
+
+            var color = enabled ? Color.White : Color.Gray;
+            _button.Format = new GlyphFormat(color);
+            _buttonBorder.Color = color;
+
+            _noteLabel.Visible = !enabled;
+        }
+    }
+}

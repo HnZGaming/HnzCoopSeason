@@ -6,16 +6,14 @@ namespace HnzCoopSeason.Missions.HudElements
 {
     public sealed class MissionListElement : BorderBox
     {
-        static readonly Vector2 ConstSize = new Vector2(150, 30);
-
         readonly Label _typeLabel;
         readonly Label _progressLabel;
         readonly MouseInputElement _mouseInputElement;
 
-        public MissionListElement(HudParentBase parent = null) : base(parent)
+        public MissionListElement(Vector2 size) : base(null)
         {
             ParentAlignment = ParentAlignments.Inner | ParentAlignments.Top | ParentAlignments.Left;
-            Size = ConstSize;
+            Size = size;
             Color = Color.Transparent;
 
             _typeLabel = new Label(this)
@@ -49,8 +47,11 @@ namespace HnzCoopSeason.Missions.HudElements
         public void SetMission(Mission mission)
         {
             Mission = mission;
-            _typeLabel.Text = mission.Type.ToString();
-            _progressLabel.Text = $"{mission.Progress}/{mission.TotalProgress}";
+
+            _typeLabel.Text = $"{mission.Type}";
+
+            var progressPercentage = (mission.Progress / mission.TotalProgress) * 100;
+            _progressLabel.Text = $"{progressPercentage:0}%";
         }
 
         void OnMissionListElementClicked(object sender, EventArgs e)

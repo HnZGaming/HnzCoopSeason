@@ -131,6 +131,7 @@
     </ItemGroup>
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\HudElements\MissionListElement.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\HudElements\SubmitButtonElement.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\Mission.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionBlock.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionBlockUseObject.cs" />

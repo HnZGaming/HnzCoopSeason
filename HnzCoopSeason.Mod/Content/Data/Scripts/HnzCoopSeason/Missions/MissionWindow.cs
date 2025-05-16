@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using HnzCoopSeason.Missions.HudElements;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
@@ -64,17 +65,16 @@ namespace HnzCoopSeason.Missions
             _missionList = new ScrollBox<ScrollBoxEntry<MissionListElement>, MissionListElement>(true, bodyBg)
             {
                 SizingMode = HudChainSizingModes.FitMembersOffAxis,
-                ParentAlignment = ParentAlignments.Top | ParentAlignments.Inner | ParentAlignments.Left,
+                ParentAlignment = ParentAlignments.Inner | ParentAlignments.Top | ParentAlignments.Left,
                 Offset = Vector2.Zero,
                 Size = new Vector2(150, 270),
                 Padding = new Vector2(6, 6),
-                Spacing = 12,
             };
 
             _detailPane = new HudChain(true, bodyBg)
             {
                 SizingMode = HudChainSizingModes.FitMembersOffAxis,
-                ParentAlignment = ParentAlignments.Top | ParentAlignments.Inner | ParentAlignments.Right,
+                ParentAlignment = ParentAlignments.Inner | ParentAlignments.Top | ParentAlignments.Right,
                 Offset = Vector2.Zero,
                 Size = new Vector2(270, 270),
                 Padding = new Vector2(6, 6),
@@ -134,17 +134,27 @@ namespace HnzCoopSeason.Missions
             {
                 var element = new MissionListElement();
                 element.SetMission(mission);
+                element.OnSelected += OnMissionListElementClicked;
                 _missionList.Add(element);
             }
         }
 
-        public void OnMissionListElementClicked(Mission mission)
+        void OnMissionListElementClicked(MissionListElement element)
         {
+            var mission = element.Mission;
             MyLog.Default.Info($"[HnzCoopSeason] mission selected: {mission.Title}");
 
             _detailPane.Visible = true;
             _titleLabel.Text = mission.Title;
             _descriptionLabel.Text = mission.Description;
+
+            foreach (var e in _missionList.CollectionContainer.Select(e => e.Element))
+            {
+                if (e.Mission != mission)
+                {
+                    e.Deselect();
+                }
+            }
         }
     }
 }

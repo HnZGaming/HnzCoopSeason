@@ -1,33 +1,54 @@
 ﻿using System;
 using System.Xml.Serialization;
+using ProtoBuf;
 
 namespace HnzCoopSeason.Missions
 {
-    [Serializable]
+    [ProtoContract]
     public sealed class Mission
     {
-        [XmlElement]
+        [ProtoMember(1)]
         public MissionType Type;
 
-        [XmlElement]
-        public long Id;
+        [ProtoMember(2)]
+        public int Level;
 
-        [XmlElement]
+        [ProtoMember(3)]
+        public int Id;
+
+        [ProtoMember(4)]
         public string Title;
 
-        [XmlElement]
+        [ProtoMember(5)]
         public string Description;
 
+        [ProtoMember(6)]
         [XmlElement]
-        public long Progress;
+        public int Progress;
 
-        [XmlElement]
-        public long TotalProgress;
+        [ProtoMember(7)]
+        public int TotalProgress;
 
-        [XmlElement]
+        [ProtoMember(8)]
         public string AcquisitionItemType;
 
-        [XmlIgnore]
+        [ProtoIgnore]
         public double ProgressPercentage => (double)Progress / TotalProgress * 100;
+
+        public Mission()
+        {
+        }
+
+        public Mission(MissionConfig config, int level, int id, int progress)
+        {
+            Type = config.Type;
+            Level = level;
+            Id = id;
+            Title = config.Title;
+            Description = config.Description;
+            Progress = progress;
+            TotalProgress = config.TotalProgress;
+            AcquisitionItemType = config.AcquisitionItemType;
+        }
     }
 }

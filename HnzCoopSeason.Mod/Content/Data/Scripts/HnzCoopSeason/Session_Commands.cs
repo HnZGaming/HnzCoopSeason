@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using HnzCoopSeason.Missions;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
 using Sandbox.ModAPI;
@@ -26,6 +27,8 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
             _commandModule.Register(new Command("revenge", false, MyPromoteLevel.Moderator, Command_Revenge, "spawn revenge orks"));
+            _commandModule.Register(new Command("mission list", false, MyPromoteLevel.Moderator, Command_ListMission, "list missions"));
+            _commandModule.Register(new Command("mission update", false, MyPromoteLevel.Moderator, Command_UpdateMission, "update mission progress"));
         }
 
         void Command_ReloadConfig(string args, ulong steamId)
@@ -183,8 +186,33 @@ namespace HnzCoopSeason
             RevengeOrkManager.Instance.Spawn(character.GetPosition(), config.SpawnGroupNames);
         }
 
+        void Command_ListMission(string args, ulong steamId)
+        {
+            var level = int.Parse(args);
+            var missions = MissionService.Instance.GetMissions(level);
+            var xml = MyAPIGateway.Utilities.SerializeToXML(missions);
+            MissionScreen.Send(steamId, "Missions", xml, true);
+        }
+
+        void Command_UpdateMission(string args, ulong steamId)
+        {
+            var parts = args.Split(' ');
+            var level = int.Parse(parts[0]);
+            var id = int.Parse(parts[1]);
+            var progress = int.Parse(parts[2]);
+            MissionService.Instance.UpdateMissionProgress(level, id, progress);
+            SendMessage(steamId, Color.White, $"done: {level}, {id}, {progress}");
+        }
+
         void Command_Print(string args, ulong steamId)
         {
+            if (args.Trim() == "config")
+            {
+                var xml = MyAPIGateway.Utilities.SerializeToXML(SessionConfig.Instance);
+                MissionScreen.Send(steamId, "Print", xml, true);
+                return;
+            }
+
             MissionScreen.Send(steamId, "Print", ToString(), true);
         }
     }

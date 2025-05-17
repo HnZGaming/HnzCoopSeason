@@ -13,7 +13,6 @@ namespace HnzCoopSeason.Utils.Hud
         string _text;
         double _scale;
         bool _active;
-        bool _dirty;
         double _height;
 
         public void Clear()
@@ -22,7 +21,6 @@ namespace HnzCoopSeason.Utils.Hud
             {
                 _message?.DeleteMessage();
                 _message = null;
-                _dirty = true;
             }
             catch (Exception e)
             {
@@ -38,11 +36,6 @@ namespace HnzCoopSeason.Utils.Hud
 
         public void Apply(string text, double scale = 1d, bool active = true)
         {
-            _dirty = false;
-            _dirty |= _text != text;
-            _dirty |= Math.Abs(_scale - scale) > 0.001;
-            _dirty |= _active != active;
-
             _text = text;
             _scale = scale;
             _active = active;
@@ -50,9 +43,6 @@ namespace HnzCoopSeason.Utils.Hud
 
         public double Render(double offset, bool forceHide = false)
         {
-            if (!_dirty && !forceHide) return _height;
-
-            _dirty = false;
             _message?.DeleteMessage();
 
             if (forceHide) return 0;

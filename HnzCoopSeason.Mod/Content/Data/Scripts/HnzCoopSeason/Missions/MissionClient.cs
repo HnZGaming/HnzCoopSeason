@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using HnzCoopSeason.Missions.MissionLogics;
+using HnzCoopSeason.Utils;
+using ProtoBuf;
 using Sandbox.ModAPI;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 
 namespace HnzCoopSeason.Missions
@@ -9,20 +12,30 @@ namespace HnzCoopSeason.Missions
     public sealed class MissionClient
     {
         public static readonly MissionClient Instance = new MissionClient();
-
         readonly Dictionary<long, Mission> _missions = new Dictionary<long, Mission>();
+        NetworkMessenger _submitMessenger;
+        NetworkMessenger _queryMessenger;
         IMissionLogic _selectedMission;
 
         public void Load()
         {
+            _submitMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionClient.Submit", OnSubmitMessageReceived);
+            _submitMessenger.Load();
+
+            _queryMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionClient.Query", OnQueryMessageReceived);
+            _queryMessenger.Load();
         }
 
         public void Unload()
         {
+            _submitMessenger.Unload();
+            _queryMessenger.Unload();
         }
 
         public void UpdateMissions(Mission[] missions)
         {
+            MyLog.Default.Info("[HnzCoopSeason] MissionClient.UpdateMissions()");
+            
             _missions.Clear();
             foreach (var mission in missions)
             {
@@ -59,7 +72,8 @@ namespace HnzCoopSeason.Missions
             try
             {
                 var mission = _missions[missionId];
-                _selectedMission = CreateClientMissionLogic(mission);
+                var player = MyAPIGateway.Session.LocalHumanPlayer;
+                _selectedMission = MissionUtils.CreateClientMissionLogic(mission, player);
 
                 MissionBlock missionBlock;
                 TryFindMissionBlockNearby(out missionBlock);
@@ -80,17 +94,32 @@ namespace HnzCoopSeason.Missions
 
         public void Submit()
         {
-            MissionService.Instance.Submit(_selectedMission.Mission.Id);
+            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+            MyLog.Default.Info("[HnzCoopSeason] MissionClient submitting");
+
+            var playerId = MyAPIGateway.Session.LocalHumanPlayer.IdentityId;
+            var missionId = _selectedMission.Mission.Id;
+            var level = _selectedMission.Mission.Level;
+            var payload = new SubmitPayload(playerId, level, missionId);
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
+            _submitMessenger.SendToServer(bytes);
         }
 
-        static IMissionLogic CreateClientMissionLogic(Mission mission)
+        void OnSubmitMessageReceived(ulong senderId, byte[] bytes)
         {
-            var player = MyAPIGateway.Session.LocalHumanPlayer;
-            switch (mission.Type)
-            {
-                case MissionType.Acquisition: return new AcquisitionMissionLogic(mission, player);
-                default: throw new InvalidOperationException();
-            }
+            var payload = MyAPIGateway.Utilities.SerializeFromBinary<SubmitPayload>(bytes);
+            MissionService.Instance.Submit(payload.MissionId, payload.Level, payload.PlayerId);
+        }
+
+        public void RequestUpdate()
+        {
+            MyLog.Default.Info("[HnzCoopSeason] MissionClient requesting update");
+            _queryMessenger.SendToServer(Array.Empty<byte>());
+        }
+
+        void OnQueryMessageReceived(ulong senderId, byte[] bytes)
+        {
+            MissionService.Instance.SendMissionsToClients(senderId);
         }
 
         static bool TryFindMissionBlockNearby(out MissionBlock missionBlock)
@@ -101,6 +130,35 @@ namespace HnzCoopSeason.Missions
             if (character == null) return false;
 
             return MissionUtils.TryGetMissionBlockNearby(character, out missionBlock);
+        }
+
+        [ProtoContract]
+        sealed class SubmitPayload
+        {
+            [ProtoMember(1)]
+            public long PlayerId;
+
+            [ProtoMember(2)]
+            public int Level;
+
+            [ProtoMember(3)]
+            public int MissionId;
+
+            public SubmitPayload()
+            {
+            }
+
+            public SubmitPayload(long playerId, int level, int missionId)
+            {
+                PlayerId = playerId;
+                Level = level;
+                MissionId = missionId;
+            }
+
+            public override string ToString()
+            {
+                return $"{nameof(PlayerId)}: {PlayerId}, {nameof(Level)}: {Level}, {nameof(MissionId)}: {MissionId}";
+            }
         }
     }
 }

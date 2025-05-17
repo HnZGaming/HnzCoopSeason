@@ -343,6 +343,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\LocalGpsCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\MathUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\MissionScreen.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\NetworkMessenger.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\OnlineCharacterCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\PlanetCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Hud\HudElement.cs" />

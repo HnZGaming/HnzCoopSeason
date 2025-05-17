@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using HnzCoopSeason.Missions.MissionLogics;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using VRage.Game.Entity;
+using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
 
@@ -38,6 +41,15 @@ namespace HnzCoopSeason.Missions
             if (block == null) return false;
 
             return block.BlockDefinition.SubtypeId == "CoopContractBlock";
+        }
+
+        public static IMissionLogic CreateClientMissionLogic(Mission mission, IMyPlayer player)
+        {
+            switch (mission.Type)
+            {
+                case MissionType.Acquisition: return new AcquisitionMissionLogic(mission, player);
+                default: throw new InvalidOperationException();
+            }
         }
     }
 }

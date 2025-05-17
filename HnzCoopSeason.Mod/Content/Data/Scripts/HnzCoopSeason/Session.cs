@@ -143,6 +143,7 @@ namespace HnzCoopSeason
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
                 ProgressionView.Instance.RequestUpdate();
+                MissionClient.Instance.RequestUpdate();
             }
 
             PoiMapView.Instance.FirstUpdate();

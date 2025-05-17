@@ -34,6 +34,9 @@ namespace HnzCoopSeason.Missions
 
         [ProtoIgnore]
         public double ProgressPercentage => (double)Progress / TotalProgress * 100;
+        
+        [ProtoIgnore]
+        public int RemainingProgress => TotalProgress - Progress;
 
         public Mission()
         {

@@ -109,7 +109,7 @@ namespace HnzCoopSeason.Missions
                 Text = "Acquisition",
             };
 
-            _submitLayout = new SubmitButtonElement(bodyBg)
+            _submitLayout = new SubmitButtonElement(body)
             {
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Bottom | ParentAlignments.Right,
             };
@@ -156,6 +156,8 @@ namespace HnzCoopSeason.Missions
                 element.OnClicked += OnMissionListElementClicked;
                 _missionList.Add(element);
             }
+
+            OnMissionListElementClicked(_lastSelectedMissionId ?? 0);
         }
 
         void OnMissionListElementClicked(long missionId)

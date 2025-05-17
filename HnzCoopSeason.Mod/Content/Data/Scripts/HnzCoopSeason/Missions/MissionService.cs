@@ -9,19 +9,20 @@ namespace HnzCoopSeason.Missions
     public sealed class MissionService
     {
         public static readonly MissionService Instance = new MissionService();
-        static readonly ushort ModKey = (ushort)"HnzCoopSeason.Missions.MissionService".GetHashCode();
 
+        NetworkMessenger _missionMessenger;
         List<Mission> _missions;
 
         public void Load()
         {
             _missions = new List<Mission>();
-            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(ModKey, OnMessageReceived);
+            _missionMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionService", OnMissionsReceived);
+            _missionMessenger.Load();
         }
 
         public void Unload()
         {
-            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
+            _missionMessenger.Unload();
         }
 
         public void UpdateMissionList() // server
@@ -73,33 +74,63 @@ namespace HnzCoopSeason.Missions
             SendMissionsToClients();
         }
 
-        public void Submit(long missionId)
+        public void Submit(int missionId, int level, long playerId)
         {
-            //todo impl
-        }
+            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
 
-        void SendMissionsToClients()
-        {
-            var bytes = MyAPIGateway.Utilities.SerializeToBinary(_missions);
-
-            switch (VRageUtils.NetworkType)
+            if (level != Session.Instance.GetProgressLevel())
             {
-                case NetworkType.DediServer:
-                    MyAPIGateway.Multiplayer.SendMessageToOthers(ModKey, bytes);
-                    break;
-                case NetworkType.DediClient:
-                    throw new InvalidOperationException();
-                case NetworkType.SinglePlayer:
-                    OnMessageReceived(ModKey, bytes, 0, false);
-                    break;
-                default:
-                    throw new InvalidOperationException();
+                MyLog.Default.Error($"[HnzCoopSeason] invalid level: {level}");
+                return;
+            }
+
+            try
+            {
+                var mission = _missions[missionId - 1];
+                var player = MyAPIGateway.Players.TryGetIdentityId(playerId);
+                var logic = MissionUtils.CreateClientMissionLogic(mission, player);
+
+                MissionBlock missionBlock;
+                MissionUtils.TryGetMissionBlockNearby(player.Character, out missionBlock);
+                logic.UpdateFull(missionBlock);
+
+                if (!logic.CanSubmit)
+                {
+                    MyLog.Default.Error("[HnzCoopSeason] unable to submit");
+                    return;
+                }
+
+                if (!logic.TryProcessSubmit())
+                {
+                    MyLog.Default.Error("[HnzCoopSeason] failed to submit");
+                    return;
+                }
+
+                mission.Progress += logic.DeltaProgress;
+
+                SendMissionsToClients();
+            }
+            catch (Exception e)
+            {
+                MyLog.Default.Error($"[HnzCoopSeason] failed to submit; error: {e}");
             }
         }
 
-        void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
+        public void SendMissionsToClients(ulong? receiverIdOrEveryone = null)
         {
-            if (modKey != ModKey) return;
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(_missions);
+            if (receiverIdOrEveryone.HasValue)
+            {
+                _missionMessenger.SendTo(receiverIdOrEveryone.Value, bytes);
+            }
+            else
+            {
+                _missionMessenger.SendToOthers(bytes);
+            }
+        }
+
+        void OnMissionsReceived(ulong steamId, byte[] bytes)
+        {
             var missions = MyAPIGateway.Utilities.SerializeFromBinary<Mission[]>(bytes);
             MissionClient.Instance.UpdateMissions(missions);
         }

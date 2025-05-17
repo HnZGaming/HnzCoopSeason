@@ -111,6 +111,8 @@ namespace HnzCoopSeason
                 {
                     OnMessageReceived(ModKey, bytes, 0, false);
                 }
+
+                MyLog.Default.Info($"[HnzCoopSeason] payload sent: {payload}");
             }
             else // update
             {
@@ -129,6 +131,7 @@ namespace HnzCoopSeason
 
         void UpdateTexts(Payload payload) // client
         {
+            MyLog.Default.Info($"[HnzCoopSeason] UpdateTexts({payload})");
             _progressElement.Apply(CreateProgressionBar(payload.Progress));
             _titleElement.Apply($"Peace Restoration Level: {payload.ProgressionLevel}", 1.2);
             _descriptionElement.Apply($"You need {payload.MinPoiPlayerCount} players to challenge Orks.", active: payload.MinPoiPlayerCount > 1);
@@ -181,6 +184,11 @@ namespace HnzCoopSeason
                 MinPoiPlayerCount = minPoiPlayerCount,
                 ProgressionLevel = progressionLevel
             };
+
+            public override string ToString()
+            {
+                return $"{nameof(Type)}: {Type}, {nameof(Progress)}: {Progress}, {nameof(MinPoiPlayerCount)}: {MinPoiPlayerCount}, {nameof(ProgressionLevel)}: {ProgressionLevel}";
+            }
         }
     }
 }

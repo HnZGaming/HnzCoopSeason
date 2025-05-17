@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
+using HnzCoopSeason.Missions;
 using Sandbox.ModAPI;
 using VRage.Utils;
 
@@ -53,11 +54,61 @@ namespace HnzCoopSeason
         [XmlArrayItem("Level")]
         public ProgressionLevelConfig[] ProgressionLevelsRaw =
         {
-            new ProgressionLevelConfig(1, 1),
-            new ProgressionLevelConfig(2, 1),
-            new ProgressionLevelConfig(3, 2),
-            new ProgressionLevelConfig(4, 3),
-            new ProgressionLevelConfig(5, 4),
+            new ProgressionLevelConfig(1, 1, new[]
+            {
+                new MissionConfig
+                {
+                    Type = MissionType.Acquisition,
+                    Title = "Unironically, not enough stones",
+                    Description = "Our pet bird just threw up due to a hangover the other day and she needs a bulk of stones to reset her gastroliths. Please collect as much as you can.",
+                    TotalProgress = 2400000,
+                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
+                },
+            }),
+            new ProgressionLevelConfig(2, 1, new[]
+            {
+                new MissionConfig
+                {
+                    Type = MissionType.Acquisition,
+                    Title = "Unironically, not enough stones",
+                    Description = "Our pet bird just threw up due to a hangover the other day and she needs a bulk of stones to reset her gastroliths. Please collect as much as you can.",
+                    TotalProgress = 2400000,
+                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
+                },
+            }),
+            new ProgressionLevelConfig(3, 2, new[]
+            {
+                new MissionConfig
+                {
+                    Type = MissionType.Acquisition,
+                    Title = "Unironically, not enough stones",
+                    Description = "Our pet bird just threw up due to a hangover the other day and she needs a bulk of stones to reset her gastroliths. Please collect as much as you can.",
+                    TotalProgress = 2400000,
+                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
+                },
+            }),
+            new ProgressionLevelConfig(4, 3, new[]
+            {
+                new MissionConfig
+                {
+                    Type = MissionType.Acquisition,
+                    Title = "Acquisition",
+                    Description = "Description",
+                    TotalProgress = 100,
+                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
+                },
+            }),
+            new ProgressionLevelConfig(5, 4, new[]
+            {
+                new MissionConfig
+                {
+                    Type = MissionType.Acquisition,
+                    Title = "Acquisition",
+                    Description = "Description",
+                    TotalProgress = 100,
+                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
+                },
+            }),
         };
 
         [XmlArray]

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml.Serialization;
+using HnzCoopSeason.Missions;
 
 namespace HnzCoopSeason
 {
@@ -12,14 +13,19 @@ namespace HnzCoopSeason
         [XmlAttribute]
         public int MinPlayerCount;
 
+        [XmlArray]
+        [XmlArrayItem("Mission")]
+        public MissionConfig[] Missions;
+
         public ProgressionLevelConfig()
         {
         }
 
-        public ProgressionLevelConfig(int level, int minPlayerCount)
+        public ProgressionLevelConfig(int level, int minPlayerCount, MissionConfig[] missions)
         {
             Level = level;
             MinPlayerCount = minPlayerCount;
+            Missions = missions;
         }
     }
 }

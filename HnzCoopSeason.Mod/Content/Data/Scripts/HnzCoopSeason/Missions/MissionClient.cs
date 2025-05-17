@@ -15,15 +15,13 @@ namespace HnzCoopSeason.Missions
 
         public void Load()
         {
-            MissionService.Instance.OnMissionsUpdated += OnMissionsUpdated;
         }
 
         public void Unload()
         {
-            MissionService.Instance.OnMissionsUpdated -= OnMissionsUpdated;
         }
 
-        void OnMissionsUpdated(Mission[] missions)
+        public void UpdateMissions(Mission[] missions)
         {
             _missions.Clear();
             foreach (var mission in missions)

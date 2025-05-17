@@ -108,7 +108,7 @@ namespace HnzCoopSeason
             {
                 ScreenTopHud.Instance.Close();
             }
-            
+
             // client
             if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
             {
@@ -123,12 +123,12 @@ namespace HnzCoopSeason
             MissionWindow.Instance.Unload();
         }
 
-        void LoadConfig()
+        void LoadConfig() //server
         {
             SessionConfig.Load();
             _poiMap.LoadConfig();
             ProgressionView.Instance.UpdateProgress();
-            MissionService.Instance.OnConfigLoad();
+            MissionService.Instance.UpdateMissionList();
         }
 
         void FirstUpdate()
@@ -224,6 +224,7 @@ namespace HnzCoopSeason
 
             ProgressionView.Instance.UpdateProgress();
             PoiMapView.Instance.OnPoiStateUpdated(); // gps hud
+            MissionService.Instance.UpdateMissionList();
 
             if (state == PoiState.Released)
             {

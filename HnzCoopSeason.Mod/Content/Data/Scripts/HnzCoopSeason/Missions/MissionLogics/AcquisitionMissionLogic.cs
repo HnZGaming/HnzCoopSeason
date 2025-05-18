@@ -33,9 +33,8 @@ namespace HnzCoopSeason.Missions.MissionLogics
 
         public Mission Mission { get; }
         public bool CanSubmit { get; private set; }
-        public string SubmitNote { get; private set; }
-        public string Status { get; private set; }
-        public int DeltaProgress => Math.Min(_itemAmount.ToIntSafe(), Mission.RemainingProgress);
+        public string SubmitNoteText { get; private set; }
+        public string StatusText { get; private set; }
 
         public void Update(MissionBlock missionBlockOrNotFound)
         {
@@ -46,7 +45,11 @@ namespace HnzCoopSeason.Missions.MissionLogics
         public void UpdateFull(MissionBlock missionBlockOrNotFound)
         {
             _itemAmount = 0;
-            Status = $"Status:\n - {_itemType.SubtypeId} [ {Mission.TotalProgress - Mission.Progress} ] units (total: {Mission.TotalProgress} units)";
+            StatusText = $@"
+Item type: {_itemType.SubtypeId}
+Total: {Mission.Goal} units in demand
+Status: {Mission.Progress} units submitted, [ {Mission.RemainingProgress} ] units in demand
+";
 
             _missionBlock = missionBlockOrNotFound;
             if (_missionBlock == null) return;
@@ -100,7 +103,7 @@ namespace HnzCoopSeason.Missions.MissionLogics
 
                 _itemAmount += item.Value.Amount;
                 _inventories.Add(inventory);
-                MyLog.Default.Info($"[HnzCoopSeason] item count: {_itemAmount}");
+                MyLog.Default.Info($"[HnzCoopSeason] AcquisitionMissionLogic item count: {_itemAmount}");
             }
         }
 
@@ -109,27 +112,28 @@ namespace HnzCoopSeason.Missions.MissionLogics
             if (_missionBlock == null)
             {
                 CanSubmit = false;
-                SubmitNote = MissionUtils.MissionBlockFar;
+                SubmitNoteText = MissionUtils.MissionBlockFar;
                 return;
             }
 
             if (_itemAmount == 0)
             {
                 CanSubmit = false;
-                SubmitNote = "No items in found in inventories";
+                SubmitNoteText = "No items in found in inventories";
                 return;
             }
 
             CanSubmit = true;
-            SubmitNote = $"Submitting [ {_itemAmount} ] units";
+            SubmitNoteText = $"Submitting [ {_itemAmount} ] units";
         }
 
-        public bool TryProcessSubmit()
+        public void ProcessSubmit()
         {
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
             MyLog.Default.Error($"[HnzCoopSeason] AcquisitionMissionLogic.ProcessSubmit(); inventories: {_inventories.Count}");
 
-            var remainingAmount = DeltaProgress;
+            var deltaProgress = Math.Min(_itemAmount.ToIntSafe(), Mission.RemainingProgress);
+            var remainingAmount = deltaProgress;
             foreach (var inventory in _inventories)
             {
                 var item = inventory.FindItem(_itemType);
@@ -139,12 +143,19 @@ namespace HnzCoopSeason.Missions.MissionLogics
                 var subtractedAmount = Math.Min(amount, remainingAmount);
                 inventory.RemoveItems(item.Value.ItemId, subtractedAmount);
                 remainingAmount -= subtractedAmount;
-                MyLog.Default.Info($"[HnzCoopSeason] Acquisition Mission processing submit: {inventory.Owner}, {amount}, {subtractedAmount}, {remainingAmount}");
+                MyLog.Default.Info($"[HnzCoopSeason] AcquisitionMissionLogic processing submit: {inventory.Owner}, {amount}, {subtractedAmount}, {remainingAmount}");
 
                 if (remainingAmount < 0) break;
             }
 
-            return remainingAmount == 0;
+            if (remainingAmount > 0)
+            {
+                MyLog.Default.Error("[HnzCoopSeason] AcquisitionMissionLogic failed to submit");
+                return;
+            }
+
+            var newProgress = Mission.Progress + deltaProgress;
+            MissionService.Instance.UpdateMission(Mission.Level, Mission.Id, newProgress);
         }
     }
 }

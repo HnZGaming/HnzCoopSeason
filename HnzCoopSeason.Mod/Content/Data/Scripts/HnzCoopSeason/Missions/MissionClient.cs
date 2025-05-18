@@ -57,7 +57,7 @@ namespace HnzCoopSeason.Missions
             _selectedMission.Update(missionBlock);
 
             MissionWindow.Instance.SetSubmitEnabled(_selectedMission.CanSubmit);
-            MissionWindow.Instance.SetSubmitNote(_selectedMission.SubmitNote);
+            MissionWindow.Instance.SetSubmitNote(_selectedMission.SubmitNoteText);
         }
 
         public void SelectMission(long missionId)
@@ -80,9 +80,9 @@ namespace HnzCoopSeason.Missions
                 _selectedMission.UpdateFull(missionBlock);
 
                 MissionWindow.Instance.OnMissionSelected(mission);
-                MissionWindow.Instance.SetStatus(_selectedMission.Status);
+                MissionWindow.Instance.SetStatus(_selectedMission.StatusText);
                 MissionWindow.Instance.SetSubmitEnabled(_selectedMission.CanSubmit);
-                MissionWindow.Instance.SetSubmitNote(_selectedMission.SubmitNote);
+                MissionWindow.Instance.SetSubmitNote(_selectedMission.SubmitNoteText);
             }
             catch (Exception e)
             {
@@ -119,7 +119,7 @@ namespace HnzCoopSeason.Missions
 
         void OnQueryMessageReceived(ulong senderId, byte[] bytes)
         {
-            MissionService.Instance.SendMissionsToClients(senderId);
+            MissionService.Instance.SendMissionsToPlayers(senderId);
         }
 
         static bool TryFindMissionBlockNearby(out MissionBlock missionBlock)

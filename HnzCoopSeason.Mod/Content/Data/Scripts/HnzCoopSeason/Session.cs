@@ -128,7 +128,7 @@ namespace HnzCoopSeason
             SessionConfig.Load();
             _poiMap.LoadConfig();
             ProgressionView.Instance.UpdateProgress();
-            MissionService.Instance.UpdateMissionList();
+            MissionService.Instance.UpdateMissions();
         }
 
         void FirstUpdate()
@@ -225,7 +225,7 @@ namespace HnzCoopSeason
 
             ProgressionView.Instance.UpdateProgress();
             PoiMapView.Instance.OnPoiStateUpdated(); // gps hud
-            MissionService.Instance.UpdateMissionList();
+            MissionService.Instance.UpdateMissions();
 
             if (state == PoiState.Released)
             {

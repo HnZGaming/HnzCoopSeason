@@ -4,12 +4,11 @@
     {
         Mission Mission { get; }
         bool CanSubmit { get; }
-        string SubmitNote { get; }
-        string Status { get; }
-        int DeltaProgress { get; }
+        string SubmitNoteText { get; }
+        string StatusText { get; }
 
         void Update(MissionBlock missionBlockOrNotFound);
         void UpdateFull(MissionBlock missionBlockOrNotFound);
-        bool TryProcessSubmit(); // server only
+        void ProcessSubmit(); // server only
     }
 }

@@ -16,14 +16,14 @@ namespace HnzCoopSeason.Missions
         public string Description;
 
         [XmlElement]
-        public int TotalProgress;
+        public int Goal;
 
         [XmlElement]
         public string AcquisitionItemType;
 
         public override string ToString()
         {
-            return $"MissionConfig({nameof(Type)}: {Type}, {nameof(Title)}: {Title}, {nameof(Description)}: {Description}, {nameof(TotalProgress)}: {TotalProgress}, {nameof(AcquisitionItemType)}: {AcquisitionItemType})";
+            return $"MissionConfig({nameof(Type)}: {Type}, {nameof(Title)}: {Title}, {nameof(Description)}: {Description}, {nameof(Goal)}: {Goal}, {nameof(AcquisitionItemType)}: {AcquisitionItemType})";
         }
     }
 }

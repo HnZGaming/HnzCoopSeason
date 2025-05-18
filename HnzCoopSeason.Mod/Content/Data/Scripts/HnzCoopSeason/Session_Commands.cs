@@ -189,7 +189,7 @@ namespace HnzCoopSeason
         void Command_ListMission(string args, ulong steamId)
         {
             var level = int.Parse(args);
-            var missions = MissionService.Instance.GetMissions(level);
+            var missions = MissionService.ReadMissions(level);
             var xml = MyAPIGateway.Utilities.SerializeToXML(missions);
             MissionScreen.Send(steamId, "Missions", xml, true);
         }
@@ -200,7 +200,7 @@ namespace HnzCoopSeason
             var level = int.Parse(parts[0]);
             var id = int.Parse(parts[1]);
             var progress = int.Parse(parts[2]);
-            MissionService.Instance.UpdateMissionProgress(level, id, progress);
+            MissionService.Instance.UpdateMission(level, id, progress);
             SendMessage(steamId, Color.White, $"done: {level}, {id}, {progress}");
         }
 

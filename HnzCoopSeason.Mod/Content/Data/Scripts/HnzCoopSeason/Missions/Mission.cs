@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Xml.Serialization;
 using ProtoBuf;
 
 namespace HnzCoopSeason.Missions
@@ -23,20 +22,19 @@ namespace HnzCoopSeason.Missions
         public string Description;
 
         [ProtoMember(6)]
-        [XmlElement]
         public int Progress;
 
         [ProtoMember(7)]
-        public int TotalProgress;
+        public int Goal;
 
         [ProtoMember(8)]
         public string AcquisitionItemType;
 
         [ProtoIgnore]
-        public double ProgressPercentage => (double)Progress / TotalProgress * 100;
+        public double ProgressPercentage => (double)Progress / Goal * 100;
         
         [ProtoIgnore]
-        public int RemainingProgress => TotalProgress - Progress;
+        public int RemainingProgress => Goal - Progress;
 
         public Mission()
         {
@@ -50,7 +48,7 @@ namespace HnzCoopSeason.Missions
             Title = config.Title;
             Description = config.Description;
             Progress = progress;
-            TotalProgress = config.TotalProgress;
+            Goal = config.Goal;
             AcquisitionItemType = config.AcquisitionItemType;
         }
     }

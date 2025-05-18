@@ -202,7 +202,7 @@ namespace HnzCoopSeason.Missions
 
         public void SetStatus(string status)
         {
-            _statusLabel.Text = status;
+            _statusLabel.Text = status.Trim();
         }
     }
 }

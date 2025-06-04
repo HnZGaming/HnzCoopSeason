@@ -131,6 +131,7 @@
     </ItemGroup>
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\IPoi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcHudReticle.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NpcHud.cs" />
@@ -323,7 +324,6 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\StoreItemConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Commands\Command.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Commands\CommandModule.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\FlashGps.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Hud\ScreenTopHud.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\Interval.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Utils\LangUtils.cs" />

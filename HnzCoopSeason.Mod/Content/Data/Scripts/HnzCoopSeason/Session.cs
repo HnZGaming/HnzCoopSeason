@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using FlashGps;
 using MES;
 using HnzCoopSeason.Utils;
 using HnzCoopSeason.Utils.Commands;
@@ -40,7 +41,6 @@ namespace HnzCoopSeason
             PoiMapDebugView.Load();
             PoiSpectatorCamera.Load();
             PoiMapView.Instance.Load();
-            FlashGps.Instance.Load();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -72,7 +72,6 @@ namespace HnzCoopSeason
             MissionScreen.Unload();
             PoiSpectatorCamera.Unload();
             PoiMapView.Instance.Unload();
-            FlashGps.Instance.Unload();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -150,7 +149,6 @@ namespace HnzCoopSeason
             }
 
             PoiMapView.Instance.Update();
-            FlashGps.Instance.Update();
         }
 
         public float GetProgress()
@@ -232,7 +230,7 @@ namespace HnzCoopSeason
         void OnPoiDiscovered(string name, Vector3D position)
         {
             MyVisualScriptLogicProvider.ShowNotificationToAll("Someone just discovered something!", 10000);
-            FlashGps.Instance.Send(new FlashGps.Entry
+            FlashGpsApi.Send(new FlashGpsApi.Entry
             {
                 Id = "POI Discovery".GetHashCode(),
                 Name = $"{name} Discovery",
@@ -245,7 +243,7 @@ namespace HnzCoopSeason
         void OnPoiReleased(string poiId, Vector3D position)
         {
             MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have been defeated!", 10000);
-            FlashGps.Instance.Send(new FlashGps.Entry
+            FlashGpsApi.Send(new FlashGpsApi.Entry
             {
                 Id = "POI Release".GetHashCode(),
                 Name = "Orks Defeated",

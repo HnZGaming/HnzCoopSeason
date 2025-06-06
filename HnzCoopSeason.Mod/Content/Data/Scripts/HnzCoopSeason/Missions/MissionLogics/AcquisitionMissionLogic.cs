@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HnzCoopSeason.Utils;
-using HnzCoopSeason.Utils.Pools;
+using HnzUtils;
+using HnzUtils.Pools;
 using Sandbox.ModAPI;
 using VRage;
 using VRage.Game.ModAPI;

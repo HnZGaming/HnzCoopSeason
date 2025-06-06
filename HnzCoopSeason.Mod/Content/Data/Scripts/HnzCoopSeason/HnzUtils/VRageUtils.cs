@@ -10,7 +10,7 @@ using VRage.ModAPI;
 using VRage.ObjectBuilders;
 using VRageMath;
 
-namespace HnzCoopSeason.Utils
+namespace HnzUtils
 {
     public static class VRageUtils
     {

@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace HnzCoopSeason.Utils.Pools
+namespace HnzUtils.Pools
 {
     public sealed class ListPool<T> : Pool<List<T>>
     {

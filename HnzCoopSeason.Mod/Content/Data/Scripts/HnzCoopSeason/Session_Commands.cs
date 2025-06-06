@@ -2,8 +2,8 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using HnzCoopSeason.Missions;
-using HnzCoopSeason.Utils;
-using HnzCoopSeason.Utils.Commands;
+using HnzUtils;
+using HnzUtils.Commands;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;

@@ -5,7 +5,7 @@ using VRage.Utils;
 using VRageMath;
 using VRageRender;
 
-namespace HnzCoopSeason.Utils.Hud
+namespace HnzCoopSeason.HudUtils
 {
     public sealed class HudElement
     {

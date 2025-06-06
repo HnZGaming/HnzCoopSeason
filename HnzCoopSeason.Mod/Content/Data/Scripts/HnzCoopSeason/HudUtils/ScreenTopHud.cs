@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace HnzCoopSeason.Utils.Hud
+namespace HnzCoopSeason.HudUtils
 {
     public sealed class ScreenTopHud
     {

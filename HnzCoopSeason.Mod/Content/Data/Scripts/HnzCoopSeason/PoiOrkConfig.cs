@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Xml.Serialization;
-using HnzCoopSeason.Utils;
+using HnzUtils;
 
 namespace HnzCoopSeason
 {

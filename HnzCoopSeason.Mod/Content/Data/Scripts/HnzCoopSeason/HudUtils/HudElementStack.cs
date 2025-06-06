@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace HnzCoopSeason.Utils.Hud
+namespace HnzCoopSeason.HudUtils
 {
     public sealed class HudElementStack
     {

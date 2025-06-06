@@ -6,33 +6,35 @@ using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason.Utils.Commands
+namespace HnzUtils.Commands
 {
     public sealed class CommandModule
     {
-        public delegate void Callback(string args, ulong steamId);
-
-        static readonly ushort MessageHandlerId = (ushort)"HnzCoopSeason.CommandModule".GetHashCode();
-
+        public delegate void SendMessageDelegate(ulong steamId, Color color, string message);
+        
+        readonly ushort _messageHandlerId;
         readonly string _prefix;
         readonly List<Command> _commands;
 
-        public CommandModule(string prefix)
+        public CommandModule(ushort messageHandlerId, string prefix)
         {
+            _messageHandlerId = messageHandlerId;
             _prefix = prefix;
             _commands = new List<Command>();
         }
 
+        public event SendMessageDelegate SendMessage;
+
         public void Load()
         {
             MyAPIGateway.Utilities.MessageEnteredSender += OnMessageEntered;
-            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(MessageHandlerId, OnCommandPayloadReceived);
+            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(_messageHandlerId, OnCommandPayloadReceived);
         }
 
         public void Unload()
         {
             MyAPIGateway.Utilities.MessageEnteredSender -= OnMessageEntered;
-            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(MessageHandlerId, OnCommandPayloadReceived);
+            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(_messageHandlerId, OnCommandPayloadReceived);
             _commands.Clear();
         }
 
@@ -61,7 +63,7 @@ namespace HnzCoopSeason.Utils.Commands
                 else
                 {
                     var data = Encoding.UTF8.GetBytes(body);
-                    MyAPIGateway.Multiplayer.SendMessageToServer(MessageHandlerId, data);
+                    MyAPIGateway.Multiplayer.SendMessageToServer(_messageHandlerId, data);
                     MyLog.Default.Info($"[HnzCoopSeason] command (client) sent to server: {body}");
                 }
 
@@ -98,13 +100,13 @@ namespace HnzCoopSeason.Utils.Commands
         {
             if (!ValidateLevel(sender, command.Level))
             {
-                Session.SendMessage(sender, Color.Red, "Insufficient promote level");
+                SendMessage?.Invoke(sender, Color.Red, "Insufficient promote level");
                 return;
             }
 
             if (body.Contains("--help") || body.Contains("-h"))
             {
-                Session.SendMessage(sender, Color.White, command.Help);
+                SendMessage?.Invoke(sender, Color.White, command.Help);
                 return;
             }
 
@@ -116,7 +118,7 @@ namespace HnzCoopSeason.Utils.Commands
             catch (Exception e)
             {
                 MyLog.Default.Error($"[HnzCoopSeason] command {_prefix} {command.Head}: {command.Head} error: {e}");
-                Session.SendMessage(sender, Color.Red, "Error. Please talk to administrators.");
+                SendMessage?.Invoke(sender, Color.Red, "Error. Please talk to administrators.");
             }
         }
 

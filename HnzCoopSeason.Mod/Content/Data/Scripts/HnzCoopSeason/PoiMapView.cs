@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HnzCoopSeason.Utils;
+using HnzUtils;
 using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;

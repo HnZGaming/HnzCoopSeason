@@ -3,7 +3,7 @@ using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace HnzCoopSeason.Utils
+namespace HnzUtils
 {
     public static class OnlineCharacterCollection
     {

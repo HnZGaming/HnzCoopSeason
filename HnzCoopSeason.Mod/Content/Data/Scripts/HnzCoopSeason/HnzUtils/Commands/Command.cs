@@ -1,10 +1,12 @@
 ﻿using VRage.Game.ModAPI;
 
-namespace HnzCoopSeason.Utils.Commands
+namespace HnzUtils.Commands
 {
     public sealed class Command
     {
-        public Command(string head, bool local, MyPromoteLevel level, CommandModule.Callback callback, string help)
+        public delegate void CommandCallback(string args, ulong steamId);
+
+        public Command(string head, bool local, MyPromoteLevel level, CommandCallback callback, string help)
         {
             Head = head;
             Local = local;
@@ -17,6 +19,6 @@ namespace HnzCoopSeason.Utils.Commands
         public bool Local { get; }
         public string Help { get; }
         public MyPromoteLevel Level { get; }
-        public CommandModule.Callback Callback { get; }
+        public CommandCallback Callback { get; }
     }
 }

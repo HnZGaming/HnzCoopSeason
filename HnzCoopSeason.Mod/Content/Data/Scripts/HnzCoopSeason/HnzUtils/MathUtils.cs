@@ -2,7 +2,7 @@
 using VRage.Library.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason.Utils
+namespace HnzUtils
 {
     public static class MathUtils
     {

@@ -1,7 +1,6 @@
-﻿using System;
-using Sandbox.ModAPI;
+﻿using Sandbox.ModAPI;
 
-namespace HnzCoopSeason.Utils
+namespace HnzUtils
 {
     public sealed class Interval
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace HnzCoopSeason.Utils.Pools
+namespace HnzUtils.Pools
 {
     public class Pool<T>
     {

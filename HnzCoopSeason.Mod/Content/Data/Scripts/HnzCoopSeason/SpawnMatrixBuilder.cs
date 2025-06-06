@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using HnzCoopSeason.Utils;
+using HnzUtils;
 using Sandbox.Game.Entities;
 using VRage.Game.Entity;
 using VRageMath;

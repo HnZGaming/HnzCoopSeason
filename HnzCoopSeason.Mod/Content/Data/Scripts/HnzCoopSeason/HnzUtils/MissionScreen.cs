@@ -3,7 +3,7 @@ using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 
-namespace HnzCoopSeason.Utils
+namespace HnzUtils
 {
     public static class MissionScreen
     {
@@ -24,7 +24,7 @@ namespace HnzCoopSeason.Utils
         {
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(title, message, clipboard));
             MyAPIGateway.Multiplayer.SendMessageTo(_modKey, bytes, steamId, true);
-            MyLog.Default.Debug("[HnzCoopSeason] screen message sent");
+            MyLog.Default.Debug("[HnzUtils] screen message sent");
         }
 
         static void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
@@ -39,7 +39,7 @@ namespace HnzCoopSeason.Utils
                 currentObjectivePrefix: "",
                 okButtonCaption: "Copy to clipboard",
                 callback: r => Callback(payload, r));
-            MyLog.Default.Debug("[HnzCoopSeason] screen message received");
+            MyLog.Default.Debug("[HnzUtils] screen message received");
         }
 
         static void Callback(Payload payload, ResultEnum result)
@@ -48,7 +48,7 @@ namespace HnzCoopSeason.Utils
             if (result != ResultEnum.OK) return;
 
             MyClipboardHelper.SetClipboard(payload.Message);
-            MyLog.Default.Info("[HnzCoopSeason] set message to clipboard");
+            MyLog.Default.Info("[HnzUtils] set message to clipboard");
         }
 
         [ProtoContract]

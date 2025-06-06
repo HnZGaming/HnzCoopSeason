@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using HnzCoopSeason.Missions;
 using FlashGps;
+using HnzCoopSeason.HudUtils;
 using MES;
-using HnzCoopSeason.Utils;
-using HnzCoopSeason.Utils.Commands;
-using HnzCoopSeason.Utils.Hud;
+using HnzUtils;
+using HnzUtils.Commands;
 using HudAPI;
 using Sandbox.Game;
 using Sandbox.ModAPI;
@@ -29,13 +29,14 @@ namespace HnzCoopSeason
 
         public override void LoadData()
         {
-            MyLog.Default.Info("[HnzCoopSeason] session loading");
+            MyLog.Default.Info("[HnzUtils] session loading");
             base.LoadData();
             Instance = this;
 
             _api = new HudAPIv2();
 
-            _commandModule = new CommandModule("coop");
+            _commandModule = new CommandModule((ushort)"HnzCoopSeason.CommandModule".GetHashCode(), "coop");
+            _commandModule.SendMessage += SendMessage;
             _commandModule.Load();
             InitializeCommands();
 
@@ -67,7 +68,7 @@ namespace HnzCoopSeason
             ProgressionView.Instance.Load();
             NpcHud.Instance.Load();
 
-            MyLog.Default.Info("[HnzCoopSeason] session loaded");
+            MyLog.Default.Info("[HnzUtils] session loaded");
         }
 
         void RichHudInit() // client
@@ -77,11 +78,12 @@ namespace HnzCoopSeason
 
         protected override void UnloadData()
         {
-            MyLog.Default.Info("[HnzCoopSeason] session unloading");
+            MyLog.Default.Info("[HnzUtils] session unloading");
             base.UnloadData();
 
             _api = null;
 
+            _commandModule.SendMessage -= SendMessage;
             _commandModule.Unload();
             PoiMapDebugView.Unload();
             MissionScreen.Unload();
@@ -115,7 +117,7 @@ namespace HnzCoopSeason
                 MissionClient.Instance.Unload();
             }
 
-            MyLog.Default.Info("[HnzCoopSeason] session unloaded");
+            MyLog.Default.Info("[HnzUtils] session unloaded");
         }
 
         void RichHudClosed() // client
@@ -216,7 +218,7 @@ namespace HnzCoopSeason
             _poiMap.OnPoiStateChanged();
 
             MyLog.Default.Info(
-                "[HnzCoopSeason] poi state changed: {0}, {1} / {2}, progress: {3:0.0}%, level: {4}",
+                "[HnzUtils] poi state changed: {0}, {1} / {2}, progress: {3:0.0}%, level: {4}",
                 poiId,
                 _poiMap.GetReleasedPoiCount(),
                 _poiMap.AllPois.Count,

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FlashGps;
-using HnzCoopSeason.Utils;
+using HnzUtils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;

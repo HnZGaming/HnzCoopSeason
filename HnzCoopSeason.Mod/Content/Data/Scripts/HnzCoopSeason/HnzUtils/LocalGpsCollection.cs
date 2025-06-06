@@ -4,7 +4,7 @@ using System.Linq;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 
-namespace HnzCoopSeason.Utils
+namespace HnzUtils
 {
     public sealed class LocalGpsCollection<K> : IEnumerable<IMyGps>
     {

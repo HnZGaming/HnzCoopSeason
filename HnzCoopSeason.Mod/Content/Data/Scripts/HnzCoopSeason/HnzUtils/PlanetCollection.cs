@@ -4,7 +4,7 @@ using Sandbox.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
 
-namespace HnzCoopSeason.Utils
+namespace HnzUtils
 {
     public static class PlanetCollection
     {

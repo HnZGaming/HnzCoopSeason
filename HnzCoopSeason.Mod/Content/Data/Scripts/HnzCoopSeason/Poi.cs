@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using HnzCoopSeason.Utils;
+using HnzUtils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Serialization;
@@ -41,7 +41,7 @@ namespace HnzCoopSeason
             }
 
             var builder = data.Dictionary;
-            var state = (PoiState)builder.GetValueOrDefault(nameof(State), (int)PoiState.Occupied);
+            var state = (PoiState)DictionaryExtensions.GetValueOrDefault(builder, nameof(State), (int)PoiState.Occupied);
 
             SetState(state, true);
         }

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using HnzCoopSeason.Utils;
-using HnzCoopSeason.Utils.Hud;
-using HnzCoopSeason.Utils.Pools;
+using HnzCoopSeason.HudUtils;
+using HnzUtils;
+using HnzUtils.Pools;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using VRage.Game.Entity;

@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using HnzCoopSeason.Utils;
+using HnzUtils;
 using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Game;
 using Sandbox.ModAPI;

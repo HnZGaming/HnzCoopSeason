@@ -33,6 +33,7 @@ namespace HnzCoopSeason
         CommandModule _commandModule;
         bool _doneFirstUpdate;
         HudAPIv2 _api;
+        DatapadInserter _dataPadInserter;
 
         public override void LoadData()
         {
@@ -60,9 +61,11 @@ namespace HnzCoopSeason
 
                 MESApi.Load();
                 PlanetCollection.Load();
-                RespawnPodManipulator.Load();
                 PoiRandomInvasion.Instance.Load();
                 RevengeOrkManager.Instance.Load();
+
+                _dataPadInserter = new DatapadInserter("COOP");
+                _dataPadInserter.Load(TryCreateDatapadData);
             }
 
             // client
@@ -105,7 +108,7 @@ namespace HnzCoopSeason
                 PlanetCollection.Unload();
                 _poiMap.Unload();
                 OnlineCharacterCollection.Unload();
-                RespawnPodManipulator.Unload();
+                _dataPadInserter?.Unload();
                 PoiRandomInvasion.Instance.Unload();
                 RevengeOrkManager.Instance.Unload();
             }
@@ -323,6 +326,25 @@ namespace HnzCoopSeason
 
             position = Vector3D.Zero;
             return false;
+        }
+
+        bool TryCreateDatapadData(IMyCubeGrid grid, out string data)
+        {
+            var closestPoi = GetAllPois()
+                .Where(p => p.IsPlanetary)
+                .OrderBy(p => Vector3D.Distance(p.Position, grid.GetPosition()))
+                .FirstOrDefault();
+
+            if (closestPoi == null)
+            {
+                MyLog.Default.Warning("[HnzUtils] POI not found for datapad");
+                data = null;
+                return false;
+            }
+
+            var gps = VRageUtils.FormatGps("Something", closestPoi.Position, "FFFFFF");
+            data = string.Format(SessionConfig.Instance.RespawnDatapadTextFormat, gps);
+            return true;
         }
 
         public override string ToString()

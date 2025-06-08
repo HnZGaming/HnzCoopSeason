@@ -144,6 +144,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\PlanetCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\Pools\ListPool.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\Pools\Pool.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\DatapadInserter.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\VRageUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Merchants\PoiMerchant.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Merchants\PoiMerchantConfig.cs" />
@@ -343,7 +344,6 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MES\MESApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\MES\NpcData.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\ProgressionView.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\RespawnPodManipulator.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\SessionConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Session.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Session_Commands.cs" />

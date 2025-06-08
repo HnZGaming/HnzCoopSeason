@@ -115,6 +115,19 @@ namespace HnzCoopSeason.Merchants
             }
         }
 
+        bool IPoiObserver.TryGetPosition(out Vector3D position)
+        {
+            var hasGrid = _grid != null && !_grid.Closed;
+            if (hasGrid && _poiState == PoiState.Released)
+            {
+                position = _grid.GetPosition();
+                return true;
+            }
+
+            position = default(Vector3D);
+            return false;
+        }
+
         public void Spawn(int configIndex)
         {
             MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} Spawn()");

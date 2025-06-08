@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using FlashGps;
-using HnzCoopSeason.NPC;
 using HnzCoopSeason.POI;
 using HnzCoopSeason.Spawners;
 using HnzUtils;
@@ -19,6 +18,7 @@ namespace HnzCoopSeason.Orks
         readonly MesEncounter _encounter;
         readonly PoiOrkConfig[] _configs;
         IMyCubeGrid _mainGrid;
+        PoiState _poiState;
 
         public PoiOrk(string poiId, Vector3D position, PoiOrkConfig[] configs)
         {
@@ -69,9 +69,25 @@ namespace HnzCoopSeason.Orks
 
         void IPoiObserver.OnStateChanged(PoiState state)
         {
+            _poiState = state;
+
             _encounter.SetActive(
                 state == PoiState.Occupied ||
                 state == PoiState.Invaded);
+        }
+
+        bool IPoiObserver.TryGetPosition(out Vector3D position)
+        {
+            var hasOrkState = _poiState == PoiState.Occupied || _poiState == PoiState.Invaded;
+            var hasGrid = _mainGrid != null && !_mainGrid.Closed;
+            if (hasOrkState && hasGrid)
+            {
+                position = _mainGrid.GetPosition();
+                return true;
+            }
+
+            position = Vector3D.Zero;
+            return false;
         }
 
         void OnMainGridSet(IMyCubeGrid grid)
@@ -105,10 +121,7 @@ namespace HnzCoopSeason.Orks
         {
             if (grid == null) return; // potential crash cause
 
-            PoiState state;
-            if (!Session.Instance.TryGetPoiState(_poiId, out state)) return; // shouldn't happen
-
-            if (state == PoiState.Released) return;
+            if (_poiState == PoiState.Released) return;
             if (!CoopGrids.IsTakenOver(grid)) return;
 
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} defeated by players");
@@ -131,8 +144,7 @@ namespace HnzCoopSeason.Orks
 
         int GetMinPlayerCount()
         {
-            PoiState state;
-            if (Session.Instance.TryGetPoiState(_poiId, out state) && state == PoiState.Invaded) return 1;
+            if (_poiState == PoiState.Invaded) return 1;
 
             var progressLevel = GetProgressLevel();
             return SessionConfig.Instance.ProgressionLevels[progressLevel].MinPlayerCount;
@@ -164,8 +176,7 @@ namespace HnzCoopSeason.Orks
             var sessionLevel = Session.Instance.GetProgressLevel();
 
             // invasion
-            PoiState state;
-            if (Session.Instance.TryGetPoiState(_poiId, out state) && state == PoiState.Invaded)
+            if (_poiState == PoiState.Invaded)
             {
                 return Math.Max(1, sessionLevel - 2);
             }

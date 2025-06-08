@@ -74,17 +74,7 @@ namespace HnzCoopSeason.POI
 
         void SendMarkersToClient(ulong steamId)
         {
-            IMyPlayer player;
-            if (MyAPIGateway.Utilities.IsDedicated) // server
-            {
-                var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
-                player = MyAPIGateway.Players.TryGetIdentityId(playerId);
-            }
-            else // single player
-            {
-                player = MyAPIGateway.Session.LocalHumanPlayer;
-            }
-
+            var player = GetPlayer(steamId);
             if (player == null)
             {
                 MyLog.Default.Error($"[HnzCoopSeason] PoiMapView player not found: {steamId}");
@@ -106,7 +96,8 @@ namespace HnzCoopSeason.POI
             var markers = new List<Marker>();
             foreach (var poi in pois)
             {
-                markers.Add(new Marker(poi.Id, poi.Position, poi.State));
+                var position = poi.GetEntityPosition();
+                markers.Add(new Marker(poi.Id, position, poi.State));
             }
 
             MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending response");
@@ -174,6 +165,19 @@ namespace HnzCoopSeason.POI
             gps.Coords = position;
             gps.GPSColor = color;
             gps.Description = description;
+        }
+
+        static IMyPlayer GetPlayer(ulong steamId)
+        {
+            // single player
+            if (!MyAPIGateway.Utilities.IsDedicated)
+            {
+                return MyAPIGateway.Session.LocalHumanPlayer;
+            }
+
+            // server
+            var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
+            return MyAPIGateway.Players.TryGetIdentityId(playerId);
         }
 
         [ProtoContract]

@@ -4,6 +4,7 @@ using System.Linq;
 using HnzCoopSeason.Missions;
 using FlashGps;
 using HnzCoopSeason.HudUtils;
+using HnzCoopSeason.Missions.Hud;
 using HnzCoopSeason.NPC;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;

@@ -1,4 +1,5 @@
-﻿using VRage.Game.Entity.UseObject;
+﻿using HnzCoopSeason.Missions.Hud;
+using VRage.Game.Entity.UseObject;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 

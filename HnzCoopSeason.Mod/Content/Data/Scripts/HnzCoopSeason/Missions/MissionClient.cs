@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HnzCoopSeason.Missions.Hud;
 using HnzUtils;
 using ProtoBuf;
 using Sandbox.ModAPI;

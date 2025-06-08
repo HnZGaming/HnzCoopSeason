@@ -8,7 +8,7 @@ using VRage.Input;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason.Missions
+namespace HnzCoopSeason.Missions.Hud
 {
     /// <summary>
     ///     Example Text Editor window

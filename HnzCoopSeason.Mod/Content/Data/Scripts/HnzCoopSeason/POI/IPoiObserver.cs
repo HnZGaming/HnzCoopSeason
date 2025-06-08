@@ -1,6 +1,6 @@
 ﻿using VRage.Game.ModAPI;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.POI
 {
     public interface IPoiObserver
     {

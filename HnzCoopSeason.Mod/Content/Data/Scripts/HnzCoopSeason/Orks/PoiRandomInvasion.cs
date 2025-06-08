@@ -1,10 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
+using HnzCoopSeason.POI;
 using Sandbox.ModAPI;
 using VRage.Library.Utils;
 using VRage.Utils;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Orks
 {
     public sealed class PoiRandomInvasion
     {

@@ -1,39 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using HnzUtils;
 using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.POI
 {
-    public static class PoiMapDebugView
+    public class PoiMapDebugView
     {
-        static readonly ushort ModKey = (ushort)"HnzCoopSeason.PoiMapDebugView".GetHashCode();
-        static readonly HashSet<IMyGps> _localGpsSet;
+        public static readonly PoiMapDebugView Instance = new PoiMapDebugView();
+        readonly NetworkMessenger _messenger;
+        readonly HashSet<IMyGps> _localGpsSet;
 
-        static PoiMapDebugView()
+        PoiMapDebugView()
         {
+            _messenger = new NetworkMessenger("HnzCoopSeason.PoiMapDebugView");
             _localGpsSet = new HashSet<IMyGps>();
         }
 
-        public static void Load()
+        public void Load()
         {
-            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(ModKey, OnMessageReceived);
+            _messenger.Load(OnMessageReceived);
         }
 
-        public static void Unload()
+        public void Unload()
         {
+            _messenger.Unload();
             _localGpsSet.Clear();
-            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
         }
 
-        public static void RemoveAll(ulong steamId)
+        public void RemoveAll(ulong steamId)
         {
             ReplaceAll(steamId, Array.Empty<Poi>());
         }
 
-        public static void ReplaceAll(ulong steamId, IEnumerable<IPoi> pois)
+        public void ReplaceAll(ulong steamId, IEnumerable<IPoi> pois)
         {
             var gpsList = new List<Gps>();
             foreach (var p in pois)
@@ -42,13 +45,11 @@ namespace HnzCoopSeason
             }
 
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(gpsList));
-            MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, steamId, true);
+            _messenger.SendTo(steamId, bytes);
         }
 
-        static void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
+        void OnMessageReceived(ulong senderId, byte[] bytes)
         {
-            if (modKey != ModKey) return;
-
             foreach (var g in _localGpsSet)
             {
                 MyAPIGateway.Session.GPS.RemoveLocalGps(g);

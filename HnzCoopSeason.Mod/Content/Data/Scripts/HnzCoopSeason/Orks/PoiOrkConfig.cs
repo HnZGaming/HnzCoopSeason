@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Xml.Serialization;
+using HnzCoopSeason.Spawners;
 using HnzUtils;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Orks
 {
     [Serializable]
     public sealed class PoiOrkConfig

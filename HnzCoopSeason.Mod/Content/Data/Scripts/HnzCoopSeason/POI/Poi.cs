@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HnzUtils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
@@ -7,7 +6,7 @@ using VRage.Serialization;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.POI
 {
     public sealed class Poi : IPoi
     {
@@ -42,6 +41,11 @@ namespace HnzCoopSeason
 
             var builder = data.Dictionary;
             var state = (PoiState)DictionaryExtensions.GetValueOrDefault(builder, nameof(State), (int)PoiState.Occupied);
+            if ((int)state >= 3)
+            {
+                state = PoiState.Occupied;
+                MyLog.Default.Error($"[HnzCoopSeason] reset poi state to {state}; backward compatibility");
+            }
 
             SetState(state, true);
         }

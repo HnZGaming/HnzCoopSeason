@@ -2,7 +2,7 @@
 using System.Xml.Serialization;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.POI
 {
     [Serializable]
     public sealed class PoiConfig

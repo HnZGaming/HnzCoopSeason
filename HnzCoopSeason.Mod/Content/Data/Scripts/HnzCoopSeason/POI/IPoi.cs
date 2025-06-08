@@ -1,6 +1,6 @@
 ﻿using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.POI
 {
     public interface IPoi
     {

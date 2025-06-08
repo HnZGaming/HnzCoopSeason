@@ -7,22 +7,23 @@ namespace HnzUtils
         public delegate void OnMessageReceived(ulong senderId, byte[] bytes);
 
         readonly ushort _key;
-        readonly OnMessageReceived _handler;
+        OnMessageReceived _handler;
 
-        public NetworkMessenger(object key, OnMessageReceived handler)
+        public NetworkMessenger(object key)
         {
             _key = (ushort)key.GetHashCode();
-            _handler = handler;
         }
 
-        public void Load()
+        public void Load(OnMessageReceived handler)
         {
             MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(_key, HandleMessage);
+            _handler = handler;
         }
 
         public void Unload()
         {
             MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(_key, HandleMessage);
+            _handler = null;
         }
 
         public void SendToServer(byte[] bytes)

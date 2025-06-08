@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using HnzCoopSeason.Spawners;
 using HnzUtils;
 using HnzUtils.Pools;
 using Sandbox.ModAPI;

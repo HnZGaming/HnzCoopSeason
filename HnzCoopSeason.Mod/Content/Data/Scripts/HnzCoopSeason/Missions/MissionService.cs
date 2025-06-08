@@ -16,8 +16,8 @@ namespace HnzCoopSeason.Missions
         public void Load()
         {
             _missions = new List<Mission>();
-            _missionMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionService.Sync", OnMissionsReceived);
-            _missionMessenger.Load();
+            _missionMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionService.Sync");
+            _missionMessenger.Load(OnMissionsReceived);
         }
 
         public void Unload()
@@ -28,7 +28,7 @@ namespace HnzCoopSeason.Missions
         public void UpdateMissions() // server
         {
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
-            
+
             //todo evaluate the current level
 
             var level = Session.Instance.GetProgressLevel();

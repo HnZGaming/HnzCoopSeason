@@ -1,7 +1,8 @@
-﻿using VRage.Game.ModAPI;
+﻿using HnzCoopSeason.Spawners;
+using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Orks
 {
     public sealed class RevengeOrk
     {

@@ -7,11 +7,11 @@ using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Spawners
 {
     public sealed class MesEncounter
     {
-        public delegate bool SpawnDelegateType(int playerCount, List<string> spawnGroupNames);
+        public delegate bool FilterSpawnDelegate(int playerCount, List<string> spawnGroupNames);
 
         readonly string _gridId;
         readonly Vector3D _position;
@@ -37,7 +37,7 @@ namespace HnzCoopSeason
             remove { _mesGridGroup.OnMainGridUnset -= value; }
         }
 
-        public SpawnDelegateType SpawnDelegate { get; set; }
+        public FilterSpawnDelegate FilterSpawn { get; set; }
 
         public void Load(IMyCubeGrid[] grids)
         {
@@ -65,7 +65,7 @@ namespace HnzCoopSeason
             if (!OnlineCharacterCollection.GetAllContainedPlayers(sphere, players)) return;
 
             var spawnGroupNames = new List<string>();
-            if (!SpawnDelegate(players.Count, spawnGroupNames)) return;
+            if (!FilterSpawn(players.Count, spawnGroupNames)) return;
 
             MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby; players: {players.Select(p => p.DisplayName).ToStringSeq()}");
 

@@ -7,7 +7,7 @@ using VRage.Utils;
 using VRageMath;
 using VRageRender;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.NPC
 {
     public sealed class NpcHudReticle
     {

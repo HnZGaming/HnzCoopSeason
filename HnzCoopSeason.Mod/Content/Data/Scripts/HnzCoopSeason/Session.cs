@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HnzCoopSeason.Missions;
 using FlashGps;
 using HnzCoopSeason.HudUtils;
+using HnzCoopSeason.NPC;
+using HnzCoopSeason.Orks;
+using HnzCoopSeason.POI;
 using MES;
 using HnzUtils;
 using HnzUtils.Commands;
@@ -13,6 +17,8 @@ using VRage.Game.Components;
 using VRage.Utils;
 using VRageMath;
 using RichHudFramework.Client;
+using VRage.Game.ModAPI;
+using VRage.ModAPI;
 
 namespace HnzCoopSeason
 {
@@ -41,8 +47,8 @@ namespace HnzCoopSeason
             InitializeCommands();
 
             MissionScreen.Load((ushort)nameof(MissionScreen).GetHashCode());
-            PoiMapDebugView.Load();
-            PoiSpectatorCamera.Load();
+            PoiMapDebugView.Instance.Load();
+            PoiSpectatorCamera.Instance.Load();
             PoiMapView.Instance.Load();
             MissionService.Instance.Load();
 
@@ -85,9 +91,9 @@ namespace HnzCoopSeason
 
             _commandModule.SendMessage -= SendMessage;
             _commandModule.Unload();
-            PoiMapDebugView.Unload();
+            PoiMapDebugView.Instance.Unload();
             MissionScreen.Unload();
-            PoiSpectatorCamera.Unload();
+            PoiSpectatorCamera.Instance.Unload();
             PoiMapView.Instance.Unload();
             MissionService.Instance.Unload();
 
@@ -127,22 +133,25 @@ namespace HnzCoopSeason
 
         void LoadConfig() //server
         {
+            // collect all grids in the scene
+            var entities = new HashSet<IMyEntity>();
+            MyAPIGateway.Entities.GetEntities(entities);
+            var grids = entities.OfType<IMyCubeGrid>().ToArray();
+
             SessionConfig.Load();
-            _poiMap.LoadConfig();
+            _poiMap.LoadConfig(grids);
             ProgressionView.Instance.UpdateProgress();
             MissionService.Instance.UpdateMissions();
         }
 
         void FirstUpdate()
         {
-            // server or single player
-            if (MyAPIGateway.Session.IsServer)
+            if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
                 LoadConfig();
             }
 
-            // client
-            if (!MyAPIGateway.Utilities.IsDedicated)
+            if (VRageUtils.NetworkTypeIn(NetworkType.DediClient))
             {
                 ProgressionView.Instance.RequestUpdate();
                 MissionClient.Instance.RequestUpdate();
@@ -185,7 +194,10 @@ namespace HnzCoopSeason
 
         public float GetProgress()
         {
-            return _poiMap.GetProgress();
+            var allPoiCount = _poiMap.AllPois.Count;
+            if (allPoiCount == 0) return 0;
+
+            return _poiMap.GetPoiCountByState(PoiState.Released) / (float)allPoiCount;
         }
 
         // min: 1
@@ -214,13 +226,10 @@ namespace HnzCoopSeason
             if (!poi.SetState(state)) return false;
             if (!invokeCallbacks) return true;
 
-            // potentially overwrites some poi's state
-            _poiMap.OnPoiStateChanged();
-
             MyLog.Default.Info(
                 "[HnzUtils] poi state changed: {0}, {1} / {2}, progress: {3:0.0}%, level: {4}",
                 poiId,
-                _poiMap.GetReleasedPoiCount(),
+                _poiMap.GetPoiCountByState(PoiState.Released),
                 _poiMap.AllPois.Count,
                 GetProgress() * 100,
                 GetProgressLevel());

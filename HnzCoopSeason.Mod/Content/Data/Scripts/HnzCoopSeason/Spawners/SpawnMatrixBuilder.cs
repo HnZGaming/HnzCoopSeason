@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HnzUtils;
 using Sandbox.Game.Entities;
 using VRage.Game.Entity;
+using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Spawners
 {
     public sealed class SpawnMatrixBuilder
     {
@@ -55,7 +55,8 @@ namespace HnzCoopSeason
                 Vector3D position;
                 if (!positionQueue.TryDequeue(out position)) return false;
 
-                TryBuild(position);
+                var result = TryBuild(position);
+                MyLog.Default.Debug($"[HnzCoopSeason] SpawnMatrixBuilder.TryBuild() {position} -> {result}");
             }
 
             return true;

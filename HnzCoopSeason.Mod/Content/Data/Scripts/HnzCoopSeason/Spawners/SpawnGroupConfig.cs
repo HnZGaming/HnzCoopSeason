@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Spawners
 {
     [Serializable]
     public sealed class SpawnGroupConfig

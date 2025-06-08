@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using FlashGps;
+using HnzCoopSeason.NPC;
+using HnzCoopSeason.POI;
+using HnzCoopSeason.Spawners;
 using HnzUtils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Orks
 {
     public sealed class PoiOrk : IPoiObserver
     {
@@ -28,7 +31,7 @@ namespace HnzCoopSeason
         {
             _encounter.OnMainGridSet += OnMainGridSet;
             _encounter.OnMainGridUnset += OnMainGridUnset;
-            _encounter.SpawnDelegate = EncounterSpawnDelegate;
+            _encounter.FilterSpawn = EncounterSpawnDelegate;
             _encounter.Load(grids);
         }
 
@@ -37,7 +40,7 @@ namespace HnzCoopSeason
             _encounter.Unload(sessionUnload);
             _encounter.OnMainGridSet -= OnMainGridSet;
             _encounter.OnMainGridUnset -= OnMainGridUnset;
-            _encounter.SpawnDelegate = null;
+            _encounter.FilterSpawn = null;
         }
 
         void IPoiObserver.Update()

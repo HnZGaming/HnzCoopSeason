@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HnzCoopSeason.HudUtils;
@@ -11,7 +10,7 @@ using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.NPC
 {
     public sealed class NpcHud
     {

@@ -1,7 +1,10 @@
 ﻿using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using HnzCoopSeason.Merchants;
 using HnzCoopSeason.Missions;
+using HnzCoopSeason.Orks;
+using HnzCoopSeason.POI;
 using HnzUtils;
 using HnzUtils.Commands;
 using Sandbox.ModAPI;
@@ -40,7 +43,7 @@ namespace HnzCoopSeason
         {
             if (args.Contains("--gps-remove"))
             {
-                PoiMapDebugView.RemoveAll(steamId);
+                PoiMapDebugView.Instance.RemoveAll(steamId);
                 SendMessage(steamId, Color.White, "GPS points removed.");
                 return;
             }
@@ -64,7 +67,7 @@ namespace HnzCoopSeason
 
             if (args.Contains("--gps"))
             {
-                PoiMapDebugView.ReplaceAll(steamId, pois);
+                PoiMapDebugView.Instance.ReplaceAll(steamId, pois);
                 SendMessage(steamId, Color.White, "GPS points added to HUD.");
             }
             else
@@ -141,7 +144,7 @@ namespace HnzCoopSeason
 
         void Command_SpectatePoi(string poiId, ulong steamId)
         {
-            PoiSpectatorCamera.SendPosition(poiId, steamId);
+            PoiSpectatorCamera.Instance.SendPosition(poiId, steamId);
         }
 
         void Command_PrintPoi(string poiId, ulong steamId)

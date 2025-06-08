@@ -1,10 +1,9 @@
-﻿namespace HnzCoopSeason
+﻿namespace HnzCoopSeason.POI
 {
     public enum PoiState
     {
         Occupied,
         Released,
-        Pending,
         Invaded,
     }
 }

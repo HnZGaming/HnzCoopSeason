@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Xml.Serialization;
+using HnzCoopSeason.Spawners;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Merchants
 {
     [Serializable]
     public sealed class PoiMerchantConfig

@@ -8,27 +8,32 @@ using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.POI
 {
     public sealed class PoiMapView
     {
-        static readonly ushort ModKey = (ushort)"HnzCoopSeason.PoiMapView".GetHashCode();
         public static readonly PoiMapView Instance = new PoiMapView();
+        readonly NetworkMessenger _requestMessenger;
+        readonly NetworkMessenger _responseMessenger;
         readonly LocalGpsCollection<string> _markers;
 
         PoiMapView()
         {
+            _requestMessenger = new NetworkMessenger("HnzCoopSeason.PoiMapView.Request");
+            _responseMessenger = new NetworkMessenger("HnzCoopSeason.PoiMapView.Response");
             _markers = new LocalGpsCollection<string>();
         }
 
         public void Load()
         {
-            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(ModKey, OnMessageReceived);
+            _requestMessenger.Load(OnRequestMessageReceived);
+            _responseMessenger.Load(OnResponseMessageReceived);
         }
 
         public void Unload()
         {
-            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
+            _requestMessenger.Unload();
+            _responseMessenger.Unload();
         }
 
         public void FirstUpdate()
@@ -57,32 +62,14 @@ namespace HnzCoopSeason
 
         void SendRequest() // called in client
         {
-            var bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Request());
-
-            if (MyAPIGateway.Session.IsServer) // single player
-            {
-                OnMessageReceived(ModKey, bytes, 0, false);
-            }
-            else // dedi client
-            {
-                MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending request");
-                MyAPIGateway.Multiplayer.SendMessageToServer(ModKey, bytes, true);
-            }
+            MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending request");
+            _requestMessenger.SendToServer(Array.Empty<byte>());
         }
 
-        void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
+        void OnRequestMessageReceived(ulong senderId, byte[] bytes)
         {
-            if (modKey != ModKey) return;
-            var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
-
-            if (payload.Type == 1) // request
-            {
-                SendMarkersToClient(senderId);
-            }
-            else // response
-            {
-                DeployMap(payload.Markers);
-            }
+            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
+            SendMarkersToClient(senderId);
         }
 
         void SendMarkersToClient(ulong steamId)
@@ -122,49 +109,21 @@ namespace HnzCoopSeason
                 markers.Add(new Marker(poi.Id, poi.Position, poi.State));
             }
 
-            var bytes = MyAPIGateway.Utilities.SerializeToBinary(Payload.Response(markers));
-
-            if (MyAPIGateway.Utilities.IsDedicated) // dedi
-            {
-                MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending response");
-                MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, steamId, true);
-            }
-            else // single player
-            {
-                // ReSharper disable once TailRecursiveCall
-                OnMessageReceived(ModKey, bytes, 0, false);
-            }
+            MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending response");
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(new ResponsePayload { Markers = markers });
+            _responseMessenger.SendTo(steamId, bytes);
         }
 
-        static IEnumerable<IPoi> GetPois(Vector3D origin)
+        void OnResponseMessageReceived(ulong senderId, byte[] bytes)
         {
-            var foundMerchant = false;
-            var foundPending = false;
-            foreach (var poi in Session.Instance.GetAllPois().OrderBy(p => Vector3D.Distance(p.Position, origin)))
-            {
-                // ReSharper disable once ConvertIfStatementToSwitchStatement
-                if (poi.State == PoiState.Released)
-                {
-                    if (foundMerchant) continue;
-                    foundMerchant = true;
-                }
-                else if (poi.State == PoiState.Pending)
-                {
-                    if (foundPending) continue;
-                    foundPending = true;
-                }
+            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+            var payload = MyAPIGateway.Utilities.SerializeFromBinary<ResponsePayload>(bytes);
 
-                yield return poi;
-            }
-        }
-
-        void DeployMap(List<Marker> markers) // client
-        {
             // remove old markers
-            _markers.RemoveExceptFor(markers.Select(m => m.Id));
+            _markers.RemoveExceptFor(payload.Markers.Select(m => m.Id));
 
             // add new markers
-            foreach (var marker in markers)
+            foreach (var marker in payload.Markers)
             {
                 IMyGps gps;
                 if (_markers.TryGet(marker.Id, out gps))
@@ -182,13 +141,28 @@ namespace HnzCoopSeason
             }
         }
 
+        static IEnumerable<IPoi> GetPois(Vector3D origin)
+        {
+            var foundMerchant = false;
+            foreach (var poi in Session.Instance.GetAllPois().OrderBy(p => Vector3D.Distance(p.Position, origin)))
+            {
+                // ReSharper disable once ConvertIfStatementToSwitchStatement
+                if (poi.State == PoiState.Released)
+                {
+                    if (foundMerchant) continue;
+                    foundMerchant = true;
+                }
+
+                yield return poi;
+            }
+        }
+
         static void UpdateGps(IMyGps gps, Marker marker)
         {
             switch (marker.State)
             {
                 case PoiState.Occupied: UpdateGps(gps, "Trading Hub [Orks]", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!"); break;
                 case PoiState.Released: UpdateGps(gps, "Trading Hub [Merchant]", marker.Position, Color.Green, "Our trading hub has been released and in business!"); break;
-                case PoiState.Pending: UpdateGps(gps, "Trading Hub [Pending]", marker.Position, Color.White, "All planetary POIs must be released first!"); break;
                 case PoiState.Invaded: UpdateGps(gps, "Trading Hub [Ork Mobs]", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!"); break;
                 default: throw new InvalidOperationException($"invalid poi state: {marker.State}");
             }
@@ -203,29 +177,10 @@ namespace HnzCoopSeason
         }
 
         [ProtoContract]
-        sealed class Payload
+        sealed class ResponsePayload
         {
             [ProtoMember(1)]
-            public byte Type;
-
-            [ProtoMember(2)]
             public List<Marker> Markers;
-
-            // ReSharper disable once UnusedMember.Local
-            Payload()
-            {
-            }
-
-            public static Payload Request() => new Payload
-            {
-                Type = 1,
-            };
-
-            public static Payload Response(List<Marker> markers) => new Payload
-            {
-                Type = 2,
-                Markers = markers,
-            };
         }
 
         [ProtoContract]

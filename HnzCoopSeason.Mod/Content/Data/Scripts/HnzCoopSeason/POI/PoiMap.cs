@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HnzCoopSeason.Merchants;
+using HnzCoopSeason.Orks;
+using HnzCoopSeason.Spawners;
 using HnzUtils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
-using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.POI
 {
     public sealed class PoiMap
     {
@@ -33,7 +35,7 @@ namespace HnzCoopSeason
             _planetaryPois.Clear();
         }
 
-        public void LoadConfig()
+        public void LoadConfig(IMyCubeGrid[] sceneGrids)
         {
             var spaceOrks = SessionConfig.Instance.Orks.Where(c => c.SpawnType == SpawnType.SpaceShip).ToArray();
             MyLog.Default.Info($"[HnzCoopSeason] space orks: {spaceOrks.Select(c => c.SpawnGroups[0].SpawnGroup).ToStringSeq()}");
@@ -119,46 +121,12 @@ namespace HnzCoopSeason
 
             MyLog.Default.Info($"[HnzCoopSeason] PoiMap loading POIs: {_allPois.Select(p => p.Id).ToStringSeq()}");
 
-            var entities = new HashSet<IMyEntity>();
-            MyAPIGateway.Entities.GetEntities(entities);
-            var grids = entities.OfType<IMyCubeGrid>().ToArray();
-            foreach (var p in _allPois) p.Load(grids);
-
-            OnPoiStateChanged();
+            foreach (var p in _allPois) p.Load(sceneGrids);
         }
 
         public void Update()
         {
             foreach (var p in _allPois) p.Update();
-        }
-
-        public void OnPoiStateChanged()
-        {
-            if (_planetaryPois.Values.Any(p => p.State == PoiState.Occupied)) // if some planetary poi's are occupied
-            {
-                var random = new Random(0); // not actually random
-                var pendingSpacePois = _spacePois.Values
-                    .OrderBy(p => p.Id)
-                    .OrderBy(_ => random.Next())
-                    .Take(_planetaryPois.Count)
-                    .Cast<IPoi>()
-                    .ToArray();
-
-                foreach (var p in pendingSpacePois)
-                {
-                    Session.Instance.SetPoiState(p.Id, PoiState.Pending, false);
-                }
-            }
-            else // if all planetary poi's are released
-            {
-                foreach (var p in _spacePois.Values)
-                {
-                    if (p.State == PoiState.Pending)
-                    {
-                        Session.Instance.SetPoiState(p.Id, PoiState.Occupied, false);
-                    }
-                }
-            }
         }
 
         public bool TryGetPoi(string id, out Poi poi)
@@ -167,26 +135,20 @@ namespace HnzCoopSeason
                    _spacePois.TryGetValue(id, out poi);
         }
 
-        public int GetReleasedPoiCount()
+        public int GetPoiCountByState(PoiState state)
         {
             if (_allPois.Count == 0) return 0;
 
-            var releasedPoiCount = 0;
+            var count = 0;
             foreach (var p in _allPois)
             {
-                if (p.State == PoiState.Released)
+                if (p.State == state)
                 {
-                    releasedPoiCount += 1;
+                    count += 1;
                 }
             }
 
-            return releasedPoiCount;
-        }
-
-        public float GetProgress()
-        {
-            if (_allPois.Count == 0) return 0;
-            return GetReleasedPoiCount() / (float)_allPois.Count;
+            return count;
         }
 
         static bool HasAtmosphere(Vector3D position)

@@ -2,7 +2,7 @@ using System;
 using System.Xml.Serialization;
 using Sandbox.ModAPI;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Spawners
 {
     [Serializable]
     public sealed class MesGridContext

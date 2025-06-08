@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HnzCoopSeason.NPC;
 using HnzUtils;
 using MES;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.Utils;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Spawners
 {
     public sealed class MesGridGroup
     {

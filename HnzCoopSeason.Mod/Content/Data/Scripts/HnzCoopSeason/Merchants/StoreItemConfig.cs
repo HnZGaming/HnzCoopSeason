@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Merchants
 {
     [Serializable]
     public sealed class StoreItemConfig

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HnzCoopSeason.POI;
+using HnzCoopSeason.Spawners;
 using HnzUtils;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
@@ -15,7 +17,7 @@ using VRage.Serialization;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Merchants
 {
     public sealed class PoiMerchant : IPoiObserver
     {

@@ -1,26 +1,33 @@
-﻿using ProtoBuf;
+﻿using HnzUtils;
+using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.POI
 {
-    public static class PoiSpectatorCamera
+    public class PoiSpectatorCamera
     {
-        static readonly ushort ModKey = (ushort)"HnzCoopSeason.PoiSpectatorCamera".GetHashCode();
+        public static readonly PoiSpectatorCamera Instance = new PoiSpectatorCamera();
+        readonly NetworkMessenger _messenger;
 
-        public static void Load()
+        PoiSpectatorCamera()
         {
-            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(ModKey, OnMessageReceived);
+            _messenger = new NetworkMessenger("HnzCoopSeason.PoiSpectatorCamera");
         }
 
-        public static void Unload()
+        public void Load()
         {
-            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
+            _messenger.Load(OnMessageReceived);
         }
 
-        public static void SendPosition(string poiId, ulong steamId)
+        public void Unload()
+        {
+            _messenger.Unload();
+        }
+
+        public void SendPosition(string poiId, ulong steamId)
         {
             Vector3D position;
             if (!Session.Instance.TryGetPoiPosition(poiId, out position))
@@ -28,22 +35,13 @@ namespace HnzCoopSeason
                 position = Vector3D.Zero;
             }
 
+            MyLog.Default.Info($"[HnzCoopSeason] PoiSpectatorCamera position sent: {position}");
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(position));
-            if (MyAPIGateway.Utilities.IsDedicated) // dedi
-            {
-                MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, steamId, true);
-                MyLog.Default.Info("[HnzCoopSeason] PoiSpectatorCamera position sent");
-            }
-            else // single player
-            {
-                OnMessageReceived(ModKey, bytes, 0, false);
-            }
+            _messenger.SendTo(steamId, bytes);
         }
 
-        static void OnMessageReceived(ushort modKey, byte[] bytes, ulong senderId, bool fromServer)
+        void OnMessageReceived(ulong senderId, byte[] bytes)
         {
-            if (modKey != ModKey) return;
-
             MyLog.Default.Info("[HnzCoopSeason] PoiSpectatorCamera position received");
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<Payload>(bytes);
             MyAPIGateway.Session.SetCameraController(MyCameraControllerEnum.Spectator, position: payload.Position);

@@ -17,11 +17,11 @@ namespace HnzCoopSeason.Missions
 
         public void Load()
         {
-            _submitMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionClient.Submit", OnSubmitMessageReceived);
-            _submitMessenger.Load();
+            _submitMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionClient.Submit");
+            _submitMessenger.Load(OnSubmitMessageReceived);
 
-            _queryMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionClient.Query", OnQueryMessageReceived);
-            _queryMessenger.Load();
+            _queryMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionClient.Query");
+            _queryMessenger.Load(OnQueryMessageReceived);
         }
 
         public void Unload()
@@ -33,7 +33,7 @@ namespace HnzCoopSeason.Missions
         public void UpdateMissions(Mission[] missions)
         {
             MyLog.Default.Info("[HnzCoopSeason] MissionClient.UpdateMissions()");
-            
+
             _missions.Clear();
             foreach (var mission in missions)
             {

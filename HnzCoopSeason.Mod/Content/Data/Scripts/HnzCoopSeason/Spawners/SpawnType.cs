@@ -1,4 +1,4 @@
-﻿namespace HnzCoopSeason
+﻿namespace HnzCoopSeason.Spawners
 {
     public enum SpawnType
     {

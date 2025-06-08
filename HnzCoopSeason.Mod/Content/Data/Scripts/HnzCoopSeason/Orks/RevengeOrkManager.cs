@@ -2,7 +2,7 @@
 using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace HnzCoopSeason
+namespace HnzCoopSeason.Orks
 {
     public sealed class RevengeOrkManager
     {

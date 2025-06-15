@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FlashGps;
 using HnzCoopSeason.Utils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
@@ -50,7 +51,7 @@ namespace HnzCoopSeason
             if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 1) != 0) return;
             if (_mainGrid == null) return;
 
-            FlashGps.Instance.Send(new FlashGps.Entry
+            FlashGpsApi.Send(new FlashGpsApi.Entry
             {
                 Id = $"{nameof(PoiOrk)}-boss-{_poiId}".GetHashCode(),
                 Name = "ORK BOSS",

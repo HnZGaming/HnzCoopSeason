@@ -146,6 +146,8 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\Pools\Pool.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\DatapadInserter.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\VRageUtils.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\HudDisplayMode.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\HudUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Merchants\PoiMerchant.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Merchants\PoiMerchantConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Merchants\StoreItemConfig.cs" />

@@ -33,13 +33,19 @@ namespace HnzCoopSeason.Missions.MissionLogics
         string SaveKey => $"AcquisitionMission/{Mission.Index}";
         public Mission Mission { get; }
 
-        void IMissionLogic.LoadServerProgress()
+        void IMissionLogic.LoadState()
         {
             Mission.Progress = GetProgress();
         }
 
         void IMissionLogic.OnClientUpdate()
         {
+            if (Mission.Progress >= Mission.Goal)
+            {
+                MissionService.Instance.SetSubmitEnabled(false, MissionUtils.MissionCleared);
+                return;
+            }
+
             if (Mission.Index != MissionService.Instance.CurrentMissionIndex)
             {
                 MissionService.Instance.SetSubmitEnabled(false, MissionUtils.NotCurrentMission);
@@ -55,7 +61,7 @@ namespace HnzCoopSeason.Missions.MissionLogics
 
             if (_itemAmount == 0)
             {
-                MissionService.Instance.SetSubmitEnabled(false, "No items in found in inventories");
+                MissionService.Instance.SetSubmitEnabled(false, "No items in inventories");
                 return;
             }
 
@@ -64,11 +70,14 @@ namespace HnzCoopSeason.Missions.MissionLogics
 
         void IMissionLogic.EvaluateClient()
         {
-            MissionService.Instance.SetMissionStatus($@"
-Item type: {_itemType.SubtypeId}
-Total: {Mission.Goal} units in demand
-Status: {Mission.Progress} units submitted, [ {Mission.RemainingProgress} ] units in demand
-");
+            const string StatusFormat = @"
+Item type: {0}
+Total: {1} units
+Acquired: {2} units
+In Demand: [ {3} ] units
+";
+            MissionService.Instance.SetMissionStatus(string.Format(StatusFormat,
+                _itemType.SubtypeId, Mission.Goal, Mission.Progress, Mission.RemainingProgress));
 
             MissionBlock missionBlock;
             if (!MissionBlock.TryFindNearby(_player, out missionBlock)) return;
@@ -134,7 +143,7 @@ Status: {Mission.Progress} units submitted, [ {Mission.RemainingProgress} ] unit
         bool IMissionLogic.TrySubmit()
         {
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
-            MyLog.Default.Error($"[HnzCoopSeason] AcquisitionMissionLogic.TrySubmit(); inventories: {_inventories.Count}");
+            MyLog.Default.Info("[HnzCoopSeason] AcquisitionMissionLogic.TrySubmit()");
 
             MissionBlock missionBlock;
             if (!MissionBlock.TryFindNearby(_player, out missionBlock))
@@ -144,30 +153,32 @@ Status: {Mission.Progress} units submitted, [ {Mission.RemainingProgress} ] unit
 
             Evaluate(missionBlock);
 
-            var deltaProgress = Math.Min(_itemAmount.ToIntSafe(), Mission.RemainingProgress);
-            var remainingAmount = deltaProgress;
+            var targetAmount = Math.Min(_itemAmount.ToIntSafe(), Mission.RemainingProgress);
+            var pile = targetAmount;
             foreach (var inventory in _inventories)
             {
                 var item = inventory.FindItem(_itemType);
                 if (item == null) continue; // shouldn't happen
 
                 var amount = item.Value.Amount.ToIntSafe();
-                var subtractedAmount = Math.Min(amount, remainingAmount);
+                var subtractedAmount = Math.Min(amount, pile);
                 inventory.RemoveItems(item.Value.ItemId, subtractedAmount);
-                remainingAmount -= subtractedAmount;
-                MyLog.Default.Info($"[HnzCoopSeason] AcquisitionMissionLogic processing submit: {inventory.Owner}, {amount}, {subtractedAmount}, {remainingAmount}");
+                pile -= subtractedAmount;
+                MyLog.Default.Info($"[HnzCoopSeason] AcquisitionMissionLogic processing submit: {inventory.Owner}, {amount}, {subtractedAmount}, {pile}");
 
-                if (remainingAmount < 0) break;
+                if (pile <= 0) break;
             }
 
-            if (remainingAmount > 0)
+            if (pile > 0)
             {
                 MyLog.Default.Error("[HnzCoopSeason] AcquisitionMissionLogic failed to submit");
                 return false;
             }
 
             var currentProgress = GetProgress();
-            var newProgress = currentProgress + deltaProgress;
+            var newProgress = currentProgress + targetAmount;
+            MyLog.Default.Info($"[HnzCoopSeason] AcquisitionMissionLogic progress {currentProgress} -> {newProgress}");
+
             SetProgress(newProgress);
             return true;
         }

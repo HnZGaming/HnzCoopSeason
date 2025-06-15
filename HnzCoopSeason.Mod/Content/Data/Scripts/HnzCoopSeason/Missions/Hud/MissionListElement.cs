@@ -1,5 +1,6 @@
 ﻿using System;
 using RichHudFramework.UI;
+using VRage.Utils;
 using VRageMath;
 
 namespace HnzCoopSeason.Missions.Hud
@@ -34,6 +35,8 @@ namespace HnzCoopSeason.Missions.Hud
                 Offset = new Vector2(-12, 0),
                 Text = new RichText($"[ {mission.ProgressPercentage:0}% ]", new GlyphFormat(textColor)),
             };
+
+            MyLog.Default.Info($"[HnzCoopSeason] mission list element [{MissionIndex}] init; progress: {mission.Progress}, goal: {mission.Goal} percentage: {mission.ProgressPercentage}");
 
             _mouseInputElement = new MouseInputElement(this);
             _mouseInputElement.LeftClicked += OnMissionListElementClicked;

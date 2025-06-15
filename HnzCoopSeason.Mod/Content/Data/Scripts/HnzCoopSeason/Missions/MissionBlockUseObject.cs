@@ -1,4 +1,5 @@
-﻿using HnzCoopSeason.Missions.Hud;
+﻿using HnzCoopSeason.HudUtils;
+using HnzCoopSeason.Missions.Hud;
 using VRage.Game.Entity.UseObject;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -27,7 +28,7 @@ namespace HnzCoopSeason.Missions
 
         public override void Use(UseActionEnum actionEnum, IMyEntity user)
         {
-            MissionWindow.Instance.SetVisible(true);
+            MissionWindow.Instance.SetDisplayMode(HudDisplayMode.VisibleWithCursor);
         }
     }
 }

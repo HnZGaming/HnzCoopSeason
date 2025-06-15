@@ -88,31 +88,30 @@ namespace HnzCoopSeason.Missions
         public void UpdateMissions() // server
         {
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
-
             MyLog.Default.Info("[HnzCoopSeason] MissionService.ReadMissions()");
-            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
 
             _missions.Clear();
-            CurrentMissionIndex = 0;
+            CurrentMissionIndex = int.MaxValue;
 
-            for (var i = 0; i < SessionConfig.Instance.Missions.Length; i++)
+            var configs = SessionConfig.Instance.Missions ?? Array.Empty<MissionConfig>();
+            for (var i = 0; i < configs.Length; i++)
             {
-                var c = SessionConfig.Instance.Missions[i];
-                MyLog.Default.Info($"[HnzCoopSeason] mission config read: {c}");
+                var c = configs[i];
+                MyLog.Default.Info($"[HnzCoopSeason] mission [{i}] config: {c}");
 
                 var mission = new Mission(c, i);
-                CreateLogic(mission, null).LoadServerProgress();
-                _missions.Add(mission);
+                CreateLogic(mission, null).LoadState();
+                MyLog.Default.Info($"[HnzCoopSeason] mission [{i}] progress: {mission.Progress}");
 
-                if (mission.ProgressPercentage < 1)
+                if (mission.Progress < mission.Goal)
                 {
                     CurrentMissionIndex = Math.Min(CurrentMissionIndex, i);
                 }
 
-                MyLog.Default.Info($"[HnzCoopSeason] mission read; 'current' index: {CurrentMissionIndex}");
+                _missions.Add(mission);
             }
 
-            MyLog.Default.Info($"[HnzCoopSeason] done reading missions; count: {_missions.Count}");
+            MyLog.Default.Info($"[HnzCoopSeason] done reading missions; count: {_missions.Count}, current index: {CurrentMissionIndex}");
 
             var payload = SyncPayload.Create(_missions, CurrentMissionIndex);
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
@@ -158,10 +157,13 @@ namespace HnzCoopSeason.Missions
                 return;
             }
 
+            MyLog.Default.Info($"[HnzCoopSeason] mission [{missionIndex}] selected; progress: {mission.Progress}");
+
+            OnMissionSelected?.Invoke(mission);
+
             var player = MyAPIGateway.Session.LocalHumanPlayer;
             _selectedMissionLogic = CreateLogic(mission, player);
             _selectedMissionLogic.EvaluateClient();
-            OnMissionSelected?.Invoke(mission);
         }
 
         // can be called server side but only takes effect client side
@@ -173,6 +175,7 @@ namespace HnzCoopSeason.Missions
         // can be called server side but only takes effect client side
         public void SetMissionStatus(string status)
         {
+            MyLog.Default.Info($"[HnzCoopSeason] mission status: {status.Length} letters");
             OnClientMissionStatusChanged?.Invoke(status);
         }
 
@@ -194,7 +197,7 @@ namespace HnzCoopSeason.Missions
         void OnServerReceivedSubmission(ulong senderId, byte[] bytes)
         {
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
-            MyLog.Default.Error($"[HnzCoopSeason] MissionService.OnServerReceivedSubmission({senderId})");
+            MyLog.Default.Info($"[HnzCoopSeason] MissionService.OnServerReceivedSubmission({senderId})");
 
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<SubmitPayload>(bytes);
             var missionIndex = payload.MissionIndex;
@@ -210,7 +213,6 @@ namespace HnzCoopSeason.Missions
 
                 var player = MyAPIGateway.Players.TryGetIdentityId(playerId);
                 var logic = CreateLogic(_missions[CurrentMissionIndex], player);
-
                 if (!logic.TrySubmit())
                 {
                     MyLog.Default.Error("[HnzCoopSeason] unable to submit; condition unsatisfied");

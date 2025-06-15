@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using HnzCoopSeason.HudUtils;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
@@ -25,6 +26,7 @@ namespace HnzCoopSeason.Missions.Hud
         readonly Label _descriptionLabel;
         readonly Label _statusLabel;
         readonly SubmitButtonElement _submitLayout;
+        HudDisplayMode _displayMode;
 
         public static MissionWindow Instance { get; private set; }
 
@@ -39,7 +41,10 @@ namespace HnzCoopSeason.Missions.Hud
                     Size = new Vector2(_windowBodySize.X, _windowBodySize.Y + WindowHeaderHeight),
                     BodyColor = new Color(41, 54, 62, 240),
                     BorderColor = new Color(58, 68, 77),
+                    AllowResizing = false,
                 };
+
+                Instance.SetDisplayMode(HudDisplayMode.Hidden);
             }
             catch (Exception e)
             {
@@ -54,7 +59,7 @@ namespace HnzCoopSeason.Missions.Hud
         {
             MyLog.Default.Info("[HnzCoopSeason] mission window ctor");
 
-            header.Text = "Missions -- open/close this window with tilda (~) key";
+            header.Text = "Missions -- switch display mode with tilda (~) key";
             header.Format = new GlyphFormat(GlyphFormat.Blueish.Color, TextAlignment.Center, 1.08f);
             header.Height = WindowHeaderHeight;
             body.Size = _windowBodySize;
@@ -62,10 +67,12 @@ namespace HnzCoopSeason.Missions.Hud
             _keyBinds = BindManager.GetOrCreateGroup("CoopMissionsBinds");
             _keyBinds.RegisterBinds(new BindGroupInitializer
             {
-                { "CoopMissionsToggle", MyKeys.OemTilde }
+                { "CoopMissionsToggle", MyKeys.OemTilde },
+                { "Escape", MyKeys.Escape },
             });
 
-            _keyBinds[0].NewPressed += ToggleWindow;
+            _keyBinds[0].NewPressed += OnTildaKeyPressed;
+            _keyBinds[1].NewPressed += OnEscapeKeyPressed;
 
             _missionList = new ScrollBox<ScrollBoxEntry<MissionListElement>, MissionListElement>(true, bodyBg)
             {
@@ -73,6 +80,7 @@ namespace HnzCoopSeason.Missions.Hud
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Top | ParentAlignments.Left,
                 Size = new Vector2(_missionElementSize.X, _windowBodySize.Y),
                 Padding = new Vector2(6, 6),
+                Color = Color.Transparent,
             };
 
             var scrollBarWidth = _missionList.ScrollBar.Width + _missionList.Divider.Width + 20;
@@ -139,17 +147,27 @@ namespace HnzCoopSeason.Missions.Hud
             MissionService.Instance.OnClientMissionStatusChanged -= OnMissionStatusChanged;
         }
 
-        void ToggleWindow(object sender, EventArgs args)
+        void OnTildaKeyPressed(object sender, EventArgs args)
         {
-            SetVisible(!Visible);
+            SetDisplayMode(_displayMode.Increment());
         }
 
-        public void SetVisible(bool visible)
+        void OnEscapeKeyPressed(object sender, EventArgs e)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] mission window visible: {visible}");
+            SetDisplayMode(HudDisplayMode.Hidden);
+        }
 
-            Visible = visible;
-            HudMain.EnableCursor = visible;
+        public void SetDisplayMode(HudDisplayMode displayMode)
+        {
+            MyLog.Default.Info($"[HnzCoopSeason] mission window display mode: {displayMode}");
+
+            _displayMode = displayMode;
+            ((WindowBase)this).SetDisplayMode(displayMode);
+
+            if (Visible)
+            {
+                MissionService.Instance.RequestUpdate();
+            }
         }
 
         public void Update()
@@ -183,7 +201,7 @@ namespace HnzCoopSeason.Missions.Hud
             _detailPane.Visible = true;
             _titleLabel.Text = mission?.Title;
             _descriptionLabel.Text = mission?.Description;
-            _statusLabel.Text = "";
+            _statusLabel.Text = ""; //todo faulty
 
             foreach (var e in _missionList.CollectionContainer.Select(e => e.Element))
             {
@@ -193,8 +211,7 @@ namespace HnzCoopSeason.Missions.Hud
 
         void OnSubmitEnabledChanged(bool enable, string note)
         {
-            _submitLayout.SetEnabled(enable);
-            _submitLayout.SubmitNote = note;
+            _submitLayout.SetEnabled(enable, note);
         }
 
         void OnSubmitButtonPressed()

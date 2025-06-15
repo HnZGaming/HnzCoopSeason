@@ -12,11 +12,6 @@ namespace HnzCoopSeason.Missions.Hud
 
         public event Action OnSubmit;
 
-        public string SubmitNote
-        {
-            set { _noteLabel.Text = value; }
-        }
-
         public SubmitButtonElement(HudParentBase parent = null) : base(false, parent)
         {
             SizingMode = HudChainSizingModes.FitChainBoth;
@@ -33,13 +28,11 @@ namespace HnzCoopSeason.Missions.Hud
             {
                 ParentAlignment = ParentAlignments.Inner,
                 Padding = new Vector2(6, 6),
-                Text = "Submit",
             };
 
             _noteLabel = new Label
             {
                 ParentAlignment = ParentAlignments.Inner,
-                Text = "You must find the contract block",
             };
 
             _button.MouseInput.LeftClicked += OnLeftClicked;
@@ -58,13 +51,15 @@ namespace HnzCoopSeason.Missions.Hud
             return base.Unregister();
         }
 
-        public void SetEnabled(bool enabled)
+        public void SetEnabled(bool enabled, string note)
         {
+            var buttonColor = enabled ? Color.White : Color.Gray;
             _button.InputEnabled = enabled;
+            _button.Text = new RichText("Submit", new GlyphFormat(buttonColor));
+            _buttonBorder.Color = buttonColor;
 
-            var color = enabled ? Color.White : Color.Gray;
-            _button.Format = new GlyphFormat(color);
-            _buttonBorder.Color = color;
+            var labelColor = enabled ? Color.White : Color.Red;
+            _noteLabel.Text = new RichText(note, new GlyphFormat(labelColor));
         }
 
         void OnLeftClicked(object sender, EventArgs e)

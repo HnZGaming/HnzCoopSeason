@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using HnzCoopSeason.Missions.HudElements;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
@@ -15,9 +14,9 @@ namespace HnzCoopSeason.Missions.Hud
     /// </summary>
     public class MissionWindow : WindowBase
     {
+        const float WindowHeaderHeight = 30;
         static readonly Vector2 _missionElementSize = new Vector2(200, 30);
         static readonly Vector2 _windowBodySize = new Vector2(700, 270);
-        static readonly float _windowHeaderHeight = 30;
 
         readonly IBindGroup _keyBinds;
         readonly ScrollBox<ScrollBoxEntry<MissionListElement>, MissionListElement> _missionList;
@@ -27,43 +26,43 @@ namespace HnzCoopSeason.Missions.Hud
         readonly Label _statusLabel;
         readonly SubmitButtonElement _submitLayout;
 
-        long? _lastSelectedMissionId;
-
         public static MissionWindow Instance { get; private set; }
 
         public static void Load()
         {
-            MyLog.Default.Info("[HnzCoopSeason] contract window load");
+            MyLog.Default.Info("[HnzCoopSeason] mission window load");
             try
             {
                 Instance = new MissionWindow(HudMain.HighDpiRoot)
                 {
                     Visible = true,
-                    Size = new Vector2(_windowBodySize.X, _windowBodySize.Y + _windowHeaderHeight),
+                    Size = new Vector2(_windowBodySize.X, _windowBodySize.Y + WindowHeaderHeight),
                     BodyColor = new Color(41, 54, 62, 240),
                     BorderColor = new Color(58, 68, 77),
                 };
             }
             catch (Exception e)
             {
-                MyLog.Default.Error($"[HnzCoopSeason] contract window load failed: {e}");
+                MyLog.Default.Error($"[HnzCoopSeason] mission window load failed: {e}");
                 return;
             }
 
-            MyLog.Default.Info("[HnzCoopSeason] contract window load done");
+            MyLog.Default.Info("[HnzCoopSeason] mission window load done");
         }
 
         MissionWindow(HudParentBase parent = null) : base(parent)
         {
-            header.Text = "Contracts -- open/close this window with tilda (~) key";
+            MyLog.Default.Info("[HnzCoopSeason] mission window ctor");
+
+            header.Text = "Missions -- open/close this window with tilda (~) key";
             header.Format = new GlyphFormat(GlyphFormat.Blueish.Color, TextAlignment.Center, 1.08f);
-            header.Height = _windowHeaderHeight;
+            header.Height = WindowHeaderHeight;
             body.Size = _windowBodySize;
 
-            _keyBinds = BindManager.GetOrCreateGroup("CoopContractBinds");
+            _keyBinds = BindManager.GetOrCreateGroup("CoopMissionsBinds");
             _keyBinds.RegisterBinds(new BindGroupInitializer
             {
-                { "CoopContractToggle", MyKeys.OemTilde }
+                { "CoopMissionsToggle", MyKeys.OemTilde }
             });
 
             _keyBinds[0].NewPressed += ToggleWindow;
@@ -92,21 +91,21 @@ namespace HnzCoopSeason.Missions.Hud
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Left,
                 BuilderMode = TextBuilderModes.Wrapped,
                 Format = new GlyphFormat(GlyphFormat.White.Color, TextAlignment.Left, 1, FontStyles.Underline),
-                Text = "Acquisition",
+                Text = "--",
             };
 
             _descriptionLabel = new Label
             {
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Left,
                 BuilderMode = TextBuilderModes.Wrapped,
-                Text = "Acquisition",
+                Text = "--",
             };
 
             _statusLabel = new Label
             {
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Left,
                 BuilderMode = TextBuilderModes.Wrapped,
-                Text = "Acquisition",
+                Text = "--",
             };
 
             _submitLayout = new SubmitButtonElement(body)
@@ -121,12 +120,23 @@ namespace HnzCoopSeason.Missions.Hud
             _detailPane.Add(_descriptionLabel);
             _detailPane.Add(_statusLabel);
             _detailPane.Visible = false;
+
+            MissionService.Instance.OnMissionsReceived += OnMissionsReceived;
+            MissionService.Instance.OnMissionSelected += OnMissionSelected;
+            MissionService.Instance.OnClientSubmitEnabledChanged += OnSubmitEnabledChanged;
+            MissionService.Instance.OnClientMissionStatusChanged += OnMissionStatusChanged;
+
+            MyLog.Default.Info("[HnzCoopSeason] mission window ctor done");
         }
 
         public void Unload()
         {
-            MyLog.Default.Info("[HnzCoopSeason] contract window unload");
+            MyLog.Default.Info("[HnzCoopSeason] mission window unload");
             _keyBinds.ClearSubscribers();
+            MissionService.Instance.OnMissionsReceived -= OnMissionsReceived;
+            MissionService.Instance.OnMissionSelected -= OnMissionSelected;
+            MissionService.Instance.OnClientSubmitEnabledChanged -= OnSubmitEnabledChanged;
+            MissionService.Instance.OnClientMissionStatusChanged -= OnMissionStatusChanged;
         }
 
         void ToggleWindow(object sender, EventArgs args)
@@ -136,40 +146,40 @@ namespace HnzCoopSeason.Missions.Hud
 
         public void SetVisible(bool visible)
         {
+            MyLog.Default.Info($"[HnzCoopSeason] mission window visible: {visible}");
+
             Visible = visible;
             HudMain.EnableCursor = visible;
-
-            if (Visible)
-            {
-                OnMissionListElementClicked(_lastSelectedMissionId ?? 0);
-            }
         }
 
-        public void UpdateMissionList(Mission[] missions)
+        public void Update()
+        {
+            if (!Visible) return;
+
+            MissionService.Instance.UpdateClient();
+        }
+
+        void OnMissionsReceived(Mission[] missions)
         {
             _missionList.Clear();
 
-            foreach (var mission in missions)
+            for (var i = 0; i < missions.Length; i++)
             {
-                var element = new MissionListElement(_missionElementSize);
-                element.SetMission(mission);
+                var mission = missions[i];
+                var isCurrentMission = i == MissionService.Instance.CurrentMissionIndex;
+                var element = new MissionListElement(_missionElementSize, mission, isCurrentMission);
                 element.OnClicked += OnMissionListElementClicked;
                 _missionList.Add(element);
             }
-
-            OnMissionListElementClicked(_lastSelectedMissionId ?? 0);
         }
 
-        void OnMissionListElementClicked(long missionId)
+        void OnMissionListElementClicked(int missionIndex)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] mission selected: {missionId}");
-
-            MissionClient.Instance.SelectMission(missionId);
+            MissionService.Instance.SelectMission(missionIndex);
         }
 
-        public void OnMissionSelected(Mission mission)
+        void OnMissionSelected(Mission mission) // or null
         {
-            _lastSelectedMissionId = mission?.Id;
             _detailPane.Visible = true;
             _titleLabel.Text = mission?.Title;
             _descriptionLabel.Text = mission?.Description;
@@ -177,30 +187,22 @@ namespace HnzCoopSeason.Missions.Hud
 
             foreach (var e in _missionList.CollectionContainer.Select(e => e.Element))
             {
-                e.SetSelected(e.MissionId == mission?.Id);
+                e.SetSelected(e.MissionIndex == mission?.Index);
             }
-
-            // reset detail pane
-            SetSubmitEnabled(false);
-            SetSubmitNote("");
         }
 
-        public void SetSubmitEnabled(bool enable)
+        void OnSubmitEnabledChanged(bool enable, string note)
         {
             _submitLayout.SetEnabled(enable);
-        }
-
-        public void SetSubmitNote(string message)
-        {
-            _submitLayout.SubmitNote = message;
+            _submitLayout.SubmitNote = note;
         }
 
         void OnSubmitButtonPressed()
         {
-            MissionClient.Instance.Submit();
+            MissionService.Instance.SendSubmissionToServer();
         }
 
-        public void SetStatus(string status)
+        void OnMissionStatusChanged(string status)
         {
             _statusLabel.Text = status.Trim();
         }

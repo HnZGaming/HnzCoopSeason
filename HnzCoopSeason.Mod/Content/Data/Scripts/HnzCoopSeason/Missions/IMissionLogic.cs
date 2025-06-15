@@ -3,12 +3,11 @@
     public interface IMissionLogic
     {
         Mission Mission { get; }
-        bool CanSubmit { get; }
-        string SubmitNoteText { get; }
-        string StatusText { get; }
 
-        void Update(MissionBlock missionBlockOrNotFound);
-        void UpdateFull(MissionBlock missionBlockOrNotFound);
-        void ProcessSubmit(); // server only
+        void LoadServerProgress(); // read global state into `Mission.Progress`; server only
+        void OnClientUpdate(); // called every update loop; client only
+        void EvaluateClient();
+        bool TrySubmit(); // server only
+        void ForceProgress(int progress); // server only
     }
 }

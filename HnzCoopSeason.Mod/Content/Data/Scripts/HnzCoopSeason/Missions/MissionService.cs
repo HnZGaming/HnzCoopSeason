@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using HnzCoopSeason.Missions.MissionLogics;
 using HnzUtils;
+using ProtoBuf;
 using Sandbox.ModAPI;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 
 namespace HnzCoopSeason.Missions
@@ -9,137 +13,257 @@ namespace HnzCoopSeason.Missions
     public sealed class MissionService
     {
         public static readonly MissionService Instance = new MissionService();
-
-        NetworkMessenger _missionMessenger;
+        NetworkMessenger _syncMessenger;
+        NetworkMessenger _queryMessenger;
+        NetworkMessenger _submitMessenger;
         List<Mission> _missions;
+        IMissionLogic _selectedMissionLogic; // client only
+
+        public IReadOnlyList<Mission> Missions => _missions;
+        public int CurrentMissionIndex { get; private set; }
+
+        public Action<Mission[]> OnMissionsReceived; // client only
+        public Action<Mission> OnMissionSelected; // client only
+        public Action<bool, string> OnClientSubmitEnabledChanged; // client only
+        public Action<string> OnClientMissionStatusChanged;
 
         public void Load()
         {
             _missions = new List<Mission>();
-            _missionMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionService.Sync");
-            _missionMessenger.Load(OnMissionsReceived);
+
+            _syncMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionService.Sync");
+            _syncMessenger.Load(OnClientReceivedMissions);
+
+            _queryMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionService.Query");
+            _queryMessenger.Load(OnQueryMessageReceived);
+
+            _submitMessenger = new NetworkMessenger("HnzCoopSeason.Missions.MissionService.Submit");
+            _submitMessenger.Load(OnServerReceivedSubmission);
         }
 
         public void Unload()
         {
-            _missionMessenger.Unload();
+            _missions.Clear();
+            _syncMessenger.Unload();
+            _submitMessenger.Unload();
+            _queryMessenger.Unload();
+        }
+
+        public void Update()
+        {
+            if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
+            {
+                UpdateClient();
+            }
+        }
+
+        public void UpdateClient()
+        {
+            _selectedMissionLogic?.OnClientUpdate();
+        }
+
+        public void RequestUpdate()
+        {
+            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+            _queryMessenger.SendToServer(Array.Empty<byte>());
+        }
+
+        void OnQueryMessageReceived(ulong senderId, byte[] bytes)
+        {
+            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
+            SendMissionsToClient(senderId);
+        }
+
+        public void ForceUpdateMission(int index, int progress)
+        {
+            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
+            MyLog.Default.Info($"[HnzCoopSeason] MissionService.ForceUpdateMission({index}, {progress})");
+
+            var config = SessionConfig.Instance.Missions[index];
+            var mission = new Mission(config, index);
+            CreateLogic(mission, null).ForceProgress(progress);
+            UpdateMissions();
         }
 
         public void UpdateMissions() // server
         {
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
 
-            //todo evaluate the current level
+            MyLog.Default.Info("[HnzCoopSeason] MissionService.ReadMissions()");
+            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
 
-            var level = Session.Instance.GetProgressLevel();
-            var missions = ReadMissions(level);
             _missions.Clear();
-            _missions.AddRange(missions);
+            CurrentMissionIndex = 0;
 
-            SendMissionsToPlayers();
-        }
-
-        public void UpdateMission(int level, int missionId, int progress)
-        {
-            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
-            MyLog.Default.Info($"[HnzCoopSeason] MissionService.UpdateMission({level}, {missionId}, {progress})");
-
-            WriteMissionState(level, missionId, progress);
-            UpdateMissions();
-        }
-
-        public void Submit(int missionId, int level, long playerId)
-        {
-            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
-
-            if (level != Session.Instance.GetProgressLevel())
+            for (var i = 0; i < SessionConfig.Instance.Missions.Length; i++)
             {
-                MyLog.Default.Error($"[HnzCoopSeason] invalid level: {level}");
+                var c = SessionConfig.Instance.Missions[i];
+                MyLog.Default.Info($"[HnzCoopSeason] mission config read: {c}");
+
+                var mission = new Mission(c, i);
+                CreateLogic(mission, null).LoadServerProgress();
+                _missions.Add(mission);
+
+                if (mission.ProgressPercentage < 1)
+                {
+                    CurrentMissionIndex = Math.Min(CurrentMissionIndex, i);
+                }
+
+                MyLog.Default.Info($"[HnzCoopSeason] mission read; 'current' index: {CurrentMissionIndex}");
+            }
+
+            MyLog.Default.Info($"[HnzCoopSeason] done reading missions; count: {_missions.Count}");
+
+            var payload = SyncPayload.Create(_missions, CurrentMissionIndex);
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
+            _syncMessenger.SendToOthers(bytes);
+        }
+
+        void SendMissionsToClient(ulong receiverId)
+        {
+            var payload = SyncPayload.Create(_missions, CurrentMissionIndex);
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
+            _syncMessenger.SendTo(receiverId, bytes);
+        }
+
+        void OnClientReceivedMissions(ulong steamId, byte[] bytes)
+        {
+            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+
+            MyLog.Default.Info("[HnzCoopSeason] MissionClient.OnSyncClient()");
+            var payload = MyAPIGateway.Utilities.SerializeFromBinary<SyncPayload>(bytes);
+            _missions.Clear();
+            _missions.AddRange(payload.Missions);
+            CurrentMissionIndex = payload.CurrentMissionIndex;
+            OnMissionsReceived?.Invoke(payload.Missions);
+
+            if (_missions.Count == 0)
+            {
+                MyLog.Default.Warning("[HnzCoopSeason] no missions received");
                 return;
             }
 
+            var missionIndex = _selectedMissionLogic?.Mission.Index ?? payload.CurrentMissionIndex;
+            SelectMission(missionIndex);
+        }
+
+        public void SelectMission(int missionIndex) // client only
+        {
+            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+
+            Mission mission;
+            if (!_missions.TryGetElementAt(missionIndex, out mission))
+            {
+                MyLog.Default.Error($"[HnzCoopSeason] invalid mission index: {missionIndex}; missions count: {_missions.Count}");
+                return;
+            }
+
+            var player = MyAPIGateway.Session.LocalHumanPlayer;
+            _selectedMissionLogic = CreateLogic(mission, player);
+            _selectedMissionLogic.EvaluateClient();
+            OnMissionSelected?.Invoke(mission);
+        }
+
+        // can be called server side but only takes effect client side
+        public void SetSubmitEnabled(bool enabled, string note)
+        {
+            OnClientSubmitEnabledChanged?.Invoke(enabled, note);
+        }
+
+        // can be called server side but only takes effect client side
+        public void SetMissionStatus(string status)
+        {
+            OnClientMissionStatusChanged?.Invoke(status);
+        }
+
+        public void SendSubmissionToServer()
+        {
+            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+            MyLog.Default.Info("[HnzCoopSeason] MissionClient submitting");
+
+            var payload = new SubmitPayload
+            {
+                PlayerId = MyAPIGateway.Session.LocalHumanPlayer.IdentityId,
+                MissionIndex = _selectedMissionLogic.Mission.Index,
+            };
+
+            var bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
+            _submitMessenger.SendToServer(bytes);
+        }
+
+        void OnServerReceivedSubmission(ulong senderId, byte[] bytes)
+        {
+            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
+            MyLog.Default.Error($"[HnzCoopSeason] MissionService.OnServerReceivedSubmission({senderId})");
+
+            var payload = MyAPIGateway.Utilities.SerializeFromBinary<SubmitPayload>(bytes);
+            var missionIndex = payload.MissionIndex;
+            var playerId = payload.PlayerId;
+
             try
             {
-                var mission = _missions[missionId - 1];
-                var player = MyAPIGateway.Players.TryGetIdentityId(playerId);
-                var logic = MissionUtils.CreateClientMissionLogic(mission, player);
-
-                MissionBlock missionBlock;
-                MissionUtils.TryGetMissionBlockNearby(player.Character, out missionBlock);
-                logic.UpdateFull(missionBlock);
-
-                if (!logic.CanSubmit)
+                if (missionIndex != CurrentMissionIndex)
                 {
-                    MyLog.Default.Error("[HnzCoopSeason] unable to submit");
+                    MyLog.Default.Error($"[HnzCoopSeason] invalid mission index: {missionIndex}; now: {CurrentMissionIndex}");
                     return;
                 }
 
-                logic.ProcessSubmit();
+                var player = MyAPIGateway.Players.TryGetIdentityId(playerId);
+                var logic = CreateLogic(_missions[CurrentMissionIndex], player);
+
+                if (!logic.TrySubmit())
+                {
+                    MyLog.Default.Error("[HnzCoopSeason] unable to submit; condition unsatisfied");
+                    return;
+                }
+
+                // send results back to clients
+                UpdateMissions();
             }
             catch (Exception e)
             {
-                MyLog.Default.Error($"[HnzCoopSeason] failed to submit; error: {e}");
+                MyLog.Default.Error($"[HnzCoopSeason] failed to submit; player: {playerId}, index: {missionIndex}, error: {e}");
             }
         }
 
-        public void SendMissionsToPlayers(ulong? receiverIdOrEveryone = null)
+        static IMissionLogic CreateLogic(Mission mission, IMyPlayer player)
         {
-            var bytes = MyAPIGateway.Utilities.SerializeToBinary(_missions);
-            if (receiverIdOrEveryone.HasValue)
+            switch (mission.Type)
             {
-                // --> OnMissionsReceived()
-                _missionMessenger.SendTo(receiverIdOrEveryone.Value, bytes);
+                case MissionType.Acquisition: return new AcquisitionMissionLogic(mission, player);
+                default: throw new InvalidOperationException();
             }
-            else
+        }
+
+        [ProtoContract]
+        sealed class SyncPayload
+        {
+            [ProtoMember(1)]
+            public Mission[] Missions = Array.Empty<Mission>();
+
+            [ProtoMember(2)]
+            public int CurrentMissionIndex;
+
+            public static SyncPayload Create(IEnumerable<Mission> missions, int currentMissionIndex) => new SyncPayload
             {
-                // --> OnMissionsReceived()
-                _missionMessenger.SendToOthers(bytes);
-            }
+                Missions = missions.ToArray(),
+                CurrentMissionIndex = currentMissionIndex,
+            };
         }
 
-        void OnMissionsReceived(ulong steamId, byte[] bytes)
+        [ProtoContract]
+        sealed class SubmitPayload
         {
-            var missions = MyAPIGateway.Utilities.SerializeFromBinary<Mission[]>(bytes);
-            MissionClient.Instance.UpdateMissions(missions);
-        }
+            [ProtoMember(1)]
+            public long PlayerId;
 
-        public static List<Mission> ReadMissions(int level)
-        {
-            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
+            [ProtoMember(2)]
+            public int MissionIndex;
 
-            var missions = new List<Mission>();
-            ProgressionLevelConfig levelConfig;
-            if (!SessionConfig.Instance.ProgressionLevels.TryGetValue(level, out levelConfig)) return missions;
-
-            for (var i = 0; i < levelConfig.Missions.Length; i++)
+            public override string ToString()
             {
-                var c = levelConfig.Missions[i];
-                var id = i + 1;
-                var progress = ReadMissionState(level, id);
-                var mission = new Mission(c, level, id, progress);
-                missions.Add(mission);
+                return $"{nameof(PlayerId)}: {PlayerId}, {nameof(MissionIndex)}: {MissionIndex}";
             }
-
-            return missions;
-        }
-
-        static int ReadMissionState(int level, int id)
-        {
-            int progress;
-            var key = StorageVariableKey(level, id);
-            MyAPIGateway.Utilities.GetVariable(key, out progress);
-            return progress;
-        }
-
-        static void WriteMissionState(int level, int id, int progress)
-        {
-            var key = StorageVariableKey(level, id);
-            MyAPIGateway.Utilities.SetVariable(key, progress);
-        }
-
-        static string StorageVariableKey(int level, int id)
-        {
-            return $"mission-{level}-{id}";
         }
     }
 }

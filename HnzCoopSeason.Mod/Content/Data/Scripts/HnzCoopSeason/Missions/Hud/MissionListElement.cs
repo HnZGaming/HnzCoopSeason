@@ -2,7 +2,7 @@
 using RichHudFramework.UI;
 using VRageMath;
 
-namespace HnzCoopSeason.Missions.HudElements
+namespace HnzCoopSeason.Missions.Hud
 {
     public sealed class MissionListElement : BorderBox
     {
@@ -10,27 +10,29 @@ namespace HnzCoopSeason.Missions.HudElements
         readonly Label _progressLabel;
         readonly MouseInputElement _mouseInputElement;
 
-        public long MissionId { get; private set; }
-        public event Action<long> OnClicked;
+        public int MissionIndex { get; private set; }
+        public event Action<int> OnClicked;
 
-        public MissionListElement(Vector2 size) : base(null)
+        public MissionListElement(Vector2 size, Mission mission, bool isCurrentMission) : base(null)
         {
             ParentAlignment = ParentAlignments.Inner | ParentAlignments.Top | ParentAlignments.Left;
             Size = size;
             Color = Color.Transparent;
+            MissionIndex = mission.Index;
+            var textColor = isCurrentMission ? Color.White : Color.Gray;
 
             _typeLabel = new Label(this)
             {
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Left,
                 Offset = new Vector2(12, 0),
-                Text = "Acquisition",
+                Text = new RichText($"{mission.Type}", new GlyphFormat(textColor)),
             };
 
             _progressLabel = new Label(this)
             {
                 ParentAlignment = ParentAlignments.Inner | ParentAlignments.Right,
                 Offset = new Vector2(-12, 0),
-                Text = "[0%]",
+                Text = new RichText($"[ {mission.ProgressPercentage:0}% ]", new GlyphFormat(textColor)),
             };
 
             _mouseInputElement = new MouseInputElement(this);
@@ -44,18 +46,9 @@ namespace HnzCoopSeason.Missions.HudElements
             return base.Unregister();
         }
 
-        public void SetMission(Mission mission)
-        {
-            MissionId = mission.Id;
-
-            _typeLabel.Text = $"{mission.Type}";
-
-            _progressLabel.Text = $"[ {mission.ProgressPercentage:0}% ]";
-        }
-
         void OnMissionListElementClicked(object sender, EventArgs e)
         {
-            OnClicked?.Invoke(MissionId);
+            OnClicked?.Invoke(MissionIndex);
         }
 
         public void SetSelected(bool selected)

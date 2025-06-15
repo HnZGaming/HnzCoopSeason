@@ -2,6 +2,7 @@
 {
     public enum MissionType
     {
+        None,
         Acquisition,
     }
 }

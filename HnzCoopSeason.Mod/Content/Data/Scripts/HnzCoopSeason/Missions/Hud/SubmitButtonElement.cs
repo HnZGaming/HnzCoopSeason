@@ -2,7 +2,7 @@
 using RichHudFramework.UI;
 using VRageMath;
 
-namespace HnzCoopSeason.Missions.HudElements
+namespace HnzCoopSeason.Missions.Hud
 {
     public sealed class SubmitButtonElement : HudChain
     {

@@ -7,6 +7,7 @@ using HnzCoopSeason.Missions;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
 using Sandbox.ModAPI;
+using VRage.Serialization;
 using VRage.Utils;
 
 namespace HnzCoopSeason
@@ -55,63 +56,13 @@ namespace HnzCoopSeason
 
         [XmlArray("ProgressionLevels")]
         [XmlArrayItem("Level")]
-        public ProgressionLevelConfig[] ProgressionLevelsRaw =
+        public ProgressionLevelConfig[] ProgressionLevelList =
         {
-            new ProgressionLevelConfig(1, 1, new[]
-            {
-                new MissionConfig
-                {
-                    Type = MissionType.Acquisition,
-                    Title = "Unironically, not enough stones",
-                    Description = "Our pet bird just threw up due to a hangover the other day and she needs a bulk of stones to reset her gastroliths. Please collect as much as you can.",
-                    Goal = 2400000,
-                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
-                },
-            }),
-            new ProgressionLevelConfig(2, 1, new[]
-            {
-                new MissionConfig
-                {
-                    Type = MissionType.Acquisition,
-                    Title = "Unironically, not enough stones",
-                    Description = "Our pet bird just threw up due to a hangover the other day and she needs a bulk of stones to reset her gastroliths. Please collect as much as you can.",
-                    Goal = 2400000,
-                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
-                },
-            }),
-            new ProgressionLevelConfig(3, 2, new[]
-            {
-                new MissionConfig
-                {
-                    Type = MissionType.Acquisition,
-                    Title = "Unironically, not enough stones",
-                    Description = "Our pet bird just threw up due to a hangover the other day and she needs a bulk of stones to reset her gastroliths. Please collect as much as you can.",
-                    Goal = 2400000,
-                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
-                },
-            }),
-            new ProgressionLevelConfig(4, 3, new[]
-            {
-                new MissionConfig
-                {
-                    Type = MissionType.Acquisition,
-                    Title = "Acquisition",
-                    Description = "Description",
-                    Goal = 100,
-                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
-                },
-            }),
-            new ProgressionLevelConfig(5, 4, new[]
-            {
-                new MissionConfig
-                {
-                    Type = MissionType.Acquisition,
-                    Title = "Acquisition",
-                    Description = "Description",
-                    Goal = 100,
-                    AcquisitionItemType = "MyObjectBuilder_Ore/Stone",
-                },
-            }),
+            new ProgressionLevelConfig(1, 1),
+            new ProgressionLevelConfig(2, 1),
+            new ProgressionLevelConfig(3, 2),
+            new ProgressionLevelConfig(4, 3),
+            new ProgressionLevelConfig(5, 4),
         };
 
         [XmlArray]
@@ -130,12 +81,40 @@ namespace HnzCoopSeason
         [XmlArrayItem("StoreItem")]
         public StoreItemConfig[] StoreItems = { new StoreItemConfig() };
 
+        [XmlArray]
+        [XmlArrayItem("Mission")]
+        public MissionConfig[] Missions =
+        {
+            new MissionConfig
+            {
+                Type = MissionType.Acquisition,
+                Title = "Unironically, not enough stones",
+                Description = "Our pet bird just threw up due to a hangover the other day and she needs a bulk of stones to reset her gastroliths. Please collect as much as you can.",
+                Goal = 2400000,
+                CustomData = new SerializableDictionary<string, string>(new Dictionary<string, string>
+                {
+                    { MissionUtils.AcquisitionItemTypeKey, "MyObjectBuilder_Ore/Stone" },
+                }),
+            },
+            new MissionConfig
+            {
+                Type = MissionType.Acquisition,
+                Title = "Unironically, not enough stones",
+                Description = "Our pet bird just threw up due to a hangover the other day and she needs a bulk of stones to reset her gastroliths. Please collect as much as you can.",
+                Goal = 2400000,
+                CustomData = new SerializableDictionary<string, string>(new Dictionary<string, string>
+                {
+                    { MissionUtils.AcquisitionItemTypeKey, "MyObjectBuilder_Ore/Stone" },
+                }),
+            },
+        };
+
         [XmlIgnore]
         public IReadOnlyDictionary<int, ProgressionLevelConfig> ProgressionLevels { get; private set; }
 
         void Initialize()
         {
-            ProgressionLevels = ProgressionLevelsRaw.ToDictionary(c => c.Level);
+            ProgressionLevels = ProgressionLevelList.ToDictionary(c => c.Level);
         }
 
         public static void Load()

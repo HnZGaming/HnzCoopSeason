@@ -21,12 +21,12 @@ namespace HnzUtils
 
         public static string ToStringDic<K, V>(this IReadOnlyDictionary<K, V> self)
         {
-            return $"[{string.Join(", ", self.Select(p => $"{p.Key}: {p.Value}"))}]";
+            return $"{{{string.Join(", ", self.Select(p => $"{p.Key}: {p.Value}"))}}}";
         }
 
         public static bool TryGetElementAt<T>(this IReadOnlyList<T> self, int index, out T element)
         {
-            if (index < self.Count)
+            if (index >= 0 && index < self.Count)
             {
                 element = self[index];
                 return true;
@@ -34,6 +34,13 @@ namespace HnzUtils
 
             element = default(T);
             return false;
+        }
+
+        public static T GetElementAtOrDefault<T>(this IReadOnlyList<T> self, int index, T defaultValue)
+        {
+            T value;
+            if (self.TryGetElementAt(index, out value)) return value;
+            return defaultValue;
         }
 
         public static T GetValueOrDefault<T>(this Dictionary<string, object> self, string key, T defaultValue)
@@ -47,6 +54,24 @@ namespace HnzUtils
         public static HashSet<T> ToSet<T>(this IEnumerable<T> self)
         {
             return new HashSet<T>(self);
+        }
+
+        // NOTE this function blows up given duplicate keys.
+        // To overwrite duplicate keys, use `ConcatNoDupe()` instead.
+        public static Dictionary<K, V> Concat<K, V>(this IReadOnlyDictionary<K, V> self, IReadOnlyDictionary<K, V> second)
+        {
+            return ((IEnumerable<KeyValuePair<K, V>>)self).Concat(second).ToDictionary(p => p.Key, p => p.Value);
+        }
+
+        public static Dictionary<K, V> ConcatNoDupe<K, V>(this IReadOnlyDictionary<K, V> self, IReadOnlyDictionary<K, V> second)
+        {
+            var concat = self.ToDictionary(p => p.Key, p => p.Value); // duplicate
+            foreach (var kvp in second)
+            {
+                concat[kvp.Key] = kvp.Value;
+            }
+
+            return concat;
         }
 
         public static int ParseIntOrDefault(this string self, int defaultValue)

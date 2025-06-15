@@ -8,6 +8,7 @@ using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
+using VRage.Serialization;
 using VRageMath;
 
 namespace HnzUtils
@@ -75,6 +76,11 @@ namespace HnzUtils
             var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
             character = MyAPIGateway.Players.TryGetIdentityId(playerId)?.Character;
             return character != null;
+        }
+
+        public static IMyCharacter TryGetCharacter(long playerId)
+        {
+            return MyAPIGateway.Players.TryGetIdentityId(playerId)?.Character;
         }
 
         public static bool TryGetFaction(long blockId, out IMyFaction faction)

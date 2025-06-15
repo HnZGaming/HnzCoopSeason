@@ -156,7 +156,6 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\Mission.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionBlock.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionBlockUseObject.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionClient.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionLogics\AcquisitionMissionLogic.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionService.cs" />
@@ -382,9 +381,11 @@
       <Content Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\.gitrepo" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\LICENSE" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\Shared\README.md" />
+      <Content Include="Content\metadata.mod" />
       <Content Include="Content\Models\Cubes\large\CoopContractsBlock.mwm" />
       <Content Include="Content\Models\Cubes\large\CoopContractsBlock_LOD1.mwm" />
       <Content Include="Content\Models\Cubes\large\CoopContractsBlock_LOD2.mwm" />
+      <Content Include="Content\modinfo.sbmi" />
       <Content Include="upload.bat" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

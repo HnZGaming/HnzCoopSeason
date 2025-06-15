@@ -60,8 +60,10 @@ namespace HnzCoopSeason.POI
             }
         }
 
-        void SendRequest() // called in client
+        void SendRequest()
         {
+            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+
             MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending request");
             _requestMessenger.SendToServer(Array.Empty<byte>());
         }
@@ -69,6 +71,7 @@ namespace HnzCoopSeason.POI
         void OnRequestMessageReceived(ulong senderId, byte[] bytes)
         {
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
+
             SendMarkersToClient(senderId);
         }
 
@@ -184,7 +187,7 @@ namespace HnzCoopSeason.POI
         sealed class ResponsePayload
         {
             [ProtoMember(1)]
-            public List<Marker> Markers;
+            public List<Marker> Markers = new List<Marker>();
         }
 
         [ProtoContract]

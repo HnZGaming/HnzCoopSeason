@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
+using VRage.Serialization;
+using HnzUtils;
 
 namespace HnzCoopSeason.Missions
 {
@@ -19,11 +21,11 @@ namespace HnzCoopSeason.Missions
         public int Goal;
 
         [XmlElement]
-        public string AcquisitionItemType;
+        public SerializableDictionary<string, string> CustomData;
 
         public override string ToString()
         {
-            return $"MissionConfig({nameof(Type)}: {Type}, {nameof(Title)}: {Title}, {nameof(Description)}: {Description}, {nameof(Goal)}: {Goal}, {nameof(AcquisitionItemType)}: {AcquisitionItemType})";
+            return $"MissionConfig({nameof(Type)}: {Type}, {nameof(Goal)}: {Goal}, {nameof(CustomData)}: {CustomData?.Dictionary?.ToStringDic()})";
         }
     }
 }

@@ -32,7 +32,7 @@ namespace HnzCoopSeason
         PoiMap _poiMap;
         CommandModule _commandModule;
         bool _doneFirstUpdate;
-        HudAPIv2 _api;
+        HudAPIv2 _richHudApi;
         DatapadInserter _dataPadInserter;
 
         public override void LoadData()
@@ -41,7 +41,7 @@ namespace HnzCoopSeason
             base.LoadData();
             Instance = this;
 
-            _api = new HudAPIv2();
+            _richHudApi = new HudAPIv2();
 
             _commandModule = new CommandModule((ushort)"HnzCoopSeason.CommandModule".GetHashCode(), "coop");
             _commandModule.SendMessage += SendMessage;
@@ -71,8 +71,8 @@ namespace HnzCoopSeason
             // client
             if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
             {
+                MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init()");
                 RichHudClient.Init(nameof(HnzCoopSeason), RichHudInit, RichHudClosed);
-                MissionClient.Instance.Load();
             }
 
             ProgressionView.Instance.Load();
@@ -83,6 +83,7 @@ namespace HnzCoopSeason
 
         void RichHudInit() // client
         {
+            MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init() callback");
             MissionWindow.Load();
         }
 
@@ -91,7 +92,7 @@ namespace HnzCoopSeason
             MyLog.Default.Info("[HnzUtils] session unloading");
             base.UnloadData();
 
-            _api = null;
+            _richHudApi = null;
 
             _commandModule.SendMessage -= SendMessage;
             _commandModule.Unload();
@@ -119,12 +120,6 @@ namespace HnzCoopSeason
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
                 ScreenTopHud.Instance.Close();
-            }
-
-            // client
-            if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
-            {
-                MissionClient.Instance.Unload();
             }
 
             MyLog.Default.Info("[HnzUtils] session unloaded");
@@ -158,7 +153,7 @@ namespace HnzCoopSeason
             if (VRageUtils.NetworkTypeIn(NetworkType.DediClient))
             {
                 ProgressionView.Instance.RequestUpdate();
-                MissionClient.Instance.RequestUpdate();
+                MissionService.Instance.RequestUpdate();
             }
 
             PoiMapView.Instance.FirstUpdate();
@@ -182,17 +177,18 @@ namespace HnzCoopSeason
                 PoiRandomInvasion.Instance.Update();
             }
 
-            // client
+            // client or single player
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                if (_api.Heartbeat)
+                if (_richHudApi.Heartbeat)
                 {
                     NpcHud.Instance.Update();
                     ScreenTopHud.Instance.Render();
-                    MissionClient.Instance.Update();
+                    MissionWindow.Instance.Update();
                 }
             }
 
+            MissionService.Instance.Update();
             PoiMapView.Instance.Update();
         }
 
@@ -211,15 +207,6 @@ namespace HnzCoopSeason
             var progress = GetProgress();
             var max = SessionConfig.Instance.MaxProgressLevel;
             return Math.Min((int)Math.Floor(progress * max) + 1, max);
-        }
-
-        public bool TryGetPoiState(string poiId, out PoiState state)
-        {
-            state = PoiState.Occupied;
-            Poi poi;
-            if (!_poiMap.TryGetPoi(poiId, out poi)) return false;
-            state = poi.State;
-            return true;
         }
 
         public bool SetPoiState(string poiId, PoiState state, bool invokeCallbacks = true)

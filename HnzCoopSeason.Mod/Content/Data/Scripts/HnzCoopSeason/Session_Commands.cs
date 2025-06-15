@@ -30,7 +30,7 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
             _commandModule.Register(new Command("revenge", false, MyPromoteLevel.Moderator, Command_Revenge, "spawn revenge orks"));
-            _commandModule.Register(new Command("mission list", false, MyPromoteLevel.Moderator, Command_ListMission, "list missions"));
+            _commandModule.Register(new Command("mission list", false, MyPromoteLevel.Moderator, Command_ListMissions, "list missions"));
             _commandModule.Register(new Command("mission update", false, MyPromoteLevel.Moderator, Command_UpdateMission, "update mission progress"));
         }
 
@@ -189,22 +189,19 @@ namespace HnzCoopSeason
             RevengeOrkManager.Instance.Spawn(character.GetPosition(), config.SpawnGroupNames);
         }
 
-        void Command_ListMission(string args, ulong steamId)
+        void Command_ListMissions(string args, ulong steamId)
         {
-            var level = int.Parse(args);
-            var missions = MissionService.ReadMissions(level);
-            var xml = MyAPIGateway.Utilities.SerializeToXML(missions);
+            var xml = MyAPIGateway.Utilities.SerializeToXML(MissionService.Instance.Missions);
             MissionScreen.Send(steamId, "Missions", xml, true);
         }
 
         void Command_UpdateMission(string args, ulong steamId)
         {
             var parts = args.Split(' ');
-            var level = int.Parse(parts[0]);
-            var id = int.Parse(parts[1]);
-            var progress = int.Parse(parts[2]);
-            MissionService.Instance.UpdateMission(level, id, progress);
-            SendMessage(steamId, Color.White, $"done: {level}, {id}, {progress}");
+            var index = int.Parse(parts[0]);
+            var progress = int.Parse(parts[1]);
+            MissionService.Instance.ForceUpdateMission(index, progress);
+            SendMessage(steamId, Color.White, $"done: {index}, {progress}");
         }
 
         void Command_Print(string args, ulong steamId)

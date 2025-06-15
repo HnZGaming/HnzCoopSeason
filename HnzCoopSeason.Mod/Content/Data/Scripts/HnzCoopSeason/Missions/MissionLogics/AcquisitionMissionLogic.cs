@@ -16,59 +16,84 @@ namespace HnzCoopSeason.Missions.MissionLogics
 {
     public sealed class AcquisitionMissionLogic : IMissionLogic
     {
-        readonly IMyPlayer _player;
         readonly MyItemType _itemType;
+        readonly IMyPlayer _player;
         readonly List<IMyInventory> _inventories;
-        MissionBlock _missionBlock;
         IMyInventory _missionBlockInventory;
         MyFixedPoint _itemAmount;
 
         public AcquisitionMissionLogic(Mission mission, IMyPlayer player)
         {
+            _itemType = MyItemType.Parse(mission.CustomData[MissionUtils.AcquisitionItemTypeKey]);
             _player = player;
-            _itemType = MyItemType.Parse(mission.AcquisitionItemType);
             _inventories = new List<IMyInventory>();
             Mission = mission;
         }
 
+        string SaveKey => $"AcquisitionMission/{Mission.Index}";
         public Mission Mission { get; }
-        public bool CanSubmit { get; private set; }
-        public string SubmitNoteText { get; private set; }
-        public string StatusText { get; private set; }
 
-        public void Update(MissionBlock missionBlockOrNotFound)
+        void IMissionLogic.LoadServerProgress()
         {
-            _missionBlock = missionBlockOrNotFound;
-            UpdateState();
+            Mission.Progress = GetProgress();
         }
 
-        public void UpdateFull(MissionBlock missionBlockOrNotFound)
+        void IMissionLogic.OnClientUpdate()
         {
-            _itemAmount = 0;
-            StatusText = $@"
+            if (Mission.Index != MissionService.Instance.CurrentMissionIndex)
+            {
+                MissionService.Instance.SetSubmitEnabled(false, MissionUtils.NotCurrentMission);
+                return;
+            }
+
+            MissionBlock missionBlock;
+            if (!MissionBlock.TryFindNearby(_player, out missionBlock))
+            {
+                MissionService.Instance.SetSubmitEnabled(false, MissionUtils.MissionBlockFar);
+                return;
+            }
+
+            if (_itemAmount == 0)
+            {
+                MissionService.Instance.SetSubmitEnabled(false, "No items in found in inventories");
+                return;
+            }
+
+            MissionService.Instance.SetSubmitEnabled(true, $"Submitting [ {_itemAmount} ] units");
+        }
+
+        void IMissionLogic.EvaluateClient()
+        {
+            MissionService.Instance.SetMissionStatus($@"
 Item type: {_itemType.SubtypeId}
 Total: {Mission.Goal} units in demand
 Status: {Mission.Progress} units submitted, [ {Mission.RemainingProgress} ] units in demand
-";
+");
 
-            _missionBlock = missionBlockOrNotFound;
-            if (_missionBlock == null) return;
+            MissionBlock missionBlock;
+            if (!MissionBlock.TryFindNearby(_player, out missionBlock)) return;
 
+            Evaluate(missionBlock);
+        }
+
+        void Evaluate(MissionBlock missionBlock)
+        {
+            _itemAmount = 0;
             _inventories.Clear();
-            _missionBlockInventory = _missionBlock.Entity.GetInventory();
+            _missionBlockInventory = missionBlock.Entity.GetInventory();
 
             //count items in player inventory
-            var character = _player.Character;
+            var character = _player?.Character;
             if (character != null && character.HasInventory)
             {
-                CountItems(character, false);
+                EvaluateEntity(character, false);
             }
 
             //count items in connected grids
             List<IMyTerminalBlock> blocks;
             using (ListPool<IMyTerminalBlock>.Instance.GetUntilDispose(out blocks))
             {
-                var grid = (IMyCubeGrid)_missionBlock.Entity.GetTopMostParent(typeof(IMyCubeGrid));
+                var grid = (IMyCubeGrid)missionBlock.Entity.GetTopMostParent(typeof(IMyCubeGrid));
                 var terminal = MyAPIGateway.TerminalActionsHelper.GetTerminalSystemForGrid(grid);
                 terminal.GetBlocks(blocks);
 
@@ -81,22 +106,21 @@ Status: {Mission.Progress} units submitted, [ {Mission.RemainingProgress} ] unit
                 {
                     foreach (var block in group)
                     {
-                        CountItems(block, true);
+                        EvaluateEntity(block, true);
                     }
                 });
             }
 
-            UpdateState();
+            MyLog.Default.Info($"[HnzCoopSeason] AcquisitionMissionLogic.Evaluate() done; item amount: {_itemAmount}");
         }
 
-        void CountItems(IMyEntity entity, bool checkConnection)
+        void EvaluateEntity(IMyEntity entity, bool checkConnection)
         {
             if (!entity.HasInventory) return;
 
             for (var i = 0; i < entity.InventoryCount; i++)
             {
                 var inventory = entity.GetInventory(i);
-
                 var item = inventory.FindItem(_itemType);
                 if (item == null) continue;
                 if (checkConnection && !_missionBlockInventory.CanTransferItemTo(inventory, _itemType)) continue;
@@ -107,30 +131,18 @@ Status: {Mission.Progress} units submitted, [ {Mission.RemainingProgress} ] unit
             }
         }
 
-        void UpdateState()
-        {
-            if (_missionBlock == null)
-            {
-                CanSubmit = false;
-                SubmitNoteText = MissionUtils.MissionBlockFar;
-                return;
-            }
-
-            if (_itemAmount == 0)
-            {
-                CanSubmit = false;
-                SubmitNoteText = "No items in found in inventories";
-                return;
-            }
-
-            CanSubmit = true;
-            SubmitNoteText = $"Submitting [ {_itemAmount} ] units";
-        }
-
-        public void ProcessSubmit()
+        bool IMissionLogic.TrySubmit()
         {
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
-            MyLog.Default.Error($"[HnzCoopSeason] AcquisitionMissionLogic.ProcessSubmit(); inventories: {_inventories.Count}");
+            MyLog.Default.Error($"[HnzCoopSeason] AcquisitionMissionLogic.TrySubmit(); inventories: {_inventories.Count}");
+
+            MissionBlock missionBlock;
+            if (!MissionBlock.TryFindNearby(_player, out missionBlock))
+            {
+                return false;
+            }
+
+            Evaluate(missionBlock);
 
             var deltaProgress = Math.Min(_itemAmount.ToIntSafe(), Mission.RemainingProgress);
             var remainingAmount = deltaProgress;
@@ -151,11 +163,37 @@ Status: {Mission.Progress} units submitted, [ {Mission.RemainingProgress} ] unit
             if (remainingAmount > 0)
             {
                 MyLog.Default.Error("[HnzCoopSeason] AcquisitionMissionLogic failed to submit");
-                return;
+                return false;
             }
 
-            var newProgress = Mission.Progress + deltaProgress;
-            MissionService.Instance.UpdateMission(Mission.Level, Mission.Id, newProgress);
+            var currentProgress = GetProgress();
+            var newProgress = currentProgress + deltaProgress;
+            SetProgress(newProgress);
+            return true;
+        }
+
+        void IMissionLogic.ForceProgress(int progress)
+        {
+            SetProgress(progress);
+        }
+
+        int GetProgress()
+        {
+            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
+
+            int currentProgress;
+            if (!MyAPIGateway.Utilities.GetVariable(SaveKey, out currentProgress))
+            {
+                currentProgress = 0;
+            }
+
+            return currentProgress;
+        }
+
+        void SetProgress(int progress)
+        {
+            VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
+            MyAPIGateway.Utilities.SetVariable(SaveKey, progress);
         }
     }
 }

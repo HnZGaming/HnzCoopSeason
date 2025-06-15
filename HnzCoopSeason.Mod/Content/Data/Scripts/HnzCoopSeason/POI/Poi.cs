@@ -44,7 +44,7 @@ namespace HnzCoopSeason.POI
             if ((int)state >= 3)
             {
                 state = PoiState.Occupied;
-                MyLog.Default.Error($"[HnzCoopSeason] reset poi state to {state}; backward compatibility");
+                MyLog.Default.Warning($"[HnzCoopSeason] reset poi state to {state}; backward compatibility");
             }
 
             SetState(state, true);

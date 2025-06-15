@@ -1,8 +1,12 @@
 ﻿using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using HnzCoopSeason.Utils;
-using HnzCoopSeason.Utils.Commands;
+using HnzCoopSeason.Merchants;
+using HnzCoopSeason.Missions;
+using HnzCoopSeason.Orks;
+using HnzCoopSeason.POI;
+using HnzUtils;
+using HnzUtils.Commands;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -26,6 +30,8 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
             _commandModule.Register(new Command("revenge", false, MyPromoteLevel.Moderator, Command_Revenge, "spawn revenge orks"));
+            _commandModule.Register(new Command("mission list", false, MyPromoteLevel.Moderator, Command_ListMissions, "list missions"));
+            _commandModule.Register(new Command("mission update", false, MyPromoteLevel.Moderator, Command_UpdateMission, "update mission progress"));
         }
 
         void Command_ReloadConfig(string args, ulong steamId)
@@ -37,7 +43,7 @@ namespace HnzCoopSeason
         {
             if (args.Contains("--gps-remove"))
             {
-                PoiMapDebugView.RemoveAll(steamId);
+                PoiMapDebugView.Instance.RemoveAll(steamId);
                 SendMessage(steamId, Color.White, "GPS points removed.");
                 return;
             }
@@ -61,7 +67,7 @@ namespace HnzCoopSeason
 
             if (args.Contains("--gps"))
             {
-                PoiMapDebugView.ReplaceAll(steamId, pois);
+                PoiMapDebugView.Instance.ReplaceAll(steamId, pois);
                 SendMessage(steamId, Color.White, "GPS points added to HUD.");
             }
             else
@@ -138,7 +144,7 @@ namespace HnzCoopSeason
 
         void Command_SpectatePoi(string poiId, ulong steamId)
         {
-            PoiSpectatorCamera.SendPosition(poiId, steamId);
+            PoiSpectatorCamera.Instance.SendPosition(poiId, steamId);
         }
 
         void Command_PrintPoi(string poiId, ulong steamId)
@@ -183,8 +189,30 @@ namespace HnzCoopSeason
             RevengeOrkManager.Instance.Spawn(character.GetPosition(), config.SpawnGroupNames);
         }
 
+        void Command_ListMissions(string args, ulong steamId)
+        {
+            var xml = MyAPIGateway.Utilities.SerializeToXML(MissionService.Instance.Missions);
+            MissionScreen.Send(steamId, "Missions", xml, true);
+        }
+
+        void Command_UpdateMission(string args, ulong steamId)
+        {
+            var parts = args.Split(' ');
+            var index = int.Parse(parts[0]);
+            var progress = int.Parse(parts[1]);
+            MissionService.Instance.ForceUpdateMission(index, progress);
+            SendMessage(steamId, Color.White, $"done: {index}, {progress}");
+        }
+
         void Command_Print(string args, ulong steamId)
         {
+            if (args.Trim() == "config")
+            {
+                var xml = MyAPIGateway.Utilities.SerializeToXML(SessionConfig.Instance);
+                MissionScreen.Send(steamId, "Print", xml, true);
+                return;
+            }
+
             MissionScreen.Send(steamId, "Print", ToString(), true);
         }
     }

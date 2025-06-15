@@ -28,7 +28,7 @@ namespace HnzCoopSeason.Missions
 
         public override void Use(UseActionEnum actionEnum, IMyEntity user)
         {
-            MissionWindow.Instance.SetDisplayMode(HudDisplayMode.VisibleWithCursor);
+            //MissionWindow.Instance.SetDisplayMode(HudDisplayMode.VisibleWithCursor);
         }
     }
 }

@@ -71,7 +71,7 @@ namespace HnzCoopSeason.Missions.Hud
                 { "Escape", MyKeys.Escape },
             });
 
-            _keyBinds[0].NewPressed += OnTildaKeyPressed;
+            //_keyBinds[0].NewPressed += OnTildaKeyPressed;
             _keyBinds[1].NewPressed += OnEscapeKeyPressed;
 
             _missionList = new ScrollBox<ScrollBoxEntry<MissionListElement>, MissionListElement>(true, bodyBg)

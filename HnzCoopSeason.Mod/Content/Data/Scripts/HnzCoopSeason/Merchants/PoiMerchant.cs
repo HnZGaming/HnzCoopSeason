@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FlashGps;
 using HnzCoopSeason.POI;
 using HnzCoopSeason.Spawners;
 using HnzUtils;
@@ -34,6 +35,7 @@ namespace HnzCoopSeason.Merchants
         IMyCubeGrid _grid;
         PoiState _poiState;
         SpawnState _spawnState;
+        IMyProjector _shipyard;
 
         public PoiMerchant(string poiId, Vector3D position, IMyFaction faction, PoiMerchantConfig[] configs)
         {
@@ -79,6 +81,7 @@ namespace HnzCoopSeason.Merchants
             UpdateStation();
             UpdateEconomy();
             UpdatePower();
+            UpdateShipyardSignal();
         }
 
         void UpdateStation()
@@ -212,16 +215,19 @@ namespace HnzCoopSeason.Merchants
             }
         }
 
-        static void ActivateShipyards(IMyCubeGrid grid)
+        void ActivateShipyards(IMyCubeGrid grid)
         {
-            foreach (var p in grid.GetFatBlocks<IMyProjector>())
+            _shipyard = grid.GetFatBlocks<IMyProjector>().FirstOrDefault(b => b.BlockDefinition.SubtypeId == "MES-Blocks-ShipyardTerminal");
+            if (_shipyard == null)
             {
-                if (p.BlockDefinition.SubtypeName == "MES-Blocks-ShipyardTerminal")
-                {
-                    var storage = p.Storage = new MyModStorageComponent();
-                    storage.SetValue(Guid.Parse("88334d52-3f3b-47cb-83c7-426fbc0553fa"), "MERC-Shipyard-Profile");
-                }
+                MyLog.Default.Error("[HnzCoopSeason] shipyard not found");
+                return;
             }
+
+            var storage = _shipyard.Storage = new MyModStorageComponent();
+            storage.SetValue(Guid.Parse("88334d52-3f3b-47cb-83c7-426fbc0553fa"), "MERC-Shipyard-Profile");
+
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} shipyard: '{_shipyard.EntityId}'");
         }
 
         void Despawn()
@@ -239,6 +245,7 @@ namespace HnzCoopSeason.Merchants
             MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} grid closed");
             grid.OnClose -= OnGridClosed;
             _spawnState = SpawnState.Idle;
+            _shipyard = null;
         }
 
         void SetUpSafezone()
@@ -357,6 +364,29 @@ namespace HnzCoopSeason.Merchants
             {
                 battery.CurrentStoredPower = battery.MaxStoredPower;
             }
+        }
+
+        void UpdateShipyardSignal()
+        {
+            const int DurationSecs = 10;
+
+            if (_shipyard == null) return;
+            if (MyAPIGateway.Session.GameplayFrameCounter % 60 * DurationSecs != 0) return;
+
+            FlashGpsApi.Send(new FlashGpsApi.Entry
+            {
+                Id = _shipyard.EntityId,
+                EntityId = _shipyard.EntityId,
+                Name = "- Shipyard Block -\n    Buying grids!",
+                Position = _shipyard.GetPosition(),
+                Color = Color.Cyan,
+                Duration = DurationSecs,
+                Radius = 1000,
+                Mute = true,
+                Description = "Shipyard block allows you to sell grids for space credits"
+            });
+
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} shipyard signal sent");
         }
 
         void SaveToSandbox()

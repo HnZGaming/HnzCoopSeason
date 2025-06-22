@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
-using HnzCoopSeason.Utils;
-using HnzCoopSeason.Utils.Hud;
+using HnzCoopSeason.HudUtils;
 using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Utils;

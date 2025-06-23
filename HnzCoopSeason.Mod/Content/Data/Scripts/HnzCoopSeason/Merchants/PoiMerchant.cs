@@ -386,7 +386,7 @@ namespace HnzCoopSeason.Merchants
                 Description = "Shipyard block allows you to sell grids for space credits"
             });
 
-            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} shipyard signal sent");
+            MyLog.Default.Debug($"[HnzCoopSeason] poi merchant {_poiId} shipyard signal sent");
         }
 
         void SaveToSandbox()

@@ -92,7 +92,7 @@ namespace HnzCoopSeason.Orks
 
         void OnMainGridSet(IMyCubeGrid grid)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} spawn");
+            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid spawn");
             grid.OnBlockOwnershipChanged += OnBlockOwnershipChanged;
 
             foreach (var beacon in grid.GetFatBlocks<IMyBeacon>())
@@ -112,7 +112,7 @@ namespace HnzCoopSeason.Orks
 
         void OnMainGridUnset(IMyCubeGrid grid)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} despawn");
+            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid despawn");
             grid.OnBlockOwnershipChanged -= OnBlockOwnershipChanged;
             _mainGrid = null;
         }
@@ -124,7 +124,7 @@ namespace HnzCoopSeason.Orks
             if (_poiState == PoiState.Released) return;
             if (!CoopGrids.IsTakenOver(grid)) return;
 
-            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} defeated by players");
+            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid defeated by players");
             Session.Instance.SetPoiState(_poiId, PoiState.Released);
         }
 

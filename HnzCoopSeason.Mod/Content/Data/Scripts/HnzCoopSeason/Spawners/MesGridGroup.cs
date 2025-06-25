@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HnzCoopSeason.NPC;
 using HnzUtils;
 using MES;
 using VRage.Game.ModAPI;
@@ -201,8 +200,8 @@ namespace HnzCoopSeason.Spawners
             grid.GetGridGroup(GridLinkTypeEnum.Logical).GetGrids(grids);
             foreach (var g in grids)
             {
-                var analysis = CoopGrids.Analyze(g);
-                if (analysis.Owner == CoopGrids.Owner.Player)
+                var ownerId = g.BigOwners.GetElementAtOrDefault(0, 0);
+                if (CoopGrids.GetOwnerType(ownerId) == CoopGrids.Owner.Player)
                 {
                     MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} not despawned: '{g.CustomName}'");
                     NpcData.RemoveNpcData(g);

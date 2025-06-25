@@ -73,10 +73,10 @@ namespace HnzCoopSeason
             {
                 MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init()");
                 RichHudClient.Init(nameof(HnzCoopSeason), RichHudInit, RichHudClosed);
+                NpcHud.Instance.Load();
             }
 
             ProgressionView.Instance.Load();
-            NpcHud.Instance.Load();
 
             MyLog.Default.Info("[HnzUtils] session loaded");
         }
@@ -112,10 +112,10 @@ namespace HnzCoopSeason
                 _dataPadInserter?.Unload();
                 PoiRandomInvasion.Instance.Unload();
                 RevengeOrkManager.Instance.Unload();
+                NpcHud.Instance.Unload();
             }
 
             ProgressionView.Instance.Unload();
-            NpcHud.Instance.Unload();
 
             if (!MyAPIGateway.Utilities.IsDedicated)
             {

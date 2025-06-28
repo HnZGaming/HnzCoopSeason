@@ -22,7 +22,7 @@ namespace HnzUtils
 
         public void Unload()
         {
-            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(_key, HandleMessage);
+            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(_key, HandleMessage);
             _handler = null;
         }
 

@@ -101,6 +101,7 @@ namespace HnzCoopSeason.Merchants
         void UpdateEconomy()
         {
             if (_grid == null) return;
+            if (_grid.Closed) return;
 
             var i = SessionConfig.Instance.EconomyUpdateIntervalMinutes * 60 * 60;
             if (!_economyInterval.Update(i)) return;
@@ -234,10 +235,10 @@ namespace HnzCoopSeason.Merchants
         {
             if (_grid == null) return;
 
+            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} grid closing");
+
             _grid.Close();
             _grid = null;
-            RemoveSafezone();
-            MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} despawned");
         }
 
         void OnGridClosed(IMyEntity grid)
@@ -246,6 +247,8 @@ namespace HnzCoopSeason.Merchants
             grid.OnClose -= OnGridClosed;
             _spawnState = SpawnState.Idle;
             _shipyard = null;
+            _grid = null;
+            RemoveSafezone();
         }
 
         void SetUpSafezone()
@@ -253,8 +256,7 @@ namespace HnzCoopSeason.Merchants
             MySafeZone safezone;
             if (VRageUtils.TryGetEntityById(_safeZoneId, out safezone))
             {
-                MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} safezone already exists");
-                return;
+                RemoveSafezone();
             }
 
             safezone = (MySafeZone)MySessionComponentSafeZones.CrateSafeZone(
@@ -275,7 +277,7 @@ namespace HnzCoopSeason.Merchants
             MySafeZone safezone;
             if (!VRageUtils.TryGetEntityById(_safeZoneId, out safezone))
             {
-                MyLog.Default.Warning($"[HnzCoopSeason] poi merchant {_poiId} safezone not found");
+                MyLog.Default.Warning($"[HnzCoopSeason] poi merchant {_poiId} safezone not found; safezone id: {_safeZoneId}");
                 return;
             }
 
@@ -359,6 +361,7 @@ namespace HnzCoopSeason.Merchants
         {
             if (MyAPIGateway.Session.GameplayFrameCounter % 60 != 0) return;
             if (_grid == null) return;
+            if (_grid.Closed) return;
 
             foreach (var battery in _grid.GetFatBlocks<MyBatteryBlock>())
             {
@@ -368,9 +371,11 @@ namespace HnzCoopSeason.Merchants
 
         void UpdateShipyardSignal()
         {
-            const int DurationSecs = 10;
-
+            if (_grid == null) return;
+            if (_grid.Closed) return;
             if (_shipyard == null) return;
+
+            const int DurationSecs = 10;
             if (MyAPIGateway.Session.GameplayFrameCounter % 60 * DurationSecs != 0) return;
 
             FlashGpsApi.Send(new FlashGpsApi.Entry

@@ -201,7 +201,7 @@ namespace HnzCoopSeason.Spawners
             foreach (var g in grids)
             {
                 var ownerId = g.BigOwners.GetElementAtOrDefault(0, 0);
-                if (CoopGrids.GetOwnerType(ownerId) == CoopGrids.Owner.Player)
+                if (VRageUtils.GetOwnerType(ownerId) == GridOwnerType.Player)
                 {
                     MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} not despawned: '{g.CustomName}'");
                     NpcData.RemoveNpcData(g);

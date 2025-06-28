@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using GridStorage.API;
 using HnzCoopSeason.HudUtils;
 using HnzCoopSeason.Spawners;
 using HnzUtils;
@@ -20,7 +21,7 @@ namespace HnzCoopSeason.NPC
         struct Analysis
         {
             public IMyCubeGrid Grid;
-            public CoopGrids.Owner Owner;
+            public GridOwnerType Owner;
             public int SpawnGroupIndex;
             public string FactionTag;
         }
@@ -85,7 +86,10 @@ namespace HnzCoopSeason.NPC
 
         bool TryApplyHudElements() // false if deactivating the view
         {
-            var character = MyAPIGateway.Session.Player?.Character;
+            var player = MyAPIGateway.Session.Player;
+            if (player == null) return false;
+
+            var character = player.Character;
             if (character == null) return false;
 
             var camera = MyAPIGateway.Session.Camera;
@@ -115,8 +119,8 @@ namespace HnzCoopSeason.NPC
                 if (screenDistance > 0.3 && !enclosing) continue;
 
                 var analysis = Analyze(grid);
-                if (analysis.Owner == CoopGrids.Owner.Player) continue; // non pvp
-                if (analysis.FactionTag == CoopGrids.MerchantFactionTag) continue;
+                if (analysis.Owner == GridOwnerType.Player) continue; // non pvp
+                if (analysis.FactionTag == "MERC") continue;
 
                 var raycastHit = raycastHitInfo?.HitEntity == grid;
 
@@ -137,16 +141,20 @@ namespace HnzCoopSeason.NPC
 
             if (target.Grid == null) return false;
 
-            int takeoverSuccessCount;
-            int takeoverTargetCount;
-            var takeoverComplete = CoopGrids.GetTakeoverProgress(target.Grid, true, out takeoverSuccessCount, out takeoverTargetCount);
+            TakeoverState state;
+            if (!CoopGridTakeover.TryLoadTakeoverState(target.Grid, out state)) return false;
+
+            var playerGroup = CoopGridTakeover.GetPlayerGroup(player.IdentityId);
+            var takeoverReady = state.CanTakeOver && (state.TakeoverPlayerGroup == 0 || state.TakeoverPlayerGroup == playerGroup);
+            var takeoverTargetCount = state.PlayerGroups.Length;
+            var takeoverSuccessCount = state.PlayerGroups.Count(id => id == 0 || id == playerGroup);
 
             var titleText = $"<color=0,255,255>{target.Grid.CustomName}";
-            var subtitleText = target.SpawnGroupIndex == 0 && target.FactionTag == CoopGrids.OrksFactionTag
+            var subtitleText = target.SpawnGroupIndex == 0 && target.FactionTag == "PORKS"
                 ? "<color=0,255,255>This is the boss Ork! Neutralize it to reclaim the trading hub!"
                 : "";
 
-            var descriptionText = !takeoverComplete
+            var descriptionText = !takeoverReady
                 ? "To neutralize a wild grid, take over all their remote blocks and control seats."
                 : "You can capture a neutralized grid into a garage block.";
 
@@ -164,7 +172,7 @@ namespace HnzCoopSeason.NPC
             analysis.Grid = grid;
 
             var ownerId = grid.BigOwners.GetElementAtOrDefault(0, 0);
-            analysis.Owner = CoopGrids.GetOwnerType(ownerId);
+            analysis.Owner = VRageUtils.GetOwnerType(ownerId);
             analysis.FactionTag = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId)?.Tag;
 
             MesGridContext context;

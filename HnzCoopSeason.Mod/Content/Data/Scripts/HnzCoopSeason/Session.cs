@@ -54,7 +54,7 @@ namespace HnzCoopSeason
             PoiMapView.Instance.Load();
             MissionService.Instance.Load();
 
-            // server
+            // server or single player
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
                 _poiMap = new PoiMap();
@@ -63,6 +63,7 @@ namespace HnzCoopSeason
                 PlanetCollection.Load();
                 PoiRandomInvasion.Instance.Load();
                 RevengeOrkManager.Instance.Load();
+                CoopGridTakeover.Instance.Load();
 
                 _dataPadInserter = new DatapadInserter("COOP");
                 _dataPadInserter.Load(TryCreateDatapadData);
@@ -113,6 +114,7 @@ namespace HnzCoopSeason
                 PoiRandomInvasion.Instance.Unload();
                 RevengeOrkManager.Instance.Unload();
                 NpcHud.Instance.Unload();
+                CoopGridTakeover.Instance.Unload();
             }
 
             ProgressionView.Instance.Unload();
@@ -145,11 +147,14 @@ namespace HnzCoopSeason
 
         void FirstUpdate()
         {
+            // server or single player
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
                 LoadConfig();
+                CoopGridTakeover.Instance.FirstUpdate();
             }
 
+            // dedi client
             if (VRageUtils.NetworkTypeIn(NetworkType.DediClient))
             {
                 ProgressionView.Instance.RequestUpdate();

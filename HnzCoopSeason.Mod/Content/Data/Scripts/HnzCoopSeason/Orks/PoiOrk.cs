@@ -207,7 +207,7 @@ namespace HnzCoopSeason.Orks
             TakeoverState state;
             if (!CoopGridTakeover.TryLoadTakeoverState(_mainGrid, out state)) return Array.Empty<long>();
 
-            return state.PlayerGroups;
+            return state.Controllers;
         }
 
         static float GetWeight(PoiOrkConfig config, int progressLevel)

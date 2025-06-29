@@ -7,6 +7,13 @@ namespace HnzUtils
 {
     public sealed class SceneEntityObserver<T> where T : class, IMyEntity
     {
+        readonly bool _ignoreProjection;
+
+        public SceneEntityObserver(bool ignoreProjection)
+        {
+            _ignoreProjection = ignoreProjection;
+        }
+
         public event Action<T> OnEntityAdded;
         public event Action<T> OnEntityRemoved;
 
@@ -34,6 +41,8 @@ namespace HnzUtils
 
         void OnEntityAddCallback(IMyEntity obj)
         {
+            if (obj.Physics == null && _ignoreProjection) return;
+
             var e = obj as T;
             if (e != null)
             {

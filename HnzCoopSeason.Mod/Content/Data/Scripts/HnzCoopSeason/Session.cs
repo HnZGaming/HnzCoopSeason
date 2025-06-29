@@ -53,6 +53,7 @@ namespace HnzCoopSeason
             PoiSpectatorCamera.Instance.Load();
             PoiMapView.Instance.Load();
             MissionService.Instance.Load();
+            CoopGridTakeover.Instance.Load();
 
             // server or single player
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
@@ -63,7 +64,6 @@ namespace HnzCoopSeason
                 PlanetCollection.Load();
                 PoiRandomInvasion.Instance.Load();
                 RevengeOrkManager.Instance.Load();
-                CoopGridTakeover.Instance.Load();
 
                 _dataPadInserter = new DatapadInserter("COOP");
                 _dataPadInserter.Load(TryCreateDatapadData);
@@ -102,6 +102,7 @@ namespace HnzCoopSeason
             PoiSpectatorCamera.Instance.Unload();
             PoiMapView.Instance.Unload();
             MissionService.Instance.Unload();
+            CoopGridTakeover.Instance.Unload();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -114,7 +115,6 @@ namespace HnzCoopSeason
                 PoiRandomInvasion.Instance.Unload();
                 RevengeOrkManager.Instance.Unload();
                 NpcHud.Instance.Unload();
-                CoopGridTakeover.Instance.Unload();
             }
 
             ProgressionView.Instance.Unload();
@@ -151,7 +151,6 @@ namespace HnzCoopSeason
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
                 LoadConfig();
-                CoopGridTakeover.Instance.FirstUpdate();
             }
 
             // dedi client
@@ -161,6 +160,7 @@ namespace HnzCoopSeason
                 MissionService.Instance.RequestUpdate();
             }
 
+            CoopGridTakeover.Instance.FirstUpdate();
             PoiMapView.Instance.FirstUpdate();
         }
 

@@ -4,9 +4,11 @@ using System.Xml.Serialization;
 namespace GridStorage.API
 {
     /// <summary>
-    /// Takeover state in a grid's mod storage as an XML document.
-    /// Grid Garage mod does NOT calculate takeover state by itself.
-    /// Other mods must calculate it and save the result in each grid's mod storage.
+    /// Takeover XML document for each grid's mod storage.
+    /// Grid Garage mod does NOT compute takeover by itself; other mods must provide it.
+    /// This XML document must be present in both the server and clients.
+    /// If the document isn't present in the client, the scan UI will fail. If not present in the server, verification will fail.
+    /// Note that mod storage values are synchronized upon entity replication and never after.
     /// </summary>
     [Serializable]
     public sealed class TakeoverState
@@ -32,12 +34,11 @@ namespace GridStorage.API
 
         /* CUSTOM PROPERTIES BELOW */
 
-        // Player Group ID is either:
-        // - faction ID if a player is part of a faction,
-        // - otherwise player ID
-        // 0 indicates an unowned block
+        /// <summary>
+        /// Player Group IDs for control-type blocks.
+        /// </summary>
         [XmlArray]
-        [XmlArrayItem("PlayerGroupId")]
-        public long[] PlayerGroups = Array.Empty<long>();
+        [XmlArrayItem("Controller")]
+        public long[] Controllers = Array.Empty<long>();
     }
 }

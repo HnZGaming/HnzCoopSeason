@@ -110,6 +110,7 @@ namespace HnzCoopSeason.NPC
                 var grid = entity as IMyCubeGrid;
                 if (grid == null) continue;
                 if (VRageUtils.IsInAnySafeZone(grid.EntityId)) continue;
+                if (grid.Physics == null) continue; // projection
 
                 var gridPosition = grid.WorldMatrix.Translation;
                 var screenPosition = camera.WorldToScreen(ref gridPosition);
@@ -146,8 +147,8 @@ namespace HnzCoopSeason.NPC
 
             var playerGroup = CoopGridTakeover.GetPlayerGroup(player.IdentityId);
             var takeoverReady = state.CanTakeOver && (state.TakeoverPlayerGroup == 0 || state.TakeoverPlayerGroup == playerGroup);
-            var takeoverTargetCount = state.PlayerGroups.Length;
-            var takeoverSuccessCount = state.PlayerGroups.Count(id => id == 0 || id == playerGroup);
+            var takeoverTargetCount = state.Controllers.Length;
+            var takeoverSuccessCount = state.Controllers.Count(id => id == 0 || id == playerGroup);
 
             var titleText = $"<color=0,255,255>{target.Grid.CustomName}";
             var subtitleText = target.SpawnGroupIndex == 0 && target.FactionTag == "PORKS"
@@ -194,7 +195,7 @@ namespace HnzCoopSeason.NPC
             var buffer = new StringBuilder();
             buffer.Append("CAPMETER ");
 
-            var progress = (float)takeoverCount / totalCount;
+            var progress = totalCount == 0 ? 1 : (float)takeoverCount / totalCount;
             buffer.Append(HudElement.CreateProgressionBar(progress));
 
             buffer.Append($" {takeoverCount}/{totalCount}");

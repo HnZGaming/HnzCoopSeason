@@ -4,16 +4,18 @@ using GridStorage.API;
 using HnzUtils;
 using HnzUtils.Pools;
 using Sandbox.ModAPI;
+using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 
 namespace HnzCoopSeason
 {
+    // NOTE this module runs in both server/clients.
     public sealed class CoopGridTakeover
     {
         public static readonly CoopGridTakeover Instance = new CoopGridTakeover();
 
-        readonly SceneEntityObserver<IMyCubeGrid> _gridObserver = new SceneEntityObserver<IMyCubeGrid>();
+        readonly SceneEntityObserver<IMyCubeGrid> _gridObserver = new SceneEntityObserver<IMyCubeGrid>(true);
 
         public void Load()
         {
@@ -65,7 +67,7 @@ namespace HnzCoopSeason
         void OnBlockOwnershipChanged(IMyCubeGrid grid)
         {
             var state = ComputeTakeover(grid);
-            //MyLog.Default.Info($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}, {state.PlayerGroups.ToStringSeq()}");
+            MyLog.Default.Info($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}, {state.Controllers.ToStringSeq()}");
             var stateXml = MyAPIGateway.Utilities.SerializeToXML(state);
             grid.UpdateStorageValue(TakeoverState.ModStorageKey, stateXml);
         }
@@ -74,7 +76,12 @@ namespace HnzCoopSeason
         {
             LangUtils.AssertNull(grid, "grid null");
 
-            var state = new TakeoverState();
+            var state = new TakeoverState
+            {
+                CanTakeOver = false,
+                TakeoverPlayerGroup = 0,
+                Controllers = Array.Empty<long>(),
+            };
 
             // owned by nobody -> can take over
             if ((grid.BigOwners?.Count ?? 0) == 0)
@@ -85,31 +92,27 @@ namespace HnzCoopSeason
 
             // owned by player -> can't take over
             var gridOwnerId = grid.BigOwners[0];
-            if (VRageUtils.GetOwnerType(gridOwnerId) == GridOwnerType.Player)
-            {
-                state.CanTakeOver = false;
-                return state;
-            }
+            if (VRageUtils.GetOwnerType(gridOwnerId) == GridOwnerType.Player) return state;
 
             // control-type blocks
             var blocks = HashSetPool<IMyTerminalBlock>.Instance.Get();
             blocks.UnionWith(grid.GetFatBlocks<IMyRemoteControl>());
-            blocks.UnionWith(grid.GetFatBlocks<IMyCockpit>());
+            blocks.UnionWith(grid.GetFatBlocks<IMyCockpit>().Where(b => b.CanControlShip));
 
-            state.PlayerGroups = blocks.Select(b => ToPlayerGroupId(b.OwnerId)).ToArray();
-            MyLog.Default.Info($"[HnzCoopSeason] ownership: {state.PlayerGroups.ToStringSeq()}");
+            state.Controllers = blocks.Select(b => ToPlayerGroupId(b.OwnerId)).ToArray();
+            MyLog.Default.Info($"[HnzCoopSeason] ownership for '{grid.DisplayName}': {state.Controllers.ToStringSeq()}, blocks: {blocks.Select(b => b.BlockDefinition.SubtypeId).ToStringSeq()}");
 
             HashSetPool<IMyTerminalBlock>.Instance.Release(blocks);
 
             // no control blocks -> can take over
-            if (state.PlayerGroups.Length == 0)
+            if (state.Controllers.Length == 0)
             {
                 state.CanTakeOver = true;
                 return state;
             }
 
             var uniquePlayerGroups = HashSetPool<long>.Instance.Get();
-            uniquePlayerGroups.UnionWith(state.PlayerGroups);
+            uniquePlayerGroups.UnionWith(state.Controllers);
             uniquePlayerGroups.Remove(0); // !!
 
             // all control blocks are unowned -> can take over
@@ -119,11 +122,14 @@ namespace HnzCoopSeason
                 return state;
             }
 
-            // one player group owns all control blocks -> they can take over
-            if (uniquePlayerGroups.Count == 1)
+            // one player group (not NPC) owns all control blocks -> they can take over
+            long singlePlayerGroup;
+            if (uniquePlayerGroups.Count == 1 &&
+                uniquePlayerGroups.TryGetFirst(out singlePlayerGroup) &&
+                !IsNpc(singlePlayerGroup))
             {
                 state.CanTakeOver = true;
-                state.TakeoverPlayerGroup = uniquePlayerGroups.First();
+                state.TakeoverPlayerGroup = singlePlayerGroup;
                 return state;
             }
 
@@ -139,6 +145,14 @@ namespace HnzCoopSeason
 
             var faction = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId);
             return faction?.FactionId ?? ownerId;
+        }
+
+        static bool IsNpc(long playerGroup)
+        {
+            var faction = MyAPIGateway.Session.Factions.TryGetFactionById(playerGroup);
+            if (faction == null) return false; // player that doesn't partake in a faction
+
+            return faction.FactionType != MyFactionTypes.PlayerMade;
         }
     }
 }

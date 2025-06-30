@@ -20,6 +20,7 @@ namespace HnzCoopSeason.Spawners
         }
 
         readonly Dictionary<int, IMyCubeGrid> _allGrids;
+        int _increment;
 
         public MesGridGroup(string id)
         {
@@ -62,7 +63,7 @@ namespace HnzCoopSeason.Spawners
 
             if (sessionUnload) return; // otherwise fails to unload session
 
-            Despawn();
+            DespawnAll();
         }
 
         public void RequestSpawn(IReadOnlyList<string> spawnGroups, SpawnMatrixBuilder matrixBuilder) // called multiple times
@@ -71,9 +72,11 @@ namespace HnzCoopSeason.Spawners
 
             if (_allGrids.Any())
             {
-                MyLog.Default.Warning($"[HnzCoopSeason] MesGrid {Id} despawning existing grids");
-                Despawn();
+                MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} despawning existing grids");
+                DespawnAll();
             }
+
+            _increment += 1;
 
             for (var i = 0; i < spawnGroups.Count; i++)
             {
@@ -83,7 +86,7 @@ namespace HnzCoopSeason.Spawners
                     SpawningMatrix = matrixBuilder.Results[i],
                     IgnoreSafetyCheck = true,
                     SpawnProfileId = nameof(HnzCoopSeason),
-                    Context = new MesGridContext(Id, i).ToXml(),
+                    Context = new MesGridContext(Id, i, _increment).ToXml(),
                 });
 
                 if (!success)
@@ -107,6 +110,13 @@ namespace HnzCoopSeason.Spawners
             if (!TryGetMyContext(grid, out context)) return;
 
             MyLog.Default.WriteLine($"[HnzCoopSeason] MesGrid {Id} grid spawned; index: {context.Index}");
+
+            if (context.Increment != _increment)
+            {
+                MyLog.Default.WriteLine($"[HnzCoopSeason] MesGrid {Id} grid old; grid increment: {context.Increment}; now: {_increment}; despawning");
+                CloseGridSafely(grid);
+                return;
+            }
 
             grid.OnClosing += OnGridClosing;
             _allGrids.Add(context.Index, grid);
@@ -132,7 +142,7 @@ namespace HnzCoopSeason.Spawners
             MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} grid despawned by MES; index: {context.Index}, cause: {cause}");
         }
 
-        void Despawn()
+        void DespawnAll()
         {
             if (State == SpawningState.Spawning)
             {

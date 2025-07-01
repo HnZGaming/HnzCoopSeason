@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FlashGps;
+using GridStorage.API;
 using HnzCoopSeason.POI;
 using HnzCoopSeason.Spawners;
 using HnzUtils;
@@ -33,6 +34,8 @@ namespace HnzCoopSeason.Orks
             _encounter.OnMainGridUnset += OnMainGridUnset;
             _encounter.FilterSpawn = EncounterSpawnDelegate;
             _encounter.Load(grids);
+
+            CoopGridTakeover.Instance.OnTakeoverStateChanged += OnAnyTakeoverStateChanged;
         }
 
         void IPoiObserver.Unload(bool sessionUnload)
@@ -41,6 +44,8 @@ namespace HnzCoopSeason.Orks
             _encounter.OnMainGridSet -= OnMainGridSet;
             _encounter.OnMainGridUnset -= OnMainGridUnset;
             _encounter.FilterSpawn = null;
+
+            CoopGridTakeover.Instance.OnTakeoverStateChanged -= OnAnyTakeoverStateChanged;
         }
 
         void IPoiObserver.Update()
@@ -93,7 +98,6 @@ namespace HnzCoopSeason.Orks
         void OnMainGridSet(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid spawn");
-            grid.OnBlockOwnershipChanged += OnBlockOwnershipChanged;
 
             foreach (var beacon in grid.GetFatBlocks<IMyBeacon>())
             {
@@ -113,16 +117,19 @@ namespace HnzCoopSeason.Orks
         void OnMainGridUnset(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid despawn");
-            grid.OnBlockOwnershipChanged -= OnBlockOwnershipChanged;
             _mainGrid = null;
         }
 
-        void OnBlockOwnershipChanged(IMyCubeGrid grid)
+        void OnAnyTakeoverStateChanged(long gridId)
         {
-            if (grid == null) return; // potential crash cause
-
             if (_poiState == PoiState.Released) return;
-            if (!CoopGrids.IsTakenOver(grid)) return;
+            if (_mainGrid == null) return;
+            if (_mainGrid.EntityId != gridId) return;
+
+            // note: debug via `/coop poi list` and `/coop poi print` commands
+            TakeoverState state;
+            if (!CoopGridTakeover.TryLoadTakeoverState(_mainGrid, out state)) return;
+            if (!state.CanTakeOver) return;
 
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid defeated by players");
             Session.Instance.SetPoiState(_poiId, PoiState.Released);
@@ -184,6 +191,16 @@ namespace HnzCoopSeason.Orks
             return sessionLevel;
         }
 
+        long[] GetTakeoverPlayerGroup()
+        {
+            if (_mainGrid == null) return Array.Empty<long>();
+
+            TakeoverState state;
+            if (!CoopGridTakeover.TryLoadTakeoverState(_mainGrid, out state)) return Array.Empty<long>();
+
+            return state.Controllers;
+        }
+
         static float GetWeight(PoiOrkConfig config, int progressLevel)
         {
             if (progressLevel != config.ProgressLevel) return 0;
@@ -192,7 +209,8 @@ namespace HnzCoopSeason.Orks
 
         public override string ToString()
         {
-            return $"Ork({nameof(_poiId)}: {_poiId},  {nameof(_encounter)}: {_encounter})";
+            var takeover = GetTakeoverPlayerGroup();
+            return $"Ork({nameof(_poiId)}: {_poiId},  {nameof(_encounter)}: {_encounter}, Takeover: {takeover.ToStringSeq()})";
         }
     }
 }

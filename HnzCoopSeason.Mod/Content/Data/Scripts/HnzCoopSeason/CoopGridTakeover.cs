@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using GridStorage.API;
 using HnzUtils;
@@ -16,6 +17,8 @@ namespace HnzCoopSeason
         public static readonly CoopGridTakeover Instance = new CoopGridTakeover();
 
         readonly SceneEntityObserver<IMyCubeGrid> _gridObserver = new SceneEntityObserver<IMyCubeGrid>(true);
+
+        public event Action<long> OnTakeoverStateChanged;
 
         public void Load()
         {
@@ -67,9 +70,11 @@ namespace HnzCoopSeason
         void OnBlockOwnershipChanged(IMyCubeGrid grid)
         {
             var state = ComputeTakeover(grid);
-            MyLog.Default.Info($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}, {state.Controllers.ToStringSeq()}");
             var stateXml = MyAPIGateway.Utilities.SerializeToXML(state);
             grid.UpdateStorageValue(TakeoverState.ModStorageKey, stateXml);
+
+            MyLog.Default.Info($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}");
+            OnTakeoverStateChanged?.Invoke(grid.EntityId);
         }
 
         static TakeoverState ComputeTakeover(IMyCubeGrid grid)

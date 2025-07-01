@@ -20,7 +20,6 @@ namespace HnzCoopSeason.Orks
         readonly PoiOrkConfig[] _configs;
         IMyCubeGrid _mainGrid;
         PoiState _poiState;
-        bool _releaseDirty;
 
         public PoiOrk(string poiId, Vector3D position, PoiOrkConfig[] configs)
         {
@@ -35,6 +34,8 @@ namespace HnzCoopSeason.Orks
             _encounter.OnMainGridUnset += OnMainGridUnset;
             _encounter.FilterSpawn = EncounterSpawnDelegate;
             _encounter.Load(grids);
+
+            CoopGridTakeover.Instance.OnTakeoverStateChanged += OnAnyTakeoverStateChanged;
         }
 
         void IPoiObserver.Unload(bool sessionUnload)
@@ -43,13 +44,14 @@ namespace HnzCoopSeason.Orks
             _encounter.OnMainGridSet -= OnMainGridSet;
             _encounter.OnMainGridUnset -= OnMainGridUnset;
             _encounter.FilterSpawn = null;
+
+            CoopGridTakeover.Instance.OnTakeoverStateChanged -= OnAnyTakeoverStateChanged;
         }
 
         void IPoiObserver.Update()
         {
             _encounter.TrySpawn();
             UpdateBossGps();
-            UpdateRelease();
         }
 
         void UpdateBossGps()
@@ -96,7 +98,6 @@ namespace HnzCoopSeason.Orks
         void OnMainGridSet(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid spawn");
-            grid.OnBlockOwnershipChanged += OnBlockOwnershipChanged;
 
             foreach (var beacon in grid.GetFatBlocks<IMyBeacon>())
             {
@@ -116,24 +117,14 @@ namespace HnzCoopSeason.Orks
         void OnMainGridUnset(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid despawn");
-            grid.OnBlockOwnershipChanged -= OnBlockOwnershipChanged;
             _mainGrid = null;
         }
 
-        void OnBlockOwnershipChanged(IMyCubeGrid grid)
+        void OnAnyTakeoverStateChanged(long gridId)
         {
-            // Coming back a frame later because the subscription/execution order is uncertain.
-            // This may be too late if some player took over the grid within a single frame, but that shouldn't happen.
-            _releaseDirty = true;
-        }
-
-        void UpdateRelease()
-        {
-            if (!_releaseDirty) return;
-            _releaseDirty = false;
-
             if (_poiState == PoiState.Released) return;
             if (_mainGrid == null) return;
+            if (_mainGrid.EntityId != gridId) return;
 
             // note: debug via `/coop poi list` and `/coop poi print` commands
             TakeoverState state;

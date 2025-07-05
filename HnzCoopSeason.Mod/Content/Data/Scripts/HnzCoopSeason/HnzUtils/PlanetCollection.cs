@@ -71,5 +71,16 @@ namespace HnzUtils
 
             return closestPlanet;
         }
+
+        public static bool HasAtmosphere(Vector3D position)
+        {
+            var planet = GetClosestPlanet(position);
+            if (!planet.HasAtmosphere) return false;
+
+            var dist = Vector3D.Distance(position, planet.WorldMatrix.Translation);
+            if (dist > planet.AtmosphereRadius) return false;
+
+            return true;
+        }
     }
 }

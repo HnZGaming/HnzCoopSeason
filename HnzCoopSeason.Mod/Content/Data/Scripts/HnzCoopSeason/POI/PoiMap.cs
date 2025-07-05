@@ -95,7 +95,7 @@ namespace HnzCoopSeason.POI
                 }
 
                 var id = $"{x}-{y}-{z}";
-                var atmospheric = HasAtmosphere(position);
+                var atmospheric = PlanetCollection.HasAtmosphere(position);
                 var poiConfig = new PoiConfig(id, position, atmospheric);
                 var orks = atmospheric ? atmosphericOrks : spaceOrks;
                 var ork = new PoiOrk(id, poiConfig.Position, orks);
@@ -149,17 +149,6 @@ namespace HnzCoopSeason.POI
             }
 
             return count;
-        }
-
-        static bool HasAtmosphere(Vector3D position)
-        {
-            var planet = PlanetCollection.GetClosestPlanet(position);
-            if (!planet.HasAtmosphere) return false;
-
-            var dist = Vector3D.Distance(position, planet.WorldMatrix.Translation);
-            if (dist > planet.AtmosphereRadius) return false;
-
-            return true;
         }
 
         public override string ToString()

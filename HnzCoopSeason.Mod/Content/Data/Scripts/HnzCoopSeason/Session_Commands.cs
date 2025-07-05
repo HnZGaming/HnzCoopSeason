@@ -1,14 +1,18 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using HnzCoopSeason.Merchants;
 using HnzCoopSeason.Missions;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
+using HnzCoopSeason.Spawners;
 using HnzUtils;
 using HnzUtils.Commands;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
+using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -168,34 +172,67 @@ namespace HnzCoopSeason
             MissionScreen.Send(steamId, "Print", poi.ToString(), true);
         }
 
-        void Command_Revenge(string args, ulong steamId)
+        void Command_Revenge(string argsStr, ulong steamId)
         {
-            MyLog.Default.Info($"[HnzCoopSeason] revenge; args: '{args}'");
+            MyLog.Default.Info($"[HnzCoopSeason] revenge; args: '{argsStr}'");
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
 
-            int configIndex;
-            if (!int.TryParse(args, out configIndex))
+            var args = argsStr.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (args.Length < 1)
             {
-                SendMessage(steamId, Color.Red, $"invalid config index: {args}");
+                SendMessage(steamId, Color.Red, "requires config index");
                 return;
             }
+
+            int configIndex;
+            var configIndexStr = args[0];
+            if (!int.TryParse(configIndexStr, out configIndex))
+            {
+                SendMessage(steamId, Color.Red, $"invalid config index text: {configIndexStr}");
+                return;
+            }
+
+            IMyEntity targetEntity;
+            if (args.Length >= 2) // target name specified
+            {
+                var targetName = args[1];
+                var players = new List<IMyPlayer>();
+                MyAPIGateway.Players.GetPlayers(players);
+                var targetPlayer = players.FirstOrDefault(p => p.DisplayName == targetName);
+                if (targetPlayer != null) // player found
+                {
+                    targetEntity = targetPlayer.Character;
+                }
+                else // any other entities
+                {
+                    MyAPIGateway.Entities.TryGetEntityByName(targetName, out targetEntity);
+                }
+            }
+            else // no target -> the calling player's character 
+            {
+                var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
+                targetEntity = MyAPIGateway.Players.TryGetIdentityId(playerId)?.Character;
+            }
+
+            if (targetEntity == null)
+            {
+                SendMessage(steamId, Color.Red, "entity not found by name");
+                return;
+            }
+
+            var targetPosition = targetEntity.GetPosition();
+            var targetHasAtmosphere = PlanetCollection.HasAtmosphere(targetPosition);
+            var configs = SessionConfig.Instance.Orks.Where(o => o.SpawnType == SpawnType.AtmosphericShip && targetHasAtmosphere).ToArray();
 
             PoiOrkConfig config;
-            if (!SessionConfig.Instance.Orks.TryGetElementAt(configIndex, out config))
+            if (!configs.TryGetElementAt(configIndex, out config))
             {
-                SendMessage(steamId, Color.Red, $"invalid config index: {args}");
+                SendMessage(steamId, Color.Red, $"invalid config index number: {configIndex}");
                 return;
             }
 
-            var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
-            var character = MyAPIGateway.Players.TryGetIdentityId(playerId)?.Character;
-            if (character == null)
-            {
-                SendMessage(steamId, Color.Red, $"character not found: {steamId}");
-                return;
-            }
-
-            RevengeOrkManager.Instance.Spawn(character.GetPosition(), config.SpawnGroupNames);
+            RevengeOrkManager.Instance.Spawn(targetPosition, config.SpawnGroupNames);
+            SendMessage(steamId, Color.White, "orks spawned");
         }
 
         void Command_ListMissions(string args, ulong steamId)

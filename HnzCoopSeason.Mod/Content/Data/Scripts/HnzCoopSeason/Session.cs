@@ -53,8 +53,9 @@ namespace HnzCoopSeason
             PoiSpectatorCamera.Instance.Load();
             PoiMapView.Instance.Load();
             MissionService.Instance.Load();
+            CoopGridTakeover.Instance.Load();
 
-            // server
+            // server or single player
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
                 _poiMap = new PoiMap();
@@ -73,10 +74,10 @@ namespace HnzCoopSeason
             {
                 MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init()");
                 RichHudClient.Init(nameof(HnzCoopSeason), RichHudInit, RichHudClosed);
+                NpcHud.Instance.Load();
             }
 
             ProgressionView.Instance.Load();
-            NpcHud.Instance.Load();
 
             MyLog.Default.Info("[HnzUtils] session loaded");
         }
@@ -101,6 +102,7 @@ namespace HnzCoopSeason
             PoiSpectatorCamera.Instance.Unload();
             PoiMapView.Instance.Unload();
             MissionService.Instance.Unload();
+            CoopGridTakeover.Instance.Unload();
 
             // server or single player
             if (MyAPIGateway.Session.IsServer)
@@ -112,10 +114,10 @@ namespace HnzCoopSeason
                 _dataPadInserter?.Unload();
                 PoiRandomInvasion.Instance.Unload();
                 RevengeOrkManager.Instance.Unload();
+                NpcHud.Instance.Unload();
             }
 
             ProgressionView.Instance.Unload();
-            NpcHud.Instance.Unload();
 
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
@@ -145,17 +147,20 @@ namespace HnzCoopSeason
 
         void FirstUpdate()
         {
+            // server or single player
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
                 LoadConfig();
             }
 
+            // dedi client
             if (VRageUtils.NetworkTypeIn(NetworkType.DediClient))
             {
                 ProgressionView.Instance.RequestUpdate();
                 MissionService.Instance.RequestUpdate();
             }
 
+            CoopGridTakeover.Instance.FirstUpdate();
             PoiMapView.Instance.FirstUpdate();
         }
 

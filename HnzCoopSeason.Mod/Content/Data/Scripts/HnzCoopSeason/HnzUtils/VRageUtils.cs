@@ -8,7 +8,6 @@ using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
-using VRage.Serialization;
 using VRageMath;
 
 namespace HnzUtils
@@ -40,6 +39,12 @@ namespace HnzUtils
         public static bool IsNpc(long identityId)
         {
             return MyAPIGateway.Players.TryGetSteamId(identityId) == 0;
+        }
+
+        public static GridOwnerType GetOwnerType(long ownerId)
+        {
+            if (ownerId == 0) return GridOwnerType.Nobody;
+            return IsNpc(ownerId) ? GridOwnerType.NPC : GridOwnerType.Player;
         }
 
         public static void UpdateStorageValue(this IMyEntity entity, Guid key, string value)

@@ -79,7 +79,7 @@ namespace HnzCoopSeason
                 var sb = new StringBuilder();
                 foreach (var poi in pois)
                 {
-                    sb.AppendLine($"> {poi.Id} -- {poi.State}");
+                    sb.AppendLine($"> {poi.Id} -- {poi}");
                 }
 
                 MissionScreen.Send(steamId, "Points of Interest", sb.ToString(), true);
@@ -153,11 +153,20 @@ namespace HnzCoopSeason
 
         void Command_PrintPoi(string poiId, ulong steamId)
         {
+            StringBuilder sb = new StringBuilder();
+
             Poi poi;
             if (!_poiMap.TryGetPoi(poiId, out poi))
             {
                 SendMessage(steamId, Color.Red, $"POI {poiId} not found.");
                 return;
+            }
+
+            sb.AppendLine(poi.ToString());
+
+            if (steamId == 0) // server ui or discord
+            {
+                SendMessage(steamId, Color.White, $"POI {poiId} not found.");
             }
 
             MissionScreen.Send(steamId, "Print", poi.ToString(), true);

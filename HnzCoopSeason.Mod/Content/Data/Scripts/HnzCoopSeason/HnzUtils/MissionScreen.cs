@@ -1,5 +1,4 @@
 ﻿using ProtoBuf;
-using Sandbox.Game;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -23,12 +22,6 @@ namespace HnzUtils
 
         public static void Send(ulong steamId, string title, string message, bool clipboard)
         {
-            if (steamId == 0)
-            {
-                MyVisualScriptLogicProvider.SendChatMessage(message, "COOP", 0);
-                return;
-            }
-
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(new Payload(title, message, clipboard));
             MyAPIGateway.Multiplayer.SendMessageTo(_modKey, bytes, steamId, true);
             MyLog.Default.Debug("[HnzUtils] screen message sent");

@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using GridStorage.API;
 using HnzCoopSeason.HudUtils;
-using HnzCoopSeason.Spawners;
 using HnzUtils;
 using HnzUtils.Pools;
 using Sandbox.Game.Entities;
@@ -18,17 +16,9 @@ namespace HnzCoopSeason.NPC
     {
         public static readonly NpcHud Instance = new NpcHud();
 
-        struct Analysis
-        {
-            public IMyCubeGrid Grid;
-            public GridOwnerType Owner;
-            public int SpawnGroupIndex;
-            public string FactionTag;
-        }
-
-        static readonly Pool<SortedList<double, Analysis>> GridSearchPool =
-            new Pool<SortedList<double, Analysis>>(
-                () => new SortedList<double, Analysis>(),
+        static readonly Pool<SortedList<double, CoopGrids.Analysis>> GridSearchPool =
+            new Pool<SortedList<double, CoopGrids.Analysis>>(
+                () => new SortedList<double, CoopGrids.Analysis>(),
                 l => l.Clear());
 
         HudElementStack _group;
@@ -41,7 +31,7 @@ namespace HnzCoopSeason.NPC
 
         public void Load()
         {
-            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+            if (MyAPIGateway.Utilities.IsDedicated) return; // client
 
             _group = new HudElementStack
             {
@@ -60,7 +50,7 @@ namespace HnzCoopSeason.NPC
 
         public void Unload()
         {
-            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+            if (MyAPIGateway.Utilities.IsDedicated) return; // client
 
             _titleElement.Clear();
             _subtitleElement.Clear();
@@ -73,7 +63,7 @@ namespace HnzCoopSeason.NPC
 
         public void Update()
         {
-            VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
+            if (MyAPIGateway.Utilities.IsDedicated) return; // client
 
             _reticle.Update(_reticlePosition ?? Vector3D.Zero, _reticlePosition.HasValue, 1000);
 
@@ -86,10 +76,7 @@ namespace HnzCoopSeason.NPC
 
         bool TryApplyHudElements() // false if deactivating the view
         {
-            var player = MyAPIGateway.Session.Player;
-            if (player == null) return false;
-
-            var character = player.Character;
+            var character = MyAPIGateway.Session.Player?.Character;
             if (character == null) return false;
 
             var camera = MyAPIGateway.Session.Camera;
@@ -110,7 +97,6 @@ namespace HnzCoopSeason.NPC
                 var grid = entity as IMyCubeGrid;
                 if (grid == null) continue;
                 if (VRageUtils.IsInAnySafeZone(grid.EntityId)) continue;
-                if (grid.Physics == null) continue; // projection
 
                 var gridPosition = grid.WorldMatrix.Translation;
                 var screenPosition = camera.WorldToScreen(ref gridPosition);
@@ -119,9 +105,9 @@ namespace HnzCoopSeason.NPC
                 var enclosing = grid.WorldAABB.Contains(characterPosition) != ContainmentType.Disjoint;
                 if (screenDistance > 0.3 && !enclosing) continue;
 
-                var analysis = Analyze(grid);
-                if (analysis.Owner == GridOwnerType.Player) continue; // non pvp
-                if (analysis.FactionTag == "MERC") continue;
+                var analysis = CoopGrids.Analyze(grid);
+                if (analysis.Owner == CoopGrids.Owner.Player) continue; // non pvp
+                if (analysis.IsMerchant) continue;
 
                 var raycastHit = raycastHitInfo?.HitEntity == grid;
 
@@ -142,20 +128,16 @@ namespace HnzCoopSeason.NPC
 
             if (target.Grid == null) return false;
 
-            TakeoverState state;
-            if (!CoopGridTakeover.TryLoadTakeoverState(target.Grid, out state)) return false;
-
-            var playerGroup = CoopGridTakeover.GetPlayerGroup(player.IdentityId);
-            var takeoverReady = state.CanTakeOver && (state.TakeoverPlayerGroup == 0 || state.TakeoverPlayerGroup == playerGroup);
-            var takeoverTargetCount = state.Controllers.Length;
-            var takeoverSuccessCount = state.Controllers.Count(id => id == 0 || id == playerGroup);
+            int takeoverSuccessCount;
+            int takeoverTargetCount;
+            var takeoverComplete = CoopGrids.GetTakeoverProgress(target.Grid, true, out takeoverSuccessCount, out takeoverTargetCount);
 
             var titleText = $"<color=0,255,255>{target.Grid.CustomName}";
-            var subtitleText = target.SpawnGroupIndex == 0 && target.FactionTag == "PORKS"
+            var subtitleText = target.IsOrksLeader
                 ? "<color=0,255,255>This is the boss Ork! Neutralize it to reclaim the trading hub!"
                 : "";
 
-            var descriptionText = !takeoverReady
+            var descriptionText = !takeoverComplete
                 ? "To neutralize a wild grid, take over all their remote blocks and control seats."
                 : "You can capture a neutralized grid into a garage block.";
 
@@ -165,24 +147,6 @@ namespace HnzCoopSeason.NPC
             _descriptionElement.Apply(descriptionText);
 
             return true;
-        }
-
-        static Analysis Analyze(IMyCubeGrid grid)
-        {
-            var analysis = default(Analysis);
-            analysis.Grid = grid;
-
-            var ownerId = grid.BigOwners.GetElementAtOrDefault(0, 0);
-            analysis.Owner = VRageUtils.GetOwnerType(ownerId);
-            analysis.FactionTag = MyAPIGateway.Session.Factions.TryGetPlayerFaction(ownerId)?.Tag;
-
-            MesGridContext context;
-            if (MesGridGroup.TryGetSpawnContext(grid, out context))
-            {
-                analysis.SpawnGroupIndex = context.Index;
-            }
-
-            return analysis;
         }
 
         static Vector3D GetReticlePosition(IMyCubeGrid grid)
@@ -195,7 +159,7 @@ namespace HnzCoopSeason.NPC
             var buffer = new StringBuilder();
             buffer.Append("CAPMETER ");
 
-            var progress = totalCount == 0 ? 1 : (float)takeoverCount / totalCount;
+            var progress = (float)takeoverCount / totalCount;
             buffer.Append(HudElement.CreateProgressionBar(progress));
 
             buffer.Append($" {takeoverCount}/{totalCount}");

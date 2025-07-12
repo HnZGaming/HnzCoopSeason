@@ -15,19 +15,15 @@ namespace HnzCoopSeason.Spawners
         [XmlElement]
         public int Index;
 
-        [XmlElement]
-        public int Increment;
-
         // serializer
         public MesGridContext()
         {
         }
 
-        public MesGridContext(string id, int index, int increment)
+        public MesGridContext(string id, int index)
         {
             Id = id;
             Index = index;
-            Increment = increment;
         }
 
         public string ToXml()

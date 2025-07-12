@@ -43,18 +43,6 @@ namespace HnzUtils
             return defaultValue;
         }
 
-        public static bool TryGetFirst<T>(this IEnumerable<T> self, out T element)
-        {
-            foreach (var t in self)
-            {
-                element = t;
-                return true;
-            }
-
-            element = default(T);
-            return false;
-        }
-
         public static T GetValueOrDefault<T>(this Dictionary<string, object> self, string key, T defaultValue)
         {
             object value;

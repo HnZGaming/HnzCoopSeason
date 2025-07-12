@@ -130,11 +130,9 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGridTakeover.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\GridGarage\TakeoverState.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGrids.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\Commands\Command.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\Commands\CommandModule.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\GridOwnerType.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\Interval.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\LangUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\LocalGpsCollection.cs" />
@@ -144,11 +142,9 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\NetworkType.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\OnlineCharacterCollection.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\PlanetCollection.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\Pools\HashSetPool.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\Pools\ListPool.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\Pools\Pool.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\DatapadInserter.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\SceneEntityObserver.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HnzUtils\VRageUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\HudDisplayMode.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\HudUtils.cs" />
@@ -376,7 +372,6 @@
       <Content Include="Content\Data\Prefabs\Coop_Economy_SpaceStation_3.sbc" />
       <Content Include="Content\Data\Prefabs\Coop_Economy_SpaceStation_4.sbc" />
       <Content Include="Content\Data\Prefabs\Coop_Economy_SpaceStation_5.sbc" />
-      <Content Include="Content\Data\Scripts\HnzCoopSeason\GridGarage\readme.md" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\HudAPI\readme.md" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\MES\readme.md" />
       <Content Include="Content\Data\Scripts\HnzCoopSeason\RichHudFramework\.editorconfig" />

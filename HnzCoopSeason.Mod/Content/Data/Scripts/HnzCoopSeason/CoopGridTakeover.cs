@@ -69,11 +69,19 @@ namespace HnzCoopSeason
 
         void OnBlockOwnershipChanged(IMyCubeGrid grid)
         {
-            var state = ComputeTakeover(grid);
-            var stateXml = MyAPIGateway.Utilities.SerializeToXML(state);
-            grid.UpdateStorageValue(TakeoverState.ModStorageKey, stateXml);
+            try
+            {
+                var state = ComputeTakeover(grid);
+                var stateXml = MyAPIGateway.Utilities.SerializeToXML(state);
+                grid.UpdateStorageValue(TakeoverState.ModStorageKey, stateXml);
+                MyLog.Default.Info($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}");
+            }
+            catch (Exception e)
+            {
+                MyLog.Default.Error($"[HnzCoopSeason] failed to update takeover storage; error: {e}");
+                return;
+            }
 
-            MyLog.Default.Info($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}");
             OnTakeoverStateChanged?.Invoke(grid.EntityId);
         }
 

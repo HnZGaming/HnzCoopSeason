@@ -1,5 +1,6 @@
 ﻿using ProtoBuf;
 using Sandbox.ModAPI;
+using VRage.Library.Utils;
 using VRageMath;
 
 namespace FlashGps
@@ -12,6 +13,18 @@ namespace FlashGps
         {
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(entry);
             MyAPIGateway.Multiplayer.SendMessageToServer(Key, bytes);
+        }
+
+        public static void Send(string name, Color color, double duration, Vector3D position)
+        {
+            Send(new Entry
+            {
+                Id = MyRandom.Instance.Next(),
+                Name = name,
+                Color = color,
+                Duration = duration,
+                Position = position,
+            });
         }
 
         [ProtoContract]

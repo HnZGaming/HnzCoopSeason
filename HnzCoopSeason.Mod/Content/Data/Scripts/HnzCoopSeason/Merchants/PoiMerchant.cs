@@ -164,7 +164,11 @@ namespace HnzCoopSeason.Merchants
                 var resultGrids = new List<IMyCubeGrid>();
                 var ownerId = _faction.FounderId;
                 MyAPIGateway.PrefabManager.SpawnPrefab(
-                    resultGrids, config.Prefab, matrix.Translation, matrix.Forward, matrix.Up,
+                    resultList: resultGrids,
+                    prefabName: config.Prefab,
+                    position: matrix.Translation,
+                    forward: matrix.Forward,
+                    up: matrix.Up,
                     ownerId: ownerId,
                     spawningOptions: SpawningOptions.RotateFirstCockpitTowardsDirection,
                     callback: () => OnGridSpawned(resultGrids, config.SpawnType));

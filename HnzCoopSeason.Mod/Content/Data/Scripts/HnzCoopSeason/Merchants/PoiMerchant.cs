@@ -216,9 +216,10 @@ namespace HnzCoopSeason.Merchants
                 newMat.Forward = gridForward;
                 newMat.Right = gridRight;
                 newMat.Up = gridUp;
+
                 var planet = MyGamePruningStructure.GetClosestPlanet(pos);
                 var surfPts = planet.GetClosestSurfacePointGlobal(pos);
-                newMat.Translation += surfPts - pos; // Move up to surfPts
+                newMat.Translation = surfPts;
 
                 _grid.SetWorldMatrix(newMat);
             }

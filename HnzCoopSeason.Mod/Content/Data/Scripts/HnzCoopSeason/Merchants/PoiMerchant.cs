@@ -155,8 +155,9 @@ namespace HnzCoopSeason.Merchants
                 return;
             }
 
+
             var matrix = matrixBuilder.Results[0];
-            matrix.Translation += matrix.Up * config.OffsetY;
+            // matrix.Translation += matrix.Up * config.OffsetY; // Move up
 
             try
             {
@@ -196,6 +197,36 @@ namespace HnzCoopSeason.Merchants
             _grid = grid;
             _grid.OnClose += OnGridClosed;
             _grid.UpdateStorageValue(StorageKey, _poiId);
+            var blocks = _grid.GetFatBlocks<IMyStoreBlock>();
+            var firstBlock = blocks.FirstOrDefault();
+            var pos = _grid.WorldMatrix.Translation;
+            var gravDown = VRageUtils.CalculateNaturalGravity(pos);
+            var gravA = gravDown.Length();
+
+            MatrixD aligned_matrix;
+            if (firstBlock != null && gravA > 0) // On planet grav field only
+            {
+                aligned_matrix = firstBlock.WorldMatrix;
+
+                var gridUp = -gravDown / gravA; // Norm
+                var gridRight = aligned_matrix.Right;
+                var gridForward = Vector3D.Cross(gridUp, gridRight);
+
+                var newMat = new MatrixD(_grid.WorldMatrix);
+                newMat.Forward = gridForward;
+                newMat.Right = gridRight;
+                newMat.Up = gridUp;
+                var planet = MyGamePruningStructure.GetClosestPlanet(pos);
+                var surfPts = planet.GetClosestSurfacePointGlobal(pos);
+                newMat.Translation += surfPts - pos; // Move up to surfPts
+
+                _grid.SetWorldMatrix(newMat);
+            }
+            else
+            {
+                MyLog.Default.Warning($"[HnzCoopSeason] poi merchant {_poiId} alignment store block not found!!");
+            }
+
             _spawnState = SpawnState.Success;
 
             if (!recovery)

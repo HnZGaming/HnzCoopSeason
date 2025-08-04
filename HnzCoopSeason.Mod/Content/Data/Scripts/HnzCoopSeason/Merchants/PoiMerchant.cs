@@ -155,9 +155,7 @@ namespace HnzCoopSeason.Merchants
                 return;
             }
 
-
             var matrix = matrixBuilder.Results[0];
-            // matrix.Translation += matrix.Up * config.OffsetY; // Move up
 
             try
             {
@@ -169,7 +167,7 @@ namespace HnzCoopSeason.Merchants
                     resultGrids, config.Prefab, matrix.Translation, matrix.Forward, matrix.Up,
                     ownerId: ownerId,
                     spawningOptions: SpawningOptions.RotateFirstCockpitTowardsDirection,
-                    callback: () => OnGridSpawned(resultGrids));
+                    callback: () => OnGridSpawned(resultGrids, config.SpawnType));
             }
             catch (Exception e)
             {
@@ -178,7 +176,7 @@ namespace HnzCoopSeason.Merchants
             }
         }
 
-        void OnGridSpawned(List<IMyCubeGrid> resultGrids)
+        void OnGridSpawned(List<IMyCubeGrid> resultGrids, SpawnType spawnType)
         {
             if (resultGrids.Count == 0)
             {
@@ -188,6 +186,12 @@ namespace HnzCoopSeason.Merchants
             }
 
             var grid = resultGrids[0];
+
+            if (spawnType == SpawnType.PlanetaryStation)
+            {
+                AlignPlanetaryStation(grid);
+            }
+
             OnGridSet(grid, false);
         }
 
@@ -197,36 +201,6 @@ namespace HnzCoopSeason.Merchants
             _grid = grid;
             _grid.OnClose += OnGridClosed;
             _grid.UpdateStorageValue(StorageKey, _poiId);
-            var blocks = _grid.GetFatBlocks<IMyStoreBlock>();
-            var firstBlock = blocks.FirstOrDefault();
-            var pos = _grid.WorldMatrix.Translation;
-            var gravDown = VRageUtils.CalculateNaturalGravity(pos);
-            var gravA = gravDown.Length();
-
-            MatrixD aligned_matrix;
-            if (firstBlock != null && gravA > 0) // On planet grav field only
-            {
-                aligned_matrix = firstBlock.WorldMatrix;
-
-                var gridUp = -gravDown / gravA; // Norm
-                var gridRight = aligned_matrix.Right;
-                var gridForward = Vector3D.Cross(gridUp, gridRight);
-
-                var newMat = new MatrixD(_grid.WorldMatrix);
-                newMat.Forward = gridForward;
-                newMat.Right = gridRight;
-                newMat.Up = gridUp;
-
-                var planet = MyGamePruningStructure.GetClosestPlanet(pos);
-                var surfPts = planet.GetClosestSurfacePointGlobal(pos);
-                newMat.Translation = surfPts;
-
-                _grid.SetWorldMatrix(newMat);
-            }
-            else
-            {
-                MyLog.Default.Warning($"[HnzCoopSeason] poi merchant {_poiId} alignment store block not found!!");
-            }
 
             _spawnState = SpawnState.Success;
 
@@ -237,7 +211,6 @@ namespace HnzCoopSeason.Merchants
             }
 
             ActivateShipyards(grid);
-
             UpdateStore(!recovery);
             SetUpSafezone();
             SaveToSandbox();
@@ -490,6 +463,43 @@ namespace HnzCoopSeason.Merchants
             }
 
             return results;
+        }
+
+        static void AlignPlanetaryStation(IMyCubeGrid grid)
+        {
+            var pos = grid.WorldMatrix.Translation;
+            var gravDown = VRageUtils.CalculateNaturalGravity(pos);
+            if (gravDown == Vector3.Zero)
+            {
+                MyLog.Default.Error("[HnzCoopSeason] planetary station but not spawned under gravity; shouldn't happen");
+                return;
+            }
+
+            var blocks = grid.GetFatBlocks<IMyStoreBlock>();
+            var firstBlock = blocks.FirstOrDefault();
+            if (firstBlock == null)
+            {
+                MyLog.Default.Error($"[HnzCoopSeason] store block not found in grid; name: '{grid.DisplayName}'");
+                return;
+            }
+
+            var alignedMatrix = firstBlock.WorldMatrix;
+            var gridUp = gravDown.Normalized() * -1;
+            var gridRight = alignedMatrix.Right;
+            var gridForward = Vector3D.Cross(gridUp, gridRight);
+
+            var newMat = new MatrixD(grid.WorldMatrix)
+            {
+                Forward = gridForward,
+                Right = gridRight,
+                Up = gridUp,
+            };
+
+            var planet = MyGamePruningStructure.GetClosestPlanet(pos);
+            var surfPts = planet.GetClosestSurfacePointGlobal(pos);
+            newMat.Translation = surfPts;
+
+            grid.SetWorldMatrix(newMat);
         }
 
         public override string ToString()

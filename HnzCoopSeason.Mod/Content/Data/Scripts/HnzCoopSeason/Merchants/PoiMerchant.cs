@@ -156,7 +156,6 @@ namespace HnzCoopSeason.Merchants
             }
 
             var matrix = matrixBuilder.Results[0];
-            matrix.Translation += matrix.Up * config.OffsetY;
 
             try
             {
@@ -165,10 +164,14 @@ namespace HnzCoopSeason.Merchants
                 var resultGrids = new List<IMyCubeGrid>();
                 var ownerId = _faction.FounderId;
                 MyAPIGateway.PrefabManager.SpawnPrefab(
-                    resultGrids, config.Prefab, matrix.Translation, matrix.Forward, matrix.Up,
+                    resultList: resultGrids,
+                    prefabName: config.Prefab,
+                    position: matrix.Translation,
+                    forward: matrix.Forward,
+                    up: matrix.Up,
                     ownerId: ownerId,
                     spawningOptions: SpawningOptions.RotateFirstCockpitTowardsDirection,
-                    callback: () => OnGridSpawned(resultGrids));
+                    callback: () => OnGridSpawned(resultGrids, config.SpawnType));
             }
             catch (Exception e)
             {
@@ -177,7 +180,7 @@ namespace HnzCoopSeason.Merchants
             }
         }
 
-        void OnGridSpawned(List<IMyCubeGrid> resultGrids)
+        void OnGridSpawned(List<IMyCubeGrid> resultGrids, SpawnType spawnType)
         {
             if (resultGrids.Count == 0)
             {
@@ -187,6 +190,12 @@ namespace HnzCoopSeason.Merchants
             }
 
             var grid = resultGrids[0];
+
+            if (spawnType == SpawnType.PlanetaryStation)
+            {
+                AlignPlanetaryStation(grid);
+            }
+
             OnGridSet(grid, false);
         }
 
@@ -196,6 +205,7 @@ namespace HnzCoopSeason.Merchants
             _grid = grid;
             _grid.OnClose += OnGridClosed;
             _grid.UpdateStorageValue(StorageKey, _poiId);
+
             _spawnState = SpawnState.Success;
 
             if (!recovery)
@@ -205,7 +215,6 @@ namespace HnzCoopSeason.Merchants
             }
 
             ActivateShipyards(grid);
-
             UpdateStore(!recovery);
             SetUpSafezone();
             SaveToSandbox();
@@ -458,6 +467,43 @@ namespace HnzCoopSeason.Merchants
             }
 
             return results;
+        }
+
+        static void AlignPlanetaryStation(IMyCubeGrid grid)
+        {
+            var pos = grid.WorldMatrix.Translation;
+            var gravDown = VRageUtils.CalculateNaturalGravity(pos);
+            if (gravDown == Vector3.Zero)
+            {
+                MyLog.Default.Error("[HnzCoopSeason] planetary station but not spawned under gravity; shouldn't happen");
+                return;
+            }
+
+            var blocks = grid.GetFatBlocks<IMyStoreBlock>();
+            var firstBlock = blocks.FirstOrDefault();
+            if (firstBlock == null)
+            {
+                MyLog.Default.Error($"[HnzCoopSeason] store block not found in grid; name: '{grid.DisplayName}'");
+                return;
+            }
+
+            var alignedMatrix = firstBlock.WorldMatrix;
+            var gridUp = gravDown.Normalized() * -1;
+            var gridRight = alignedMatrix.Right;
+            var gridForward = Vector3D.Cross(gridUp, gridRight);
+
+            var newMat = new MatrixD(grid.WorldMatrix)
+            {
+                Forward = gridForward,
+                Right = gridRight,
+                Up = gridUp,
+            };
+
+            var planet = MyGamePruningStructure.GetClosestPlanet(pos);
+            var surfPts = planet.GetClosestSurfacePointGlobal(pos);
+            newMat.Translation = surfPts;
+
+            grid.SetWorldMatrix(newMat);
         }
 
         public override string ToString()

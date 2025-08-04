@@ -74,7 +74,7 @@ namespace HnzCoopSeason
                 var state = ComputeTakeover(grid);
                 var stateXml = MyAPIGateway.Utilities.SerializeToXML(state);
                 grid.UpdateStorageValue(TakeoverState.ModStorageKey, stateXml);
-                MyLog.Default.Info($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}");
+                MyLog.Default.Debug($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}");
             }
             catch (Exception e)
             {
@@ -113,7 +113,7 @@ namespace HnzCoopSeason
             blocks.UnionWith(grid.GetFatBlocks<IMyCockpit>().Where(b => b.CanControlShip));
 
             state.Controllers = blocks.Select(b => ToPlayerGroupId(b.OwnerId)).ToArray();
-            MyLog.Default.Info($"[HnzCoopSeason] ownership for '{grid.DisplayName}': {state.Controllers.ToStringSeq()}, blocks: {blocks.Select(b => b.BlockDefinition.SubtypeId).ToStringSeq()}");
+            MyLog.Default.Debug($"[HnzCoopSeason] ownership for '{grid.DisplayName}': {state.Controllers.ToStringSeq()}, blocks: {blocks.Select(b => b.BlockDefinition.SubtypeId).ToStringSeq()}");
 
             HashSetPool<IMyTerminalBlock>.Instance.Release(blocks);
 

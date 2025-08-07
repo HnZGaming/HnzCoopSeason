@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using HnzCoopSeason.Merchants;
-using HnzCoopSeason.Missions;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
 using HnzUtils;
@@ -34,8 +33,6 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
             _commandModule.Register(new Command("revenge", false, MyPromoteLevel.Moderator, Command_Revenge, "spawn revenge orks"));
-            _commandModule.Register(new Command("mission list", false, MyPromoteLevel.Moderator, Command_ListMissions, "list missions"));
-            _commandModule.Register(new Command("mission update", false, MyPromoteLevel.Moderator, Command_UpdateMission, "update mission progress"));
         }
 
         void Command_ReloadConfig(string args, ulong steamId)
@@ -260,21 +257,6 @@ namespace HnzCoopSeason
             var firstGrid = grids.GetElementAtOrDefault(0, null);
             ListPool<IMyCubeGrid>.Instance.Release(grids);
             return firstGrid;
-        }
-
-        void Command_ListMissions(string args, ulong steamId)
-        {
-            var xml = MyAPIGateway.Utilities.SerializeToXML(MissionService.Instance.Missions);
-            MissionScreen.Send(steamId, "Missions", xml, true);
-        }
-
-        void Command_UpdateMission(string args, ulong steamId)
-        {
-            var parts = args.Split(' ');
-            var index = int.Parse(parts[0]);
-            var progress = int.Parse(parts[1]);
-            MissionService.Instance.ForceUpdateMission(index, progress);
-            SendMessage(steamId, Color.White, $"done: {index}, {progress}");
         }
 
         void Command_Print(string args, ulong steamId)

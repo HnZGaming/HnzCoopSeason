@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using HnzCoopSeason.Missions;
 using FlashGps;
 using HnzCoopSeason.HudUtils;
-using HnzCoopSeason.Missions.Hud;
 using HnzCoopSeason.NPC;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
@@ -17,7 +15,6 @@ using Sandbox.ModAPI;
 using VRage.Game.Components;
 using VRage.Utils;
 using VRageMath;
-using RichHudFramework.Client;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 
@@ -52,7 +49,6 @@ namespace HnzCoopSeason
             PoiMapDebugView.Instance.Load();
             PoiSpectatorCamera.Instance.Load();
             PoiMapView.Instance.Load();
-            MissionService.Instance.Load();
             CoopGridTakeover.Instance.Load();
 
             // server or single player
@@ -73,7 +69,6 @@ namespace HnzCoopSeason
             if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
             {
                 MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init()");
-                RichHudClient.Init(nameof(HnzCoopSeason), RichHudInit, RichHudClosed);
                 NpcHud.Instance.Load();
             }
 
@@ -85,7 +80,6 @@ namespace HnzCoopSeason
         void RichHudInit() // client
         {
             MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init() callback");
-            MissionWindow.Load();
         }
 
         protected override void UnloadData()
@@ -101,7 +95,6 @@ namespace HnzCoopSeason
             MissionScreen.Unload();
             PoiSpectatorCamera.Instance.Unload();
             PoiMapView.Instance.Unload();
-            MissionService.Instance.Unload();
             CoopGridTakeover.Instance.Unload();
 
             // server or single player
@@ -129,7 +122,6 @@ namespace HnzCoopSeason
 
         void RichHudClosed() // client
         {
-            MissionWindow.Instance.Unload();
         }
 
         void LoadConfig() //server
@@ -142,7 +134,6 @@ namespace HnzCoopSeason
             SessionConfig.Load();
             _poiMap.LoadConfig(grids);
             ProgressionView.Instance.UpdateProgress();
-            MissionService.Instance.UpdateMissions();
         }
 
         void FirstUpdate()
@@ -157,7 +148,6 @@ namespace HnzCoopSeason
             if (VRageUtils.NetworkTypeIn(NetworkType.DediClient))
             {
                 ProgressionView.Instance.RequestUpdate();
-                MissionService.Instance.RequestUpdate();
             }
 
             CoopGridTakeover.Instance.FirstUpdate();
@@ -189,11 +179,9 @@ namespace HnzCoopSeason
                 {
                     NpcHud.Instance.Update();
                     ScreenTopHud.Instance.Render();
-                    MissionWindow.Instance.Update();
                 }
             }
 
-            MissionService.Instance.Update();
             PoiMapView.Instance.Update();
             CoopGridTakeover.Instance.Update();
         }
@@ -233,7 +221,6 @@ namespace HnzCoopSeason
 
             ProgressionView.Instance.UpdateProgress();
             PoiMapView.Instance.OnPoiStateUpdated(); // gps hud
-            MissionService.Instance.UpdateMissions();
 
             if (state == PoiState.Released)
             {

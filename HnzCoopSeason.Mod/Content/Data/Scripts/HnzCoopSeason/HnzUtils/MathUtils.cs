@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using VRage.Library.Utils;
 using VRageMath;
 
@@ -85,6 +86,16 @@ namespace HnzUtils
                 case ContainmentType.Contains: return true;
                 case ContainmentType.Intersects: return true;
                 default: throw new InvalidOperationException($"unknown containment type: {self}");
+            }
+        }
+
+        public static IEnumerable<Vector3D> Range3D(int count)
+        {
+            for (var x = 0; x < count; x++)
+            for (var y = 0; y < count; y++)
+            for (var z = 0; z < count; z++)
+            {
+                yield return new Vector3D(x, y, z);
             }
         }
     }

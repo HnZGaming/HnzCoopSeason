@@ -6,9 +6,11 @@ using System.Text.RegularExpressions;
 using HnzCoopSeason.Merchants;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
+using HnzCoopSeason.POI.Reclaim;
 using HnzUtils;
 using HnzUtils.Commands;
 using HnzUtils.Pools;
+using Sandbox.Game;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -20,8 +22,14 @@ namespace HnzCoopSeason
     // ReSharper disable once ClassNeverInstantiated.Global
     public sealed partial class Session
     {
-        void InitializeCommands()
+        CommandModule _commandModule;
+
+        void LoadCommands()
         {
+            _commandModule = new CommandModule((ushort)"HnzCoopSeason.CommandModule".GetHashCode(), "coop");
+            _commandModule.SendMessage += SendMessage;
+            _commandModule.Load();
+
             _commandModule.Register(new Command("reload", false, MyPromoteLevel.Admin, Command_ReloadConfig, "reload config."));
             _commandModule.Register(new Command("poi list", false, MyPromoteLevel.None, Command_SendPoiList, "show the list of POIs.\n--gps: create GPS points.\n--gps-remove: remove GPS points.\n--limit N: show N POIs."));
             _commandModule.Register(new Command("poi release", false, MyPromoteLevel.Moderator, Command_ReleasePoi, "release a POI."));
@@ -33,6 +41,18 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
             _commandModule.Register(new Command("revenge", false, MyPromoteLevel.Moderator, Command_Revenge, "spawn revenge orks"));
+        }
+
+        void UnloadCommands()
+        {
+            _commandModule.SendMessage -= SendMessage;
+            _commandModule.Unload();
+        }
+
+        static void SendMessage(ulong steamId, Color color, string message)
+        {
+            var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
+            MyVisualScriptLogicProvider.SendChatMessageColored(message, color, "COOP", playerId);
         }
 
         void Command_ReloadConfig(string args, ulong steamId)
@@ -49,7 +69,7 @@ namespace HnzCoopSeason
                 return;
             }
 
-            var pois = _poiMap.AllPois;
+            var pois = _allPois.Values.ToArray();
 
             int limit;
             var limitMatch = Regex.Match(args, @"--limit (\d+)");
@@ -115,32 +135,26 @@ namespace HnzCoopSeason
             var poiId = parts[0];
             var configIndex = parts[1].ParseIntOrDefault(0);
 
-            Poi poi;
-            if (!_poiMap.TryGetPoi(poiId, out poi))
+            IPoi poi;
+            if (!_allPois.TryGetValue(poiId, out poi))
             {
                 SendMessage(steamId, Color.Red, $"POI {poiId} not found.");
                 return;
             }
 
-            if (poi.State == PoiState.Occupied)
+            var reclaimPoi = poi as PoiReclaim;
+            if (reclaimPoi == null)
             {
-                var ork = poi.Observers.OfType<PoiOrk>().First();
-                ork.Spawn(configIndex);
+                SendMessage(steamId, Color.Red, $"POI {poiId} found but not of Reclaim type.");
+                return;
             }
-            else
-            {
-                var merchant = poi.Observers.OfType<PoiMerchant>().First();
-                merchant.Spawn(configIndex);
-            }
+
+            reclaimPoi.Spawn(configIndex);
         }
 
         void Command_UpdateStores(string text, ulong steamId)
         {
-            foreach (var poi in _poiMap.AllPois)
-            {
-                var merchant = poi.Observers.OfType<PoiMerchant>().First();
-                merchant.UpdateStore();
-            }
+            MerchantEconomy.Instance.UpdateStores();
         }
 
         void Command_SpectatePoi(string poiId, ulong steamId)
@@ -150,10 +164,10 @@ namespace HnzCoopSeason
 
         void Command_PrintPoi(string poiId, ulong steamId)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            Poi poi;
-            if (!_poiMap.TryGetPoi(poiId, out poi))
+            IPoi poi;
+            if (!_allPois.TryGetValue(poiId, out poi))
             {
                 SendMessage(steamId, Color.Red, $"POI {poiId} not found.");
                 return;
@@ -215,7 +229,7 @@ namespace HnzCoopSeason
             var targetHasAtmosphere = PlanetCollection.HasAtmosphere(targetPosition);
             var configs = SessionConfig.Instance.Orks.Where(o => o.HasSpawnType(targetHasAtmosphere)).ToArray();
 
-            PoiOrkConfig config;
+            OrkConfig config;
             if (!configs.TryGetElementAt(configIndex, out config))
             {
                 SendMessage(steamId, Color.Red, $"invalid config index number: {configIndex}; config count: {configs.Length}");

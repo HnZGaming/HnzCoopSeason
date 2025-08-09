@@ -2,8 +2,8 @@
 {
     public enum PoiState
     {
-        Occupied,
-        Released,
-        Invaded,
+        Occupied, // Orks are guarding the point
+        Released, // Players have reclaimed the point
+        Invaded, // Orks have re-reclaimed the point in players' absence
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
@@ -8,6 +9,7 @@ using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 using VRageMath;
 
 namespace HnzUtils
@@ -171,6 +173,31 @@ namespace HnzUtils
             var emitter = new MyEntity3DSoundEmitter(character as MyEntity);
             var sound = new MySoundPair(cueName);
             emitter.PlaySound(sound);
+        }
+
+        public static void AlignPlanetaryStation(IMyCubeGrid grid, IMyCubeBlock alignment)
+        {
+            var pos = grid.WorldMatrix.Translation;
+            var gravDown = CalculateNaturalGravity(pos);
+            if (gravDown == Vector3.Zero) return;
+
+            var alignedMatrix = alignment.WorldMatrix;
+            var gridUp = gravDown.Normalized() * -1;
+            var gridRight = alignedMatrix.Right;
+            var gridForward = Vector3D.Cross(gridUp, gridRight);
+
+            var newMat = new MatrixD(grid.WorldMatrix)
+            {
+                Forward = gridForward,
+                Right = gridRight,
+                Up = gridUp,
+            };
+
+            var planet = MyGamePruningStructure.GetClosestPlanet(pos);
+            var surfPts = planet.GetClosestSurfacePointGlobal(pos);
+            newMat.Translation = surfPts;
+
+            grid.SetWorldMatrix(newMat);
         }
     }
 }

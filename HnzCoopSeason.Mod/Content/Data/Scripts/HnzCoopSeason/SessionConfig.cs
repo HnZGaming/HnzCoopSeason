@@ -5,8 +5,10 @@ using System.Xml.Serialization;
 using HnzCoopSeason.Merchants;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
+using HnzCoopSeason.POI.Reclaim;
 using Sandbox.ModAPI;
 using VRage.Utils;
+using VRageMath;
 
 namespace HnzCoopSeason
 {
@@ -24,6 +26,9 @@ namespace HnzCoopSeason
 
         [XmlElement]
         public double PoiMapCenterZ;
+
+        [XmlIgnore]
+        public Vector3D PoiMapCenter => new Vector3D(PoiMapCenterX, PoiMapCenterY, PoiMapCenterZ);
 
         [XmlElement]
         public float PoiMapRadius = 10000000;
@@ -69,11 +74,11 @@ namespace HnzCoopSeason
 
         [XmlArray]
         [XmlArrayItem("Ork")]
-        public PoiOrkConfig[] Orks = { new PoiOrkConfig() };
+        public OrkConfig[] Orks = { new OrkConfig() };
 
-        [XmlArray]
+        [XmlArray("PoiMerchants")]
         [XmlArrayItem("PoiMerchant")]
-        public PoiMerchantConfig[] PoiMerchants = { new PoiMerchantConfig() };
+        public MerchantConfig[] Merchants = { new MerchantConfig() };
 
         [XmlArray]
         [XmlArrayItem("StoreItem")]

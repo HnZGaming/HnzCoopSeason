@@ -5,7 +5,7 @@ using HnzCoopSeason.Spawners;
 namespace HnzCoopSeason.Merchants
 {
     [Serializable]
-    public sealed class PoiMerchantConfig
+    public sealed class MerchantConfig
     {
         [XmlText]
         public string Prefab = "Economy_Outpost_1";
@@ -13,12 +13,9 @@ namespace HnzCoopSeason.Merchants
         [XmlAttribute]
         public SpawnType SpawnType = SpawnType.SpaceShip;
 
-        [XmlAttribute]
-        public float OffsetY = 0f;
-
         public override string ToString()
         {
-            return $"{nameof(Prefab)}: {Prefab}, {nameof(SpawnType)}: {SpawnType}, {nameof(OffsetY)}: {OffsetY}";
+            return $"{nameof(Prefab)}: {Prefab}, {nameof(SpawnType)}: {SpawnType}";
         }
     }
 }

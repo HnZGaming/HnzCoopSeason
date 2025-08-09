@@ -33,7 +33,7 @@ namespace HnzCoopSeason.POI
 
         public void RemoveAll(ulong steamId)
         {
-            ReplaceAll(steamId, Array.Empty<Poi>());
+            ReplaceAll(steamId, Array.Empty<IPoi>());
         }
 
         public void ReplaceAll(ulong steamId, IEnumerable<IPoi> pois)

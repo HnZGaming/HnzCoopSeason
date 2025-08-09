@@ -7,7 +7,7 @@ using HnzUtils;
 namespace HnzCoopSeason.Orks
 {
     [Serializable]
-    public sealed class PoiOrkConfig
+    public sealed class OrkConfig
     {
         [XmlAttribute]
         public int ProgressLevel = 1;

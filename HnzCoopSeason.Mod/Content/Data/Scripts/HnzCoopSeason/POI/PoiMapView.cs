@@ -99,7 +99,12 @@ namespace HnzCoopSeason.POI
             var markers = new List<Marker>();
             foreach (var poi in pois)
             {
-                var position = poi.GetEntityPosition();
+                Vector3D position;
+                if (!poi.TryGetEntityPosition(out position))
+                {
+                    position = poi.Position;
+                }
+
                 markers.Add(new Marker(poi.Id, position, poi.State));
             }
 

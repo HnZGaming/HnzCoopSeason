@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using FlashGps;
 using HnzCoopSeason.HudUtils;
+using HnzCoopSeason.Merchants;
 using HnzCoopSeason.NPC;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
+using HnzCoopSeason.POI.Reclaim;
 using MES;
 using HnzUtils;
-using HnzUtils.Commands;
 using HudAPI;
 using Sandbox.Game;
 using Sandbox.ModAPI;
@@ -26,8 +27,7 @@ namespace HnzCoopSeason
     {
         public static Session Instance { get; private set; }
 
-        PoiMap _poiMap;
-        CommandModule _commandModule;
+        Dictionary<string, IPoi> _allPois;
         bool _doneFirstUpdate;
         HudAPIv2 _richHudApi;
         DatapadInserter _dataPadInserter;
@@ -40,10 +40,7 @@ namespace HnzCoopSeason
 
             _richHudApi = new HudAPIv2();
 
-            _commandModule = new CommandModule((ushort)"HnzCoopSeason.CommandModule".GetHashCode(), "coop");
-            _commandModule.SendMessage += SendMessage;
-            _commandModule.Load();
-            InitializeCommands();
+            LoadCommands();
 
             MissionScreen.Load((ushort)nameof(MissionScreen).GetHashCode());
             PoiMapDebugView.Instance.Load();
@@ -54,10 +51,11 @@ namespace HnzCoopSeason
             // server or single player
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
-                _poiMap = new PoiMap();
+                _allPois = new Dictionary<string, IPoi>();
 
                 MESApi.Load();
                 PlanetCollection.Load();
+                MerchantEconomy.Instance.Load();
                 PoiRandomInvasion.Instance.Load();
                 RevengeOrkManager.Instance.Load();
 
@@ -77,11 +75,6 @@ namespace HnzCoopSeason
             MyLog.Default.Info("[HnzUtils] session loaded");
         }
 
-        void RichHudInit() // client
-        {
-            MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init() callback");
-        }
-
         protected override void UnloadData()
         {
             MyLog.Default.Info("[HnzUtils] session unloading");
@@ -89,8 +82,8 @@ namespace HnzCoopSeason
 
             _richHudApi = null;
 
-            _commandModule.SendMessage -= SendMessage;
-            _commandModule.Unload();
+            UnloadCommands();
+
             PoiMapDebugView.Instance.Unload();
             MissionScreen.Unload();
             PoiSpectatorCamera.Instance.Unload();
@@ -102,7 +95,11 @@ namespace HnzCoopSeason
             {
                 MESApi.Unload();
                 PlanetCollection.Unload();
-                _poiMap.Unload();
+                MerchantEconomy.Instance.Unload();
+
+                foreach (var p in _allPois) p.Value.Unload(true);
+                _allPois.Clear();
+
                 OnlineCharacterCollection.Unload();
                 _dataPadInserter?.Unload();
                 PoiRandomInvasion.Instance.Unload();
@@ -120,8 +117,10 @@ namespace HnzCoopSeason
             MyLog.Default.Info("[HnzUtils] session unloaded");
         }
 
-        void RichHudClosed() // client
+        public override void SaveData()
         {
+            base.SaveData();
+            foreach (var p in _allPois) p.Value.Save();
         }
 
         void LoadConfig() //server
@@ -132,8 +131,46 @@ namespace HnzCoopSeason
             var grids = entities.OfType<IMyCubeGrid>().ToArray();
 
             SessionConfig.Load();
-            _poiMap.LoadConfig(grids);
+            LoadPois(grids);
             ProgressionView.Instance.UpdateProgress();
+        }
+
+        void LoadPois(IMyCubeGrid[] sceneGrids)
+        {
+            foreach (var p in _allPois.Values) p.Unload(false);
+            _allPois.Clear();
+
+            var poiFactory = new PoiFactory();
+            if (!poiFactory.TryLoad()) return;
+
+            // space POIs
+            var poiCountPerAxis = SessionConfig.Instance.PoiCountPerAxis;
+            var mapOrigin = SessionConfig.Instance.PoiMapCenter;
+            var mapRadius = SessionConfig.Instance.PoiMapRadius;
+            foreach (var p in MathUtils.Range3D(poiCountPerAxis))
+            {
+                var position = mapOrigin + (p / poiCountPerAxis * 2 - Vector3D.One) * mapRadius;
+                if (Vector3D.Distance(position, mapOrigin) > mapRadius) continue; // circular shape
+
+                PoiReclaim poi;
+                if (poiFactory.TryCreateSpacePoi($"{p.X}-{p.Y}-{p.Z}", position, out poi))
+                {
+                    _allPois.Add(poi.Id, poi);
+                }
+            }
+
+            // planetary POIs
+            foreach (var config in SessionConfig.Instance.PlanetaryPois)
+            {
+                PoiReclaim poi;
+                if (poiFactory.TryCreatePlanetaryPoi(config, out poi))
+                {
+                    _allPois.Add(config.Id, poi);
+                }
+            }
+
+            foreach (var p in _allPois.Values) p.Load(sceneGrids);
+            MyLog.Default.Info($"[HnzCoopSeason] POIs loaded: {_allPois.Keys.ToStringSeq()}");
         }
 
         void FirstUpdate()
@@ -168,7 +205,10 @@ namespace HnzCoopSeason
             if (MyAPIGateway.Session.IsServer)
             {
                 OnlineCharacterCollection.Update();
-                _poiMap.Update();
+                MerchantEconomy.Instance.Update();
+
+                foreach (var p in _allPois) p.Value.Update();
+
                 PoiRandomInvasion.Instance.Update();
             }
 
@@ -188,10 +228,8 @@ namespace HnzCoopSeason
 
         public float GetProgress()
         {
-            var allPoiCount = _poiMap.AllPois.Count;
-            if (allPoiCount == 0) return 0;
-
-            return _poiMap.GetPoiCountByState(PoiState.Released) / (float)allPoiCount;
+            if (_allPois.Count == 0) return 0;
+            return GetPoiCountByState(PoiState.Released) / (float)_allPois.Count;
         }
 
         // min: 1
@@ -205,17 +243,17 @@ namespace HnzCoopSeason
 
         public bool SetPoiState(string poiId, PoiState state, bool invokeCallbacks = true)
         {
-            Poi poi;
-            if (!_poiMap.TryGetPoi(poiId, out poi)) return false;
+            IPoi poi;
+            if (!_allPois.TryGetValue(poiId, out poi)) return false;
             if (state == PoiState.Invaded && poi.State != PoiState.Released) return false;
-            if (!poi.SetState(state)) return false;
+            if (!poi.TrySetState(state)) return false;
             if (!invokeCallbacks) return true;
 
             MyLog.Default.Info(
                 "[HnzUtils] poi state changed: {0}, {1} / {2}, progress: {3:0.0}%, level: {4}",
                 poiId,
-                _poiMap.GetPoiCountByState(PoiState.Released),
-                _poiMap.AllPois.Count,
+                GetPoiCountByState(PoiState.Released),
+                _allPois.Count,
                 GetProgress() * 100,
                 GetProgressLevel());
 
@@ -224,81 +262,26 @@ namespace HnzCoopSeason
 
             if (state == PoiState.Released)
             {
-                OnPoiReleased(poiId, poi.Position);
+                SendNotification("POI Release".GetHashCode(), "Orks Defeated", Color.Green, poi.Position, 10, "Orks have been defeated!");
             }
 
             if (state == PoiState.Invaded)
             {
-                OnPoiInvaded(poiId, poi.Position);
+                SendNotification("POI Invaded".GetHashCode(), "Orks Invasion", Color.Red, poi.Position, 10, "Orks have came back to our trading hub!");
             }
 
             return true;
         }
 
-        public bool IsPlayerAroundPoi(string poiId, float radius)
-        {
-            Poi poi;
-            if (!_poiMap.TryGetPoi(poiId, out poi)) return false;
-
-            return poi.IsPlayerAround(radius);
-        }
-
-        public void OnMerchantDiscovered(string poiId, Vector3D position)
-        {
-            OnPoiDiscovered("Merchant", position);
-        }
-
-        public void OnOrkDiscovered(string poiId, Vector3D position)
-        {
-            OnPoiDiscovered("Ork", position);
-        }
-
-        void OnPoiDiscovered(string name, Vector3D position)
-        {
-            MyVisualScriptLogicProvider.ShowNotificationToAll("Someone just discovered something!", 10000);
-            FlashGpsApi.Send(new FlashGpsApi.Entry
-            {
-                Id = "POI Discovery".GetHashCode(),
-                Name = $"{name} Discovery",
-                Position = position,
-                Color = Color.Orange,
-                Duration = 10,
-            });
-        }
-
-        void OnPoiReleased(string poiId, Vector3D position)
-        {
-            MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have been defeated!", 10000);
-            FlashGpsApi.Send(new FlashGpsApi.Entry
-            {
-                Id = "POI Release".GetHashCode(),
-                Name = "Orks Defeated",
-                Position = position,
-                Color = Color.Green,
-                Duration = 10,
-            });
-        }
-
-        void OnPoiInvaded(string poiId, Vector3D position)
-        {
-            MyVisualScriptLogicProvider.ShowNotificationToAll("Orks have came back to our trading hub!", 10 * 1000);
-        }
-
-        public static void SendMessage(ulong steamId, Color color, string message)
-        {
-            var playerId = MyAPIGateway.Players.TryGetIdentityId(steamId);
-            MyVisualScriptLogicProvider.SendChatMessageColored(message, color, "COOP", playerId);
-        }
-
         public IEnumerable<IPoi> GetAllPois()
         {
-            return _poiMap.AllPois;
+            return _allPois.Values;
         }
 
         public bool TryGetPoiPosition(string poiId, out Vector3D position)
         {
-            Poi poi;
-            if (_poiMap.TryGetPoi(poiId, out poi))
+            IPoi poi;
+            if (_allPois.TryGetValue(poiId, out poi))
             {
                 position = poi.Position;
                 return true;
@@ -308,11 +291,17 @@ namespace HnzCoopSeason
             return false;
         }
 
+        int GetPoiCountByState(PoiState state)
+        {
+            return _allPois.Values.Count(poi => poi.State == state);
+        }
+
         bool TryCreateDatapadData(IMyCubeGrid grid, out string data)
         {
-            var closestPoi = GetAllPois()
-                .Where(p => p.IsPlanetary)
-                .OrderBy(p => Vector3D.Distance(p.Position, grid.GetPosition()))
+            var gp = grid.GetPosition();
+            var closestPoi = _allPois.Values
+                .Where(p => p.IsPlanetary) // vanilla data pads behavior; no idea why
+                .OrderBy(p => Vector3D.DistanceSquared(p.Position, gp))
                 .FirstOrDefault();
 
             if (closestPoi == null)
@@ -327,9 +316,15 @@ namespace HnzCoopSeason
             return true;
         }
 
+        public static void SendNotification(long id, string title, Color color, Vector3D position, int duration, string message)
+        {
+            MyVisualScriptLogicProvider.ShowNotificationToAll(message, duration * 1000);
+            FlashGpsApi.Send(new FlashGpsApi.Entry { Id = id, Name = title, Position = position, Color = color, Duration = duration });
+        }
+
         public override string ToString()
         {
-            return $"Session(progress: {GetProgress()}, progressLevel: {GetProgressLevel()}, {nameof(_poiMap)}: {_poiMap})";
+            return $"Session(progress: {GetProgress()}, progressLevel: {GetProgressLevel()}, pois: {_allPois.Values.ToStringSeq()})";
         }
     }
 }

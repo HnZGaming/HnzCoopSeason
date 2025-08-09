@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FlashGps;
 using GridStorage.API;
-using HnzCoopSeason.POI;
+using HnzCoopSeason.Orks;
 using HnzCoopSeason.Spawners;
 using HnzUtils;
 using Sandbox.ModAPI;
@@ -11,24 +11,24 @@ using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace HnzCoopSeason.Orks
+namespace HnzCoopSeason.POI.Reclaim
 {
-    public sealed class PoiOrk : IPoiObserver
+    public sealed class PoiOrk
     {
         readonly string _poiId;
         readonly MesEncounter _encounter;
-        readonly PoiOrkConfig[] _configs;
+        readonly OrkConfig[] _configs;
         IMyCubeGrid _mainGrid;
         PoiState _poiState;
 
-        public PoiOrk(string poiId, Vector3D position, PoiOrkConfig[] configs)
+        public PoiOrk(string poiId, Vector3D position, OrkConfig[] configs)
         {
             _configs = configs;
             _poiId = poiId;
             _encounter = new MesEncounter($"{poiId}-ork", position);
         }
 
-        void IPoiObserver.Load(IMyCubeGrid[] grids)
+        public void Load(IMyCubeGrid[] grids)
         {
             _encounter.OnMainGridSet += OnMainGridSet;
             _encounter.OnMainGridUnset += OnMainGridUnset;
@@ -38,7 +38,7 @@ namespace HnzCoopSeason.Orks
             CoopGridTakeover.Instance.OnTakeoverStateChanged += OnAnyTakeoverStateChanged;
         }
 
-        void IPoiObserver.Unload(bool sessionUnload)
+        public void Unload(bool sessionUnload)
         {
             _encounter.Unload(sessionUnload);
             _encounter.OnMainGridSet -= OnMainGridSet;
@@ -48,7 +48,11 @@ namespace HnzCoopSeason.Orks
             CoopGridTakeover.Instance.OnTakeoverStateChanged -= OnAnyTakeoverStateChanged;
         }
 
-        void IPoiObserver.Update()
+        public void Save()
+        {
+        }
+
+        public void Update()
         {
             _encounter.TrySpawn();
             UpdateBossGps();
@@ -72,7 +76,7 @@ namespace HnzCoopSeason.Orks
             });
         }
 
-        void IPoiObserver.OnStateChanged(PoiState state)
+        public void OnStateChanged(PoiState state)
         {
             _poiState = state;
 
@@ -81,7 +85,7 @@ namespace HnzCoopSeason.Orks
                 state == PoiState.Invaded);
         }
 
-        bool IPoiObserver.TryGetPosition(out Vector3D position)
+        public bool TryGetPosition(out Vector3D position)
         {
             var hasOrkState = _poiState == PoiState.Occupied || _poiState == PoiState.Invaded;
             var hasGrid = _mainGrid != null && !_mainGrid.Closed;
@@ -109,7 +113,7 @@ namespace HnzCoopSeason.Orks
                 antenna.HudText = $"[BOSS] {grid.CustomName}";
             }
 
-            Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
+            Session.SendNotification(_poiId.GetHashCode(), "Orks Discovery", Color.Red, grid.GetPosition(), 10, "Orks have been discovered!");
 
             _mainGrid = grid;
         }
@@ -201,7 +205,7 @@ namespace HnzCoopSeason.Orks
             return state.Controllers;
         }
 
-        static float GetWeight(PoiOrkConfig config, int progressLevel)
+        static float GetWeight(OrkConfig config, int progressLevel)
         {
             if (progressLevel != config.ProgressLevel) return 0;
             return config.Weight;

@@ -23,6 +23,9 @@ namespace HnzCoopSeason.POI
         public bool Atmospheric;
 
         [XmlIgnore]
+        public bool Planetary;
+
+        [XmlIgnore]
         public Vector3D Position
         {
             get { return new Vector3D(X, Y, Z); }
@@ -38,10 +41,11 @@ namespace HnzCoopSeason.POI
         {
         }
 
-        public PoiConfig(string id, Vector3D position, bool atmospheric)
+        public PoiConfig(string id, Vector3D position, bool planetary, bool atmospheric)
         {
             Id = id;
             Position = position;
+            Planetary = planetary;
             Atmospheric = atmospheric;
         }
     }

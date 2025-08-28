@@ -78,7 +78,7 @@ namespace HnzCoopSeason
             }
             catch (Exception e)
             {
-                MyLog.Default.Error($"[HnzCoopSeason] failed to update takeover storage; error: {e}");
+                MyLog.Default.Error($"[HnzCoopSeason] failed to update takeover storage; grid: '{grid?.DisplayName}', error: {e}");
                 return;
             }
 

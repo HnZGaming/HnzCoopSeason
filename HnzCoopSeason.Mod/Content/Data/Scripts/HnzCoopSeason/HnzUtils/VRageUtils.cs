@@ -49,9 +49,12 @@ namespace HnzUtils
 
         public static void UpdateStorageValue(this IMyEntity entity, Guid key, string value)
         {
-            var storage = entity.Storage ?? new MyModStorageComponent();
-            entity.Storage = storage;
-            storage.SetValue(key, value);
+            if (entity.Storage == null)
+            {
+                entity.Storage = new MyModStorageComponent();
+            }
+
+            entity.Storage.SetValue(key, value);
         }
 
         public static bool TryGetStorageValue(this IMyEntity entity, Guid key, out string value)

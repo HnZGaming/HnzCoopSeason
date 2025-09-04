@@ -9,3 +9,4 @@ TorchBinaries
 *.sbcB5
 *.blend1
 **/.vs/
+*.user

@@ -6225,7 +6225,7 @@
               <ShowInInventory>true</ShowInInventory>
               <NumberInGrid>1</NumberInGrid>
               <Enabled>true</Enabled>
-              <AnyoneCanUse>false</AnyoneCanUse>
+              <AnyoneCanUse>true</AnyoneCanUse>
               <Opening>0</Opening>
               <OpenSound>ArcBlockDoorSmallOpen</OpenSound>
               <CloseSound>ArcBlockDoorSmallClose</CloseSound>
@@ -6604,7 +6604,7 @@
               <ShowInInventory>true</ShowInInventory>
               <NumberInGrid>3</NumberInGrid>
               <Enabled>true</Enabled>
-              <AnyoneCanUse>false</AnyoneCanUse>
+              <AnyoneCanUse>true</AnyoneCanUse>
               <Open>true</Open>
               <CurrOpening>1</CurrOpening>
             </MyObjectBuilder_CubeBlock>

@@ -1870,7 +1870,7 @@
               <ShowInInventory>false</ShowInInventory>
               <NumberInGrid>1</NumberInGrid>
               <Enabled>true</Enabled>
-              <AnyoneCanUse>false</AnyoneCanUse>
+              <AnyoneCanUse>true</AnyoneCanUse>
             </MyObjectBuilder_CubeBlock>
             <MyObjectBuilder_CubeBlock xsi:type="MyObjectBuilder_CubeBlock">
               <SubtypeName>LargeBlockArmorBlock</SubtypeName>

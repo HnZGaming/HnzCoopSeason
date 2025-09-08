@@ -3349,7 +3349,7 @@
               <ShowInInventory>true</ShowInInventory>
               <NumberInGrid>5</NumberInGrid>
               <Enabled>true</Enabled>
-              <AnyoneCanUse>false</AnyoneCanUse>
+              <AnyoneCanUse>true</AnyoneCanUse>
               <Open>false</Open>
               <CurrOpening>0</CurrOpening>
             </MyObjectBuilder_CubeBlock>

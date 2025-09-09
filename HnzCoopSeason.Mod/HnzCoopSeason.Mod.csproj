@@ -393,6 +393,7 @@
       <Content Include="Content\Models\Cubes\large\CoopContractsBlock_LOD1.mwm" />
       <Content Include="Content\Models\Cubes\large\CoopContractsBlock_LOD2.mwm" />
       <Content Include="Content\modinfo.sbmi" />
+      <Content Include="symlink.bat" />
       <Content Include="upload.bat" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

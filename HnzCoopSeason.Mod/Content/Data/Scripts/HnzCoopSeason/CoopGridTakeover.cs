@@ -4,6 +4,7 @@ using GridStorage.API;
 using HnzUtils;
 using HnzUtils.Pools;
 using Sandbox.ModAPI;
+using VRage.Collections;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -16,6 +17,7 @@ namespace HnzCoopSeason
         public static readonly CoopGridTakeover Instance = new CoopGridTakeover();
 
         readonly SceneEntityObserver<IMyCubeGrid> _gridObserver = new SceneEntityObserver<IMyCubeGrid>(true);
+        readonly MyConcurrentHashSet<long> _gridQueue = new MyConcurrentHashSet<long>();
 
         public event Action<long> OnTakeoverStateChanged;
 
@@ -31,6 +33,7 @@ namespace HnzCoopSeason
             _gridObserver.OnEntityAdded -= OnGridAdded;
             _gridObserver.OnEntityRemoved -= OnEntityRemoved;
             _gridObserver.Unload();
+            _gridQueue.Clear();
         }
 
         public void FirstUpdate()
@@ -68,21 +71,42 @@ namespace HnzCoopSeason
 
         void OnBlockOwnershipChanged(IMyCubeGrid grid)
         {
+            _gridQueue.Add(grid?.EntityId ?? 0);
+        }
+
+        public void Update()
+        {
+            if (MyAPIGateway.Session.GameplayFrameCounter % 10 != 0) return;
+            if (_gridQueue.Count == 0) return;
+
+            foreach (var gridId in _gridQueue)
+            {
+                OnBlockOwnershipChanged(gridId);
+            }
+
+            _gridQueue.Clear();
+        }
+
+        void OnBlockOwnershipChanged(long gridId)
+        {
+            var grid = MyAPIGateway.Entities.GetEntityById(gridId) as IMyCubeGrid;
+            if (grid == null || grid.Closed || grid.MarkedForClose) return;
+
             try
             {
                 var state = ComputeTakeover(grid);
-                MyLog.Default.Info($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}");
+                MyLog.Default.Info($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}; frame: {MyAPIGateway.Session.GameplayFrameCounter}");
 
                 var stateXml = MyAPIGateway.Utilities.SerializeToXML(state);
                 grid.UpdateStorageValue(TakeoverState.ModStorageKey, stateXml);
             }
             catch (Exception e)
             {
-                MyLog.Default.Error($"[HnzCoopSeason] failed to update takeover storage; grid: '{grid?.DisplayName}', error: {e}");
+                MyLog.Default.Error($"[HnzCoopSeason] failed to update takeover storage; grid: '{grid.EntityId}', error: {e}");
                 return;
             }
 
-            OnTakeoverStateChanged?.Invoke(grid.EntityId);
+            OnTakeoverStateChanged?.Invoke(gridId);
         }
 
         static TakeoverState ComputeTakeover(IMyCubeGrid grid)

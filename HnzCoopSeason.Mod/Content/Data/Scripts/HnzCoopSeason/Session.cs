@@ -195,6 +195,7 @@ namespace HnzCoopSeason
 
             MissionService.Instance.Update();
             PoiMapView.Instance.Update();
+            CoopGridTakeover.Instance.Update();
         }
 
         public float GetProgress()

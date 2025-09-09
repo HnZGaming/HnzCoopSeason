@@ -7,9 +7,9 @@ using HnzCoopSeason.Merchants;
 using HnzCoopSeason.Missions;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
-using HnzCoopSeason.Spawners;
 using HnzUtils;
 using HnzUtils.Commands;
+using HnzUtils.Pools;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
@@ -196,16 +196,10 @@ namespace HnzCoopSeason
             if (args.Length >= 2) // target name specified
             {
                 var targetName = args[1];
-                var players = new List<IMyPlayer>();
-                MyAPIGateway.Players.GetPlayers(players);
-                var targetPlayer = players.FirstOrDefault(p => p.DisplayName == targetName);
-                if (targetPlayer != null) // player found
+                if (!TryFindEntityByName(targetName, out targetEntity))
                 {
-                    targetEntity = targetPlayer.Character;
-                }
-                else // any other entities
-                {
-                    MyAPIGateway.Entities.TryGetEntityByName(targetName, out targetEntity);
+                    SendMessage(steamId, Color.Red, $"entity not found by name: '{targetName}'");
+                    return;
                 }
             }
             else // no target -> the calling player's character 
@@ -216,23 +210,56 @@ namespace HnzCoopSeason
 
             if (targetEntity == null)
             {
-                SendMessage(steamId, Color.Red, "entity not found by name");
+                SendMessage(steamId, Color.Red, "entity not found");
                 return;
             }
 
             var targetPosition = targetEntity.GetPosition();
             var targetHasAtmosphere = PlanetCollection.HasAtmosphere(targetPosition);
-            var configs = SessionConfig.Instance.Orks.Where(o => o.SpawnType == SpawnType.AtmosphericShip && targetHasAtmosphere).ToArray();
+            var configs = SessionConfig.Instance.Orks.Where(o => o.HasSpawnType(targetHasAtmosphere)).ToArray();
 
             PoiOrkConfig config;
             if (!configs.TryGetElementAt(configIndex, out config))
             {
-                SendMessage(steamId, Color.Red, $"invalid config index number: {configIndex}");
+                SendMessage(steamId, Color.Red, $"invalid config index number: {configIndex}; config count: {configs.Length}");
                 return;
             }
 
             RevengeOrkManager.Instance.Spawn(targetPosition, config.SpawnGroupNames);
             SendMessage(steamId, Color.White, "orks spawned");
+        }
+
+        static bool TryFindEntityByName(string targetName, out IMyEntity targetEntity)
+        {
+            var players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
+            var targetPlayer = players.FirstOrDefault(p => p.DisplayName.Contains(targetName));
+            if (targetPlayer != null) // player found
+            {
+                targetEntity = targetPlayer.Character;
+                return true;
+            }
+
+            var gridGroups = new List<IMyGridGroupData>();
+            MyAPIGateway.GridGroups.GetGridGroups(GridLinkTypeEnum.Physical, gridGroups);
+            var targetGrid = gridGroups.Select(GetFirstGrid).FirstOrDefault(g => g.DisplayName.Contains(targetName));
+            if (targetGrid != null) // grid found
+            {
+                targetEntity = targetGrid;
+                return true;
+            }
+
+            targetEntity = null;
+            return false;
+        }
+
+        static IMyCubeGrid GetFirstGrid(IMyGridGroupData gridGroup)
+        {
+            var grids = ListPool<IMyCubeGrid>.Instance.Get();
+            gridGroup.GetGrids(grids);
+            var firstGrid = grids.GetElementAtOrDefault(0, null);
+            ListPool<IMyCubeGrid>.Instance.Release(grids);
+            return firstGrid;
         }
 
         void Command_ListMissions(string args, ulong steamId)

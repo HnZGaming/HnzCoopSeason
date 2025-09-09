@@ -24,6 +24,13 @@ namespace HnzCoopSeason.Orks
         [XmlIgnore]
         public string[] SpawnGroupNames => SpawnGroups.Select(g => g.SpawnGroup).ToArray();
 
+        public bool HasSpawnType(bool atmospheric)
+        {
+            return atmospheric
+                ? SpawnType == SpawnType.AtmosphericShip
+                : SpawnType != SpawnType.AtmosphericShip;
+        }
+
         public override string ToString()
         {
             return $"MesEncounterConfig({nameof(ProgressLevel)}: {ProgressLevel}, {nameof(SpawnType)}: {SpawnType}, {nameof(Weight)}: {Weight}, {nameof(SpawnGroups)}: {SpawnGroups.ToStringSeq()})";

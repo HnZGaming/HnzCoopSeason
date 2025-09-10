@@ -155,9 +155,9 @@ namespace HnzCoopSeason.POI
         {
             switch (marker.State)
             {
-                case PoiState.Occupied: UpdateGps(gps, "Trading Hub [Orks]", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!"); break;
-                case PoiState.Released: UpdateGps(gps, "Trading Hub [Merchant]", marker.Position, Color.Green, "Our trading hub has been released and in business!"); break;
-                case PoiState.Invaded: UpdateGps(gps, "Trading Hub [Ork Mobs]", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!"); break;
+                case PoiState.Occupied: UpdateGps(gps, "Orks", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!"); break;
+                case PoiState.Released: UpdateGps(gps, "Merchant", marker.Position, Color.Green, "Our trading hub has been released and in business!"); break;
+                case PoiState.Invaded: UpdateGps(gps, "Ork Mobs", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!"); break;
                 default: throw new InvalidOperationException($"invalid poi state: {marker.State}");
             }
         }

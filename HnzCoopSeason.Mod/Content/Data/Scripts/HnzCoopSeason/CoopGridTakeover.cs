@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using GridStorage.API;
 using HnzUtils;
 using HnzUtils.Pools;
 using Sandbox.ModAPI;
-using VRage.Collections;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -17,7 +17,7 @@ namespace HnzCoopSeason
         public static readonly CoopGridTakeover Instance = new CoopGridTakeover();
 
         readonly SceneEntityObserver<IMyCubeGrid> _gridObserver = new SceneEntityObserver<IMyCubeGrid>(true);
-        readonly MyConcurrentHashSet<long> _gridQueue = new MyConcurrentHashSet<long>();
+        readonly ConcurrentQueue<long> _gridQueue = new ConcurrentQueue<long>();
 
         public event Action<long> OnTakeoverStateChanged;
 
@@ -33,7 +33,6 @@ namespace HnzCoopSeason
             _gridObserver.OnEntityAdded -= OnGridAdded;
             _gridObserver.OnEntityRemoved -= OnEntityRemoved;
             _gridObserver.Unload();
-            _gridQueue.Clear();
         }
 
         public void FirstUpdate()
@@ -71,7 +70,7 @@ namespace HnzCoopSeason
 
         void OnBlockOwnershipChanged(IMyCubeGrid grid)
         {
-            _gridQueue.Add(grid?.EntityId ?? 0);
+            _gridQueue.Enqueue(grid?.EntityId ?? 0);
         }
 
         public void Update()
@@ -79,12 +78,15 @@ namespace HnzCoopSeason
             if (MyAPIGateway.Session.GameplayFrameCounter % 10 != 0) return;
             if (_gridQueue.Count == 0) return;
 
-            foreach (var gridId in _gridQueue)
+            var gridIdSet = HashSetPool<long>.Instance.Get();
+            _gridQueue.DequeueAll(gridIdSet);
+
+            foreach (var gridId in gridIdSet)
             {
                 OnBlockOwnershipChanged(gridId);
             }
 
-            _gridQueue.Clear();
+            HashSetPool<long>.Instance.Release(gridIdSet);
         }
 
         void OnBlockOwnershipChanged(long gridId)

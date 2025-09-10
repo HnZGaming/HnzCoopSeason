@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -107,6 +108,15 @@ namespace HnzUtils
         public static void Sort<T, U>(this List<T> self, Func<T, U> f)
         {
             self.Sort((a, b) => Comparer<U>.Default.Compare(f(a), f(b)));
+        }
+
+        public static void DequeueAll<T>(this ConcurrentQueue<T> queue, ICollection<T> other)
+        {
+            T element;
+            while (queue.TryDequeue(out element))
+            {
+                other.Add(element);
+            }
         }
     }
 }

@@ -37,7 +37,7 @@ namespace HnzCoopSeason
 
         public override void LoadData()
         {
-            MyLog.Default.Info("[HnzUtils] session loading");
+            MyLog.Default.Info("[HnzCoopSeason] session loading");
             base.LoadData();
             Instance = this;
 
@@ -79,7 +79,7 @@ namespace HnzCoopSeason
 
             ProgressionView.Instance.Load();
 
-            MyLog.Default.Info("[HnzUtils] session loaded");
+            MyLog.Default.Info("[HnzCoopSeason] session loaded");
         }
 
         void RichHudInit() // client
@@ -90,7 +90,7 @@ namespace HnzCoopSeason
 
         protected override void UnloadData()
         {
-            MyLog.Default.Info("[HnzUtils] session unloading");
+            MyLog.Default.Info("[HnzCoopSeason] session unloading");
             base.UnloadData();
 
             _richHudApi = null;
@@ -124,7 +124,7 @@ namespace HnzCoopSeason
                 ScreenTopHud.Instance.Close();
             }
 
-            MyLog.Default.Info("[HnzUtils] session unloaded");
+            MyLog.Default.Info("[HnzCoopSeason] session unloaded");
         }
 
         void RichHudClosed() // client
@@ -224,7 +224,7 @@ namespace HnzCoopSeason
             if (!invokeCallbacks) return true;
 
             MyLog.Default.Info(
-                "[HnzUtils] poi state changed: {0}, {1} / {2}, progress: {3:0.0}%, level: {4}",
+                "[HnzCoopSeason] poi state changed: {0}, {1} / {2}, progress: {3:0.0}%, level: {4}",
                 poiId,
                 _poiMap.GetPoiCountByState(PoiState.Released),
                 _poiMap.AllPois.Count,
@@ -330,7 +330,7 @@ namespace HnzCoopSeason
 
             if (closestPoi == null)
             {
-                MyLog.Default.Warning("[HnzUtils] POI not found for datapad");
+                MyLog.Default.Warning("[HnzCoopSeason] POI not found for datapad");
                 data = null;
                 return false;
             }

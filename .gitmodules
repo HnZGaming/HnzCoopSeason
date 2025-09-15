@@ -1,3 +1,6 @@
 [submodule "TorchUtils"]
 	path = TorchUtils
 	url = https://github.com/HnZGaming/TorchUtils.git
+[submodule "HnzCoopSeason.Mod/Content/Data/Scripts/HnzCoopSeason/HnzUtils"]
+	path = HnzCoopSeason.Mod/Content/Data/Scripts/HnzCoopSeason/HnzUtils
+	url = git@github.com:ryo0ka/HnzUtils.git

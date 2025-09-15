@@ -6,7 +6,7 @@ using HnzCoopSeason.Merchants;
 using HnzCoopSeason.Missions;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
-using Sandbox.ModAPI;
+using HnzUtils;
 using VRage.Serialization;
 using VRage.Utils;
 
@@ -119,30 +119,13 @@ namespace HnzCoopSeason
 
         public static void Load()
         {
-            MyLog.Default.Info("[HnzCoopSeason] config loading");
-
-            if (MyAPIGateway.Utilities.FileExistsInWorldStorage(FileName, typeof(SessionConfig)))
+            SessionConfig content;
+            if (!VRageUtils.TryLoadStorageXmlFile(FileName, out content))
             {
-                try
-                {
-                    using (var reader = MyAPIGateway.Utilities.ReadFileInWorldStorage(FileName, typeof(SessionConfig)))
-                    {
-                        var contentText = reader.ReadToEnd();
-                        Instance = MyAPIGateway.Utilities.SerializeFromXML<SessionConfig>(contentText);
-                        Instance.Initialize();
-                        MyLog.Default.Info("[HnzCoopSeason] config loaded");
-                        return;
-                    }
-                }
-                catch (Exception e)
-                {
-                    MyLog.Default.Error($"[HnzCoopSeason] config failed loading: {e}");
-                }
+                content = new SessionConfig();
             }
 
-            MyLog.Default.Info("[HnzCoopSeason] config creating");
-            Instance = new SessionConfig();
-            Instance.Initialize();
+            content.Initialize();
             Save();
         }
 
@@ -153,20 +136,8 @@ namespace HnzCoopSeason
                 MyLog.Default.Error("[HnzCoopSeason] config failed to save; instance null");
                 return;
             }
-
-            try
-            {
-                using (var writer = MyAPIGateway.Utilities.WriteFileInWorldStorage(FileName, typeof(SessionConfig)))
-                {
-                    var xml = MyAPIGateway.Utilities.SerializeToXML(Instance);
-                    writer.Write(xml);
-                    MyLog.Default.Info("[HnzCoopSeason] config saved");
-                }
-            }
-            catch (Exception e)
-            {
-                MyLog.Default.Error($"[HnzCoopSeason] config failed to save: {e}");
-            }
+            
+            VRageUtils.SaveStorageFile(FileName, Instance);
         }
     }
 }

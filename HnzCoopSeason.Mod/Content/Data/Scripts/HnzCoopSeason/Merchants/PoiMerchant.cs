@@ -337,10 +337,11 @@ namespace HnzCoopSeason.Merchants
 
             storeBlock.ClearItems();
 
-            var allItems = new Dictionary<MyDefinitionId, int>();
-            foreach (var kvp in GetStoreItemConfigs())
+            var allItems = new Dictionary<MyObjectBuilder_PhysicalObject, int>();
+            foreach (var kvp in SessionConfig.Instance.StoreItemBuilders)
             {
-                var id = kvp.Key;
+                var builder = kvp.Key;
+                var id = builder.GetId();
                 var c = kvp.Value;
 
                 var existingAmount = existingOffers.GetValueOrDefault(id, 0);
@@ -353,7 +354,7 @@ namespace HnzCoopSeason.Merchants
                 var amount = Math.Min(existingAmount + fillAmount, c.MaxAmount);
                 var item = storeBlock.CreateStoreItem(id, amount, c.PricePerUnit, StoreItemTypes.Offer);
                 storeBlock.InsertStoreItem(item);
-                allItems.Increment(id, amount);
+                allItems.Increment(builder, amount);
 
                 MyLog.Default.Debug("[HnzCoopSeason] UpdateStoreItems(); item: {0}, origin: {1}, delta: {2}", id, existingAmount, amount, fillAmount);
             }
@@ -361,8 +362,7 @@ namespace HnzCoopSeason.Merchants
             inventory.Clear();
             foreach (var kvp in allItems)
             {
-                var builder = new MyObjectBuilder_Component { SubtypeName = kvp.Key.SubtypeName };
-                inventory.AddItems(kvp.Value, builder);
+                inventory.AddItems(kvp.Value, kvp.Key);
             }
         }
 
@@ -442,31 +442,6 @@ namespace HnzCoopSeason.Merchants
         static bool IsCargoBlock(IMyCargoContainer block)
         {
             return block.CustomName.Contains("Cargo");
-        }
-
-        static Dictionary<MyDefinitionId, StoreItemConfig> GetStoreItemConfigs()
-        {
-            var items = SessionConfig.Instance.StoreItems;
-            var results = new Dictionary<MyDefinitionId, StoreItemConfig>();
-            foreach (var c in items)
-            {
-                MyDefinitionId id;
-                if (!MyDefinitionId.TryParse($"{c.Type}/{c.Subtype}", out id))
-                {
-                    MyLog.Default.Error($"[HnzCoopSeason] invalid store item config: {c}");
-                    continue;
-                }
-
-                if (results.ContainsKey(id))
-                {
-                    MyLog.Default.Error($"[HnzCoopSeason] duplicate store item config: {c}");
-                    continue;
-                }
-
-                results.Add(id, c);
-            }
-
-            return results;
         }
 
         static void AlignPlanetaryStation(IMyCubeGrid grid)

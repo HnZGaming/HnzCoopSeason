@@ -7,6 +7,7 @@ using HnzCoopSeason.Missions;
 using HnzCoopSeason.Orks;
 using HnzCoopSeason.POI;
 using HnzUtils;
+using VRage.Game;
 using VRage.Serialization;
 using VRage.Utils;
 
@@ -112,9 +113,48 @@ namespace HnzCoopSeason
         [XmlIgnore]
         public IReadOnlyDictionary<int, ProgressionLevelConfig> ProgressionLevels { get; private set; }
 
+        [XmlIgnore]
+        public IReadOnlyDictionary<MyObjectBuilder_PhysicalObject, StoreItemConfig> StoreItemBuilders { get; private set; }
+
         void Initialize()
         {
             ProgressionLevels = ProgressionLevelList.ToDictionary(c => c.Level);
+            StoreItemBuilders = ParseStoreItems();
+        }
+
+        Dictionary<MyObjectBuilder_PhysicalObject, StoreItemConfig> ParseStoreItems()
+        {
+            var results = new Dictionary<MyObjectBuilder_PhysicalObject, StoreItemConfig>();
+            var duplicates = new HashSet<MyDefinitionId>();
+            foreach (var c in StoreItems)
+            {
+                MyDefinitionId id;
+                if (!MyDefinitionId.TryParse($"{c.Type}/{c.Subtype}", out id))
+                {
+                    MyLog.Default.Error($"[HnzCoopSeason] misformatted store item config: {c}");
+                    continue;
+                }
+
+                MyObjectBuilder_PhysicalObject builder;
+                if (!VRageUtils.TryCreatePhysicalObjectBuilder(id, out builder))
+                {
+                    MyLog.Default.Error($"[HnzCoopSeason] nonexistent store item config: {c}");
+                    continue;
+                }
+
+                if (duplicates.Contains(id))
+                {
+                    MyLog.Default.Error($"[HnzCoopSeason] duplicate store item config: {c}");
+                    continue;
+                }
+
+                results.Add(builder, c);
+                duplicates.Add(id);
+
+                MyLog.Default.Info($"[HnzCoopSeason] merchant item config loaded: {c}");
+            }
+
+            return results;
         }
 
         public static void Load()

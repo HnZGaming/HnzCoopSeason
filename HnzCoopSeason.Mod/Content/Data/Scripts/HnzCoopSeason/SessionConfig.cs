@@ -126,6 +126,7 @@ namespace HnzCoopSeason
             }
 
             content.Initialize();
+            Instance = content;
             Save();
         }
 
@@ -136,7 +137,7 @@ namespace HnzCoopSeason
                 MyLog.Default.Error("[HnzCoopSeason] config failed to save; instance null");
                 return;
             }
-            
+
             VRageUtils.SaveStorageFile(FileName, Instance);
         }
     }

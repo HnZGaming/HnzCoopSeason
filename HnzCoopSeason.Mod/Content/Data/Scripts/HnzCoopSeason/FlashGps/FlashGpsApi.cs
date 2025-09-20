@@ -15,7 +15,7 @@ namespace FlashGps
             MyAPIGateway.Multiplayer.SendMessageToServer(Key, bytes);
         }
 
-        public static void Send(string name, Color color, double duration, Vector3D position)
+        public static void Send(string name, Color color, double duration, Vector3D position, bool mute = false)
         {
             Send(new Entry
             {
@@ -24,6 +24,7 @@ namespace FlashGps
                 Color = color,
                 Duration = duration,
                 Position = position,
+                Mute = mute,
             });
         }
 

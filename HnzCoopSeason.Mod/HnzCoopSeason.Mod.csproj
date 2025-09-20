@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -11,6 +11,7 @@
         <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <LangVersion>6</LangVersion>
+        <TargetFramework>netframework48</TargetFramework>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
       <DebugType>pdbonly</DebugType>
@@ -32,102 +33,15 @@
       <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="System" />
-        <Reference Include="System.Core" />
-        <Reference Include="System.Data" />
-        <Reference Include="System.Xml" />
-    </ItemGroup>
-    <ItemGroup>
-        <Reference Include="ProtoBuf.Net">
-            <HintPath>../../GameBinaries\ProtoBuf.Net.dll</HintPath>
-        </Reference>
-        <Reference Include="ProtoBuf.Net.Core">
-            <HintPath>../../GameBinaries\ProtoBuf.Net.Core.dll</HintPath>
-        </Reference>
-        <Reference Include="Sandbox.Common">
-            <HintPath>../../GameBinaries\Sandbox.Common.dll</HintPath>
-        </Reference>
-        <Reference Include="Sandbox.Game">
-            <HintPath>../../GameBinaries\Sandbox.Game.dll</HintPath>
-        </Reference>
-        <Reference Include="Sandbox.Game.XmlSerializers">
-            <HintPath>../../GameBinaries\Sandbox.Game.XmlSerializers.dll</HintPath>
-        </Reference>
-        <Reference Include="Sandbox.Graphics">
-            <HintPath>../../GameBinaries\Sandbox.Graphics.dll</HintPath>
-        </Reference>
-        <Reference Include="Sandbox.RenderDirect">
-            <HintPath>../../GameBinaries\Sandbox.RenderDirect.dll</HintPath>
-        </Reference>
-        <Reference Include="SpaceEngineers.Game">
-            <HintPath>../../GameBinaries\SpaceEngineers.Game.dll</HintPath>
-        </Reference>
-        <Reference Include="SpaceEngineers.ObjectBuilders">
-            <HintPath>../../GameBinaries\SpaceEngineers.ObjectBuilders.dll</HintPath>
-        </Reference>
-        <Reference Include="SpaceEngineers.ObjectBuilders.XmlSerializers">
-            <HintPath>../../GameBinaries\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage">
-            <HintPath>../../GameBinaries\VRage.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Ansel">
-            <HintPath>../../GameBinaries\VRage.Ansel.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Audio">
-            <HintPath>../../GameBinaries\VRage.Audio.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Game">
-            <HintPath>../../GameBinaries\VRage.Game.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Game.XmlSerializers">
-            <HintPath>../../GameBinaries\VRage.Game.XmlSerializers.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Input">
-            <HintPath>../../GameBinaries\VRage.Input.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Library">
-            <HintPath>../../GameBinaries\VRage.Library.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Math">
-            <HintPath>../../GameBinaries\VRage.Math.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Math.XmlSerializers">
-            <HintPath>../../GameBinaries\VRage.Math.XmlSerializers.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Mod.Io">
-            <HintPath>../../GameBinaries\VRage.Mod.Io.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.NativeAftermath">
-            <HintPath>../../GameBinaries\VRage.NativeAftermath.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.NativeWrapper">
-            <HintPath>../../GameBinaries\VRage.NativeWrapper.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Network">
-            <HintPath>../../GameBinaries\VRage.Network.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Platform.Windows">
-            <HintPath>../../GameBinaries\VRage.Platform.Windows.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Render">
-            <HintPath>../../GameBinaries\VRage.Render.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Render11">
-            <HintPath>../../GameBinaries\VRage.Render11.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Scripting">
-            <HintPath>../../GameBinaries\VRage.Scripting.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.Steam">
-            <HintPath>../../GameBinaries\VRage.Steam.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.UserInterface">
-            <HintPath>../../GameBinaries\VRage.UserInterface.dll</HintPath>
-        </Reference>
-        <Reference Include="VRage.XmlSerializers">
-            <HintPath>../../GameBinaries\VRage.XmlSerializers.dll</HintPath>
-        </Reference>
+        <PackageReference Include="Mal.Mdk2.ModAnalyzers" Version="2.1.12">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Mal.Mdk2.ModPackager" Version="2.1.5">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Mal.Mdk2.References" Version="2.2.4"/>
     </ItemGroup>
     <ItemGroup>
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\CoopGridTakeover.cs" />

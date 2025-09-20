@@ -2,6 +2,7 @@
 using HnzUtils;
 using Sandbox.Game.Entities;
 using VRage.Game.Entity;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -11,7 +12,8 @@ namespace HnzCoopSeason.Spawners
     {
         const int MaxTrialCount = 100;
         readonly List<MatrixD> _results = new List<MatrixD>();
-        readonly List<MyVoxelBase> _voxels = new List<MyVoxelBase>();
+        MyPlanet _planet;
+        Vector3 PlanetCenter => _planet.WorldMatrix.Translation;
 
         public BoundingSphereD Sphere;
         public float Clearance;
@@ -23,20 +25,25 @@ namespace HnzCoopSeason.Spawners
 
         public bool TryBuild() // called once in lifetime of an instance
         {
-            MyGamePruningStructure.GetAllVoxelMapsInSphere(ref Sphere, _voxels);
+            _planet = PlanetCollection.GetClosestPlanet(Sphere.Center);
 
             var randomPositions = new List<Vector3D>();
-            var mainGravity = VRageUtils.CalculateNaturalGravity(Sphere.Center);
-            for (var i = 0; i < MaxTrialCount; i++)
+            var gravity = VRageUtils.CalculateNaturalGravity(Sphere.Center);
+            if (gravity == Vector3.Zero) // deep space
             {
-                if (mainGravity == Vector3.Zero) // deep space
+                for (var i = 0; i < MaxTrialCount; i++)
                 {
                     var position = MathUtils.GetRandomPositionInSphere(Sphere);
                     randomPositions.Add(position);
                 }
-                else // planet/moon surface or orbit
+            }
+            else // planet/moon surface or orbit
+            {
+                var distance = Vector3.Distance(PlanetCenter, Sphere.Center);
+                for (var i = 0; i < MaxTrialCount; i++)
                 {
-                    var position = MathUtils.GetRandomPositionOnDisk(Sphere.Center, mainGravity, Sphere.Radius);
+                    var position = MathUtils.GetRandomPositionOnDisk(Sphere.Center, gravity, Sphere.Radius);
+                    position = PlanetCenter + Vector3.Normalize(position - PlanetCenter) * distance;
                     randomPositions.Add(position);
                 }
             }
@@ -71,11 +78,17 @@ namespace HnzCoopSeason.Spawners
                 // modify position
                 var up = gravity.Normalized() * -1;
                 var overground = position + up * Sphere.Radius;
-                var underground = position + up * (Sphere.Radius * -1);
-                var line = new LineD(overground, underground);
-                Vector3D intersection;
-                if (!VRageUtils.TryGetVoxelIntersection(line, _voxels, out intersection)) return ResultType.Failure_VoxelNotFound;
 
+                IHitInfo hitInfo;
+                if (!VRageUtils.TryGetFirstRaycastHitInfoByType<MyVoxelBase>(overground, PlanetCenter, out hitInfo))
+                {
+                    return ResultType.Failure_VoxelNotFound;
+                }
+
+                var normalAngle = MathHelper.ToDegrees(Vector3.Angle(hitInfo.Normal, up * -1));
+                if (normalAngle > 20) return ResultType.Failure_SteepVoxelSurface;
+
+                var intersection = hitInfo.Position;
                 if (SnapToVoxel)
                 {
                     position = intersection;
@@ -99,7 +112,7 @@ namespace HnzCoopSeason.Spawners
                 }
             }
 
-            // check collision with existing grids in the proximity
+            // check collision with existing grids
             var entities = new List<MyEntity>();
             MyGamePruningStructure.GetAllEntitiesInSphere(ref sphere, entities, MyEntityQueryType.Both);
             foreach (var e in entities)
@@ -156,6 +169,7 @@ namespace HnzCoopSeason.Spawners
             Failure_VoxelNotFound,
             Failure_PlaceholderCollision,
             Failure_CubeGridCollision,
+            Failure_SteepVoxelSurface,
         }
     }
 }

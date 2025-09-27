@@ -33,7 +33,8 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("stores update", false, MyPromoteLevel.Moderator, Command_UpdateStores, "update all merchant stores."));
             _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
-            _commandModule.Register(new Command("revenge", false, MyPromoteLevel.Moderator, Command_Revenge, "spawn revenge orks"));
+            _commandModule.Register(new Command("revenge spawn", false, MyPromoteLevel.Moderator, Command_RevengeSpawn, "spawn revenge orks"));
+            _commandModule.Register(new Command("revenge despawn all", false, MyPromoteLevel.Moderator, Command_RevengeUnloadAll, "despawn all revenge orks"));
             _commandModule.Register(new Command("mission list", false, MyPromoteLevel.Moderator, Command_ListMissions, "list missions"));
             _commandModule.Register(new Command("mission update", false, MyPromoteLevel.Moderator, Command_UpdateMission, "update mission progress"));
         }
@@ -172,7 +173,7 @@ namespace HnzCoopSeason
             MissionScreen.Send(steamId, "Print", poi.ToString(), true);
         }
 
-        void Command_Revenge(string argsStr, ulong steamId)
+        void Command_RevengeSpawn(string argsStr, ulong steamId)
         {
             MyLog.Default.Info($"[HnzCoopSeason] revenge; args: '{argsStr}'");
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
@@ -218,15 +219,21 @@ namespace HnzCoopSeason
             var targetHasAtmosphere = PlanetCollection.HasAtmosphere(targetPosition);
             var configs = SessionConfig.Instance.Orks.Where(o => o.HasSpawnType(targetHasAtmosphere)).ToArray();
 
-            PoiOrkConfig config;
-            if (!configs.TryGetElementAt(configIndex, out config))
+            if (configIndex >= configs.Length)
             {
-                SendMessage(steamId, Color.Red, $"invalid config index number: {configIndex}; config count: {configs.Length}");
-                return;
+                configIndex = configs.Length - 1;
+                SendMessage(steamId, Color.Yellow, $"fixed config index: {configIndex}; invalid config index: {configIndex}; config count: {configs.Length}");
             }
 
+            var config = configs[configIndex];
             RevengeOrkManager.Instance.Spawn(targetPosition, config.SpawnGroupNames);
-            SendMessage(steamId, Color.White, "orks spawned");
+            SendMessage(steamId, Color.White, $"orks spawned; target: '{targetEntity.DisplayName}', group: {config.SpawnGroupNames.ToStringSeq()}");
+        }
+
+        void Command_RevengeUnloadAll(string args, ulong steamId)
+        {
+            RevengeOrkManager.Instance.DespawnAll();
+            SendMessage(steamId, Color.White, "orks despawned");
         }
 
         static bool TryFindEntityByName(string targetName, out IMyEntity targetEntity)

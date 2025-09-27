@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using HnzCoopSeason.Spawners;
 using VRage.Game.ModAPI;
 using VRageMath;
 
@@ -8,23 +10,41 @@ namespace HnzCoopSeason.Orks
     {
         public static readonly RevengeOrkManager Instance = new RevengeOrkManager();
 
-        RevengeOrk _revengeOrk;
+        LinkedList<MesEncounter> _orks;
         int _increment;
 
         public void Load()
         {
+            _orks = new LinkedList<MesEncounter>();
+        }
+
+        void Clear(bool sessionUnload)
+        {
+            foreach (var ork in _orks)
+            {
+                ork.Unload(sessionUnload);
+            }
+
+            _orks.Clear();
         }
 
         public void Unload()
         {
-            _revengeOrk?.Unload(true);
+            Clear(true);
         }
 
         public void Spawn(Vector3 position, string[] spawnGroupNames)
         {
-            _revengeOrk?.Unload(false);
-            _revengeOrk = new RevengeOrk($"{_increment++}", position, spawnGroupNames);
-            _revengeOrk.Load(Array.Empty<IMyCubeGrid>());
+            var ork = new MesEncounter($"revenge-ork-{_increment++}", position);
+            _orks.AddLast(ork);
+
+            ork.Load(Array.Empty<IMyCubeGrid>());
+            ork.ForceSpawn(spawnGroupNames);
+        }
+
+        public void DespawnAll()
+        {
+            Clear(false);
         }
     }
 }

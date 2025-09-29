@@ -7,7 +7,7 @@
         <ProjectGuid>{859B7124-5339-45C9-A500-886EE4FDF2ED}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <AssemblyName>HnzCoopSeason.Mod</AssemblyName>
+        <AssemblyName>HnzCoopSeason</AssemblyName>
         <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <LangVersion>6</LangVersion>
@@ -87,7 +87,6 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\PoiOrk.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\PoiOrkConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\PoiRandomInvasion.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\RevengeOrk.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\RevengeOrkManager.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\POI\IPoi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\POI\IPoiObserver.cs" />

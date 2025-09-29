@@ -178,7 +178,7 @@ namespace HnzCoopSeason.Orks
             return MathUtils.WeightedRandom(weights);
         }
 
-        int GetProgressLevel()
+        public int GetProgressLevel()
         {
             var sessionLevel = Session.Instance.GetProgressLevel();
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HnzCoopSeason.Orks;
 using HnzUtils;
 using ProtoBuf;
 using Sandbox.ModAPI;
@@ -100,7 +101,8 @@ namespace HnzCoopSeason.POI
             foreach (var poi in pois)
             {
                 var position = poi.GetEntityPosition();
-                markers.Add(new Marker(poi.Id, position, poi.State));
+                var level = ((PoiOrk)poi.Observers.FirstOrDefault(o => o is PoiOrk))?.GetProgressLevel() ?? 0; //todo messy
+                markers.Add(new Marker(poi.Id, position, poi.State, level));
             }
 
             MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending response");
@@ -153,11 +155,12 @@ namespace HnzCoopSeason.POI
 
         static void UpdateGps(IMyGps gps, Marker marker)
         {
+            var level = $"Level: {marker.Level}";
             switch (marker.State)
             {
-                case PoiState.Occupied: UpdateGps(gps, "Orks", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!"); break;
-                case PoiState.Released: UpdateGps(gps, "Merchant", marker.Position, Color.Green, "Our trading hub has been released and in business!"); break;
-                case PoiState.Invaded: UpdateGps(gps, "Ork Mobs", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!"); break;
+                case PoiState.Occupied: UpdateGps(gps, $"[ORKS]\n{marker.Id}\n{level}", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!"); break;
+                case PoiState.Released: UpdateGps(gps, $"[MERCHANT]\n{marker.Id}", marker.Position, Color.Green, "Our trading hub has been released and in business!"); break;
+                case PoiState.Invaded: UpdateGps(gps, $"[ORKS]\n{marker.Id}\n{level}", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!"); break;
                 default: throw new InvalidOperationException($"invalid poi state: {marker.State}");
             }
         }
@@ -202,16 +205,20 @@ namespace HnzCoopSeason.POI
             [ProtoMember(3)]
             public PoiState State;
 
+            [ProtoMember(4)]
+            public int Level;
+
             // ReSharper disable once UnusedMember.Local
             Marker()
             {
             }
 
-            public Marker(string id, Vector3D position, PoiState state)
+            public Marker(string id, Vector3D position, PoiState state, int level)
             {
                 Id = id;
                 Position = position;
                 State = state;
+                Level = level;
             }
         }
     }

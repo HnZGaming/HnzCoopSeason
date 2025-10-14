@@ -12,6 +12,7 @@
                 [MES Shipyard]
 
                 [AllowScrapPurchasing:true]
+                [ScrapPurchasingIncludeInventory:true]
                 [AllowRepairAndConstruction:false]
                 [AllowGridTakeover:true]
 

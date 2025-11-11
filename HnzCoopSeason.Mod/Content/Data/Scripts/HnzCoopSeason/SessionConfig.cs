@@ -55,6 +55,9 @@ namespace HnzCoopSeason
         [XmlElement]
         public string RespawnDatapadTextFormat = "Come here: {0}";
 
+        [XmlElement]
+        public float OrksDamageManipulationScale = 0.5f;
+
         [XmlArray("ProgressionLevels")]
         [XmlArrayItem("Level")]
         public ProgressionLevelConfig[] ProgressionLevelList =
@@ -115,6 +118,7 @@ namespace HnzCoopSeason
 
         [XmlIgnore]
         public IReadOnlyDictionary<MyObjectBuilder_PhysicalObject, StoreItemConfig> StoreItemBuilders { get; private set; }
+
 
         void Initialize()
         {

@@ -34,6 +34,7 @@ namespace HnzCoopSeason
         bool _doneFirstUpdate;
         HudAPIv2 _richHudApi;
         DatapadInserter _dataPadInserter;
+        OrksDamageManipulator _orksDamageManipulator;
 
         public override void LoadData()
         {
@@ -67,6 +68,8 @@ namespace HnzCoopSeason
 
                 _dataPadInserter = new DatapadInserter("COOP");
                 _dataPadInserter.Load(TryCreateDatapadData);
+
+                _orksDamageManipulator = new OrksDamageManipulator("PORKS");
             }
 
             // client
@@ -151,6 +154,8 @@ namespace HnzCoopSeason
             if (VRageUtils.NetworkTypeIn(NetworkType.DediServer | NetworkType.SinglePlayer))
             {
                 LoadConfig();
+
+                _orksDamageManipulator.OnFirstFrame();
             }
 
             // dedi client
@@ -180,6 +185,7 @@ namespace HnzCoopSeason
                 OnlineCharacterCollection.Update();
                 _poiMap.Update();
                 PoiRandomInvasion.Instance.Update();
+                _orksDamageManipulator.OnEveryFrame();
             }
 
             // client or single player

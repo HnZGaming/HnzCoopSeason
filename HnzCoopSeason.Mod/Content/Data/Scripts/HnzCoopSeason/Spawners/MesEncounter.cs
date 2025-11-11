@@ -64,10 +64,10 @@ namespace HnzCoopSeason.Spawners
             var sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius);
             if (!OnlineCharacterCollection.GetAllContainedPlayers(sphere, players)) return;
 
+            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby; players: {players.Select(p => p.DisplayName).ToStringSeq()}");
+
             var spawnGroupNames = new List<string>();
             if (!FilterSpawn(players.Count, spawnGroupNames)) return;
-
-            MyLog.Default.Info($"[HnzCoopSeason] encounter {_gridId} player nearby; players: {players.Select(p => p.DisplayName).ToStringSeq()}");
 
             var playerPosition = players
                 .Select(p => p.GetPosition())

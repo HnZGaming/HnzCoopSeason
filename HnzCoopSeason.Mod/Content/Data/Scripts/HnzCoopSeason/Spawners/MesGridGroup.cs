@@ -156,7 +156,7 @@ namespace HnzCoopSeason.Spawners
             }
 
             _allGrids.Clear();
-            MyLog.Default.Error($"[HnzCoopSeason] MesGrid {Id} all grids clear");
+            MyLog.Default.Info($"[HnzCoopSeason] MesGrid {Id} all grids clear");
         }
 
         void OnGridClosing(IMyEntity entity)

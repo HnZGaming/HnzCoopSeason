@@ -155,12 +155,12 @@ namespace HnzCoopSeason.POI
 
         static void UpdateGps(IMyGps gps, Marker marker)
         {
-            var level = $"Level: {marker.Level}";
+            var level = $"Lv.{marker.Level}";
             switch (marker.State)
             {
-                case PoiState.Occupied: UpdateGps(gps, $"[ORKS] {marker.Id}; {level}", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!"); break;
+                case PoiState.Occupied: UpdateGps(gps, $"[ORKS] {marker.Id} ({level})", marker.Position, Color.Orange, "Beat the Orks away from our trading hub!"); break;
                 case PoiState.Released: UpdateGps(gps, $"[MERCHANT] {marker.Id}", marker.Position, Color.Green, "Our trading hub has been released and in business!"); break;
-                case PoiState.Invaded: UpdateGps(gps, $"[ORKS] {marker.Id}; {level}", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!"); break;
+                case PoiState.Invaded: UpdateGps(gps, $"[ORKS] {marker.Id} ({level})", marker.Position, Color.Orange, "Ork mobs have reclaimed our trading hub... Take it back!"); break;
                 default: throw new InvalidOperationException($"invalid poi state: {marker.State}");
             }
         }

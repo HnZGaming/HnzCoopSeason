@@ -13,20 +13,17 @@ namespace HnzCoopSeason.Merchants
         public string Subtype = "Tech2x";
 
         [XmlAttribute]
-        public int PricePerUnit = 200000;
+        public int PricePerUnit;
 
         [XmlAttribute]
-        public int MinAmountPerUpdate = 5;
+        public int AmountPerUpdate;
 
         [XmlAttribute]
-        public int MaxAmountPerUpdate = 10;
-
-        [XmlAttribute]
-        public int MaxAmount = 100;
+        public int MaxAmount;
 
         public override string ToString()
         {
-            return $"{nameof(Type)}: {Type}, {nameof(Subtype)}: {Subtype}, {nameof(PricePerUnit)}: {PricePerUnit}, {nameof(MinAmountPerUpdate)}: {MinAmountPerUpdate}, {nameof(MaxAmountPerUpdate)}: {MaxAmountPerUpdate}, {nameof(MaxAmount)}: {MaxAmount}";
+            return $"{nameof(Type)}: {Type}, {nameof(Subtype)}: {Subtype}, {nameof(PricePerUnit)}: {PricePerUnit}, {nameof(AmountPerUpdate)}: {AmountPerUpdate}, {nameof(MaxAmount)}: {MaxAmount}";
         }
     }
 }

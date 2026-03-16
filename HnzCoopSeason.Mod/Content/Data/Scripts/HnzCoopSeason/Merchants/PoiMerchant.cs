@@ -12,7 +12,6 @@ using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Definitions;
-using VRage.Library.Utils;
 using VRage.ModAPI;
 using VRage.Serialization;
 using VRage.Utils;
@@ -31,6 +30,7 @@ namespace HnzCoopSeason.Merchants
         readonly string _variableKey;
         readonly Interval _economyInterval;
         readonly PoiMerchantConfig[] _configs;
+        int _configIndex;
         long _safeZoneId;
         IMyCubeGrid _grid;
         PoiState _poiState;
@@ -46,6 +46,9 @@ namespace HnzCoopSeason.Merchants
             _economyInterval = new Interval();
             _configs = configs;
         }
+
+        PoiMerchantConfig Config => _configs[_configIndex % _configs.Length];
+        PoiMerchantStoreConfig StoreConfig => SessionConfig.Instance.MerchantStores.WrappedElementAt(_configIndex);
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
@@ -134,17 +137,16 @@ namespace HnzCoopSeason.Merchants
 
         public void Spawn(int configIndex)
         {
+            _configIndex = configIndex;
             MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} Spawn()");
 
             Despawn();
-
-            var config = _configs[configIndex % _configs.Length];
 
             var matrixBuilder = new SpawnMatrixBuilder
             {
                 Sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius),
                 Clearance = SessionConfig.Instance.EncounterClearance,
-                SnapToVoxel = config.SpawnType == SpawnType.PlanetaryStation,
+                SnapToVoxel = Config.SpawnType == SpawnType.PlanetaryStation,
                 Count = 1,
                 PlayerPosition = null,
             };
@@ -165,13 +167,13 @@ namespace HnzCoopSeason.Merchants
                 var ownerId = _faction.FounderId;
                 MyAPIGateway.PrefabManager.SpawnPrefab(
                     resultList: resultGrids,
-                    prefabName: config.Prefab,
+                    prefabName: Config.Prefab,
                     position: matrix.Translation,
                     forward: matrix.Forward,
                     up: matrix.Up,
                     ownerId: ownerId,
                     spawningOptions: SpawningOptions.RotateFirstCockpitTowardsDirection,
-                    callback: () => OnGridSpawned(resultGrids, config.SpawnType));
+                    callback: () => OnGridSpawned(resultGrids, Config.SpawnType));
             }
             catch (Exception e)
             {
@@ -325,46 +327,63 @@ namespace HnzCoopSeason.Merchants
             var allExistingItems = new List<IMyStoreItem>();
             storeBlock.GetStoreItems(allExistingItems);
 
-            var existingOffers = new Dictionary<MyDefinitionId, int>();
-            foreach (var item in allExistingItems)
-            {
-                if (item.Item == null) continue; // shouldn't happen
-                if (item.StoreItemType != StoreItemTypes.Offer) continue;
+            // ReSharper disable once PossibleInvalidOperationException
+            var allItems = allExistingItems.ToDictionaryAllowDupes(t => CreateValueTuple((MyDefinitionId)t.Item.Value, t.StoreItemType), t => t);
 
-                var id = item.Item.Value.ToDefinitionId();
-                existingOffers[id] = item.Amount;
-            }
+            // ReSharper disable once InvokeAsExtensionMethod
+            var allItemBuilders = Enumerable.Concat(
+                StoreConfig.OfferBuilders.Select(b => CreateValueTuple(b, StoreItemTypes.Offer)),
+                StoreConfig.OrderBuilders.Select(b => CreateValueTuple(b, StoreItemTypes.Order)));
 
             storeBlock.ClearItems();
+            inventory.Clear();
 
-            var allItems = new Dictionary<MyObjectBuilder_PhysicalObject, int>();
-            foreach (var kvp in SessionConfig.Instance.StoreItemBuilders)
+            foreach (var kvp in allItemBuilders)
             {
-                var builder = kvp.Key;
-                var id = builder.GetId();
-                var c = kvp.Value;
+                var itemBuilder = kvp.Item1.Key;
+                var itemId = itemBuilder.GetId();
+                var itemConfig = kvp.Item1.Value;
+                var itemType = kvp.Item2;
 
-                var existingAmount = existingOffers.GetValueOrDefault(id, 0);
-                if (fill)
+                IMyStoreItem item;
+                if (!allItems.TryGetValue(CreateValueTuple(itemId, itemType), out item))
                 {
-                    existingAmount += c.MaxAmount;
+                    var pricePerUnit = itemConfig.PricePerUnit;
+                    if (pricePerUnit <= 0)
+                    {
+                        //todo scale by season progression
+                        if (!VRageUtils.TryCalculateItemMinimalPrice(itemId, 1, out pricePerUnit))
+                        {
+                            MyLog.Default.Error($"[HnzCoopSeason] store item price per unit not found: {itemId}");
+                            break;
+                        }
+                    }
+
+                    item = storeBlock.CreateStoreItem(itemId, 0, pricePerUnit, itemType);
                 }
 
-                var fillAmount = (int)MathHelper.Lerp(c.MinAmountPerUpdate, c.MaxAmountPerUpdate, MyRandom.Instance.NextDouble());
-                var amount = Math.Min(existingAmount + fillAmount, c.MaxAmount);
-                var item = storeBlock.CreateStoreItem(id, amount, c.PricePerUnit, StoreItemTypes.Offer);
+                var existingAmount = item.Amount;
+
+                if (fill)
+                {
+                    item.Amount = itemConfig.MaxAmount;
+                }
+                else
+                {
+                    item.Amount += itemConfig.AmountPerUpdate;
+                }
+
+                // cap the max amount
+                item.Amount = Math.Min(item.Amount, itemConfig.MaxAmount);
+
                 storeBlock.InsertStoreItem(item);
-                allItems.Increment(builder, amount);
+                inventory.AddItems(item.Amount, itemBuilder);
 
-                MyLog.Default.Debug("[HnzCoopSeason] UpdateStoreItems(); item: {0}, origin: {1}, delta: {2}", id, existingAmount, amount, fillAmount);
-            }
-
-            inventory.Clear();
-            foreach (var kvp in allItems)
-            {
-                inventory.AddItems(kvp.Value, kvp.Key);
+                MyLog.Default.Debug("[HnzCoopSeason] UpdateStoreItems(); item: {0}, origin: {1}, delta: {2}", itemId, existingAmount, item.Amount, itemConfig.AmountPerUpdate);
             }
         }
+
+        static ValueTuple<A, B> CreateValueTuple<A, B>(A a, B b) => new ValueTuple<A, B>(a, b);
 
         void UpdatePower()
         {

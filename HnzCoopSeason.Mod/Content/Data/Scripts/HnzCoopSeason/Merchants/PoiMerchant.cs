@@ -376,8 +376,14 @@ namespace HnzCoopSeason.Merchants
                 // cap the max amount
                 item.Amount = Math.Min(item.Amount, itemConfig.MaxAmount);
 
+                // registering, not populating/storing items
                 storeBlock.InsertStoreItem(item);
-                inventory.AddItems(item.Amount, itemBuilder);
+
+                // orders don't have to be in the inventory
+                if (itemType == StoreItemTypes.Offer)
+                {
+                    inventory.AddItems(item.Amount, itemBuilder);
+                }
 
                 MyLog.Default.Debug("[HnzCoopSeason] UpdateStoreItems(); item: {0}, origin: {1}, delta: {2}", itemId, existingAmount, item.Amount, itemConfig.AmountPerUpdate);
             }

@@ -30,6 +30,7 @@ namespace HnzCoopSeason.Merchants
         readonly string _variableKey;
         readonly Interval _economyInterval;
         readonly PoiMerchantConfig[] _configs;
+        int _configIndex;
         long _safeZoneId;
         IMyCubeGrid _grid;
         PoiState _poiState;
@@ -45,6 +46,9 @@ namespace HnzCoopSeason.Merchants
             _economyInterval = new Interval();
             _configs = configs;
         }
+
+        PoiMerchantConfig Config => _configs[_configIndex % _configs.Length];
+        PoiMerchantStoreConfig StoreConfig => SessionConfig.Instance.MerchantStores.WrappedElementAt(_configIndex);
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
@@ -133,17 +137,16 @@ namespace HnzCoopSeason.Merchants
 
         public void Spawn(int configIndex)
         {
+            _configIndex = configIndex;
             MyLog.Default.Info($"[HnzCoopSeason] poi merchant {_poiId} Spawn()");
 
             Despawn();
-
-            var config = _configs[configIndex % _configs.Length];
 
             var matrixBuilder = new SpawnMatrixBuilder
             {
                 Sphere = new BoundingSphereD(_position, SessionConfig.Instance.EncounterRadius),
                 Clearance = SessionConfig.Instance.EncounterClearance,
-                SnapToVoxel = config.SpawnType == SpawnType.PlanetaryStation,
+                SnapToVoxel = Config.SpawnType == SpawnType.PlanetaryStation,
                 Count = 1,
                 PlayerPosition = null,
             };
@@ -164,13 +167,13 @@ namespace HnzCoopSeason.Merchants
                 var ownerId = _faction.FounderId;
                 MyAPIGateway.PrefabManager.SpawnPrefab(
                     resultList: resultGrids,
-                    prefabName: config.Prefab,
+                    prefabName: Config.Prefab,
                     position: matrix.Translation,
                     forward: matrix.Forward,
                     up: matrix.Up,
                     ownerId: ownerId,
                     spawningOptions: SpawningOptions.RotateFirstCockpitTowardsDirection,
-                    callback: () => OnGridSpawned(resultGrids, config.SpawnType));
+                    callback: () => OnGridSpawned(resultGrids, Config.SpawnType));
             }
             catch (Exception e)
             {
@@ -329,8 +332,8 @@ namespace HnzCoopSeason.Merchants
 
             // ReSharper disable once InvokeAsExtensionMethod
             var allItemBuilders = Enumerable.Concat(
-                SessionConfig.Instance.StoreOfferItemBuilders.Select(b => CreateValueTuple(b, StoreItemTypes.Offer)),
-                SessionConfig.Instance.StoreOrderItemBuilders.Select(b => CreateValueTuple(b, StoreItemTypes.Order)));
+                StoreConfig.OfferBuilders.Select(b => CreateValueTuple(b, StoreItemTypes.Offer)),
+                StoreConfig.OrderBuilders.Select(b => CreateValueTuple(b, StoreItemTypes.Order)));
 
             storeBlock.ClearItems();
             inventory.Clear();

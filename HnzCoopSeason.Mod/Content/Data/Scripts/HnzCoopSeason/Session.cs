@@ -221,6 +221,15 @@ namespace HnzCoopSeason
             return Math.Min((int)Math.Floor(progress * max) + 1, max);
         }
 
+        // how far progress has crossed the current level's span, 0..1
+        // e.g. level 5 of 5 spans progress 80%..100%; progress 90% -> 0.5
+        public float GetProgressLevelFraction()
+        {
+            var max = SessionConfig.Instance.MaxProgressLevel;
+            var t = GetProgress() * max - (GetProgressLevel() - 1);
+            return MathHelper.Clamp(t, 0f, 1f);
+        }
+
         public bool SetPoiState(string poiId, PoiState state, bool invokeCallbacks = true)
         {
             Poi poi;

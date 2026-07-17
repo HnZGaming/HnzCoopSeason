@@ -23,7 +23,7 @@ namespace HnzCoopSeason
         public float EncounterClearance = 500;
 
         [XmlElement]
-        public int InvasionIntervalHours = 4;
+        public float InvasionIntervalHours = 4;
 
         [XmlElement]
         public int MaxConcurrentInvasions = 1;

@@ -117,6 +117,7 @@ namespace HnzCoopSeason
                 _dataPadInserter?.Unload();
                 PoiRandomInvasion.Instance.Unload();
                 RevengeOrkManager.Instance.Unload();
+                OrkHpMultipliers.Clear();
                 NpcHud.Instance.Unload();
             }
 
@@ -225,8 +226,14 @@ namespace HnzCoopSeason
         // e.g. level 5 of 5 spans progress 80%..100%; progress 90% -> 0.5
         public float GetProgressLevelFraction()
         {
+            return GetProgressLevelFraction(GetProgressLevel());
+        }
+
+        // same, against an arbitrary level's span; a past level clamps to 1, a future one to 0
+        public float GetProgressLevelFraction(int level)
+        {
             var max = SessionConfig.Instance.MaxProgressLevel;
-            var t = GetProgress() * max - (GetProgressLevel() - 1);
+            var t = GetProgress() * max - (level - 1);
             return MathHelper.Clamp(t, 0f, 1f);
         }
 

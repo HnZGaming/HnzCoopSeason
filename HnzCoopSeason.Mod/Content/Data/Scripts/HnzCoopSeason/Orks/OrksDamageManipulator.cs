@@ -48,7 +48,14 @@ namespace HnzCoopSeason.Orks
             if (!block.CubeGrid.BigOwners.TryGetElementAt(0, out ownerId)) return;
             if (ownerId != _factionFounderId) return;
 
-            info.Amount *= 1f / Math.Max(_multiplier, 1f);
+            // per-grid multiplier frozen at spawn time; grids from before a restart fall back to the session level
+            float multiplier;
+            if (!OrkHpMultipliers.TryGet(block.CubeGrid, out multiplier))
+            {
+                multiplier = _multiplier;
+            }
+
+            info.Amount *= 1f / Math.Max(multiplier, 1f);
         }
     }
 }

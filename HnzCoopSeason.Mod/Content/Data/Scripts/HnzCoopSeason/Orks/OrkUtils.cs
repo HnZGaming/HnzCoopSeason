@@ -2,11 +2,19 @@ using System.Collections.Generic;
 using Sandbox.ModAPI;
 using SpaceEngineers.Game.ModAPI;
 using VRage.Game.ModAPI;
+using VRageMath;
 
 namespace HnzCoopSeason.Orks
 {
     public static class OrkUtils
     {
+        // hp multiplier a grid of the given progress level should carry, at this point of the season
+        public static float ComputeHpMultiplier(int level)
+        {
+            var c = SessionConfig.Instance.GetProgressionLevel(level);
+            var t = Session.Instance.GetProgressLevelFraction(level);
+            return MathHelper.Lerp(c.HpMultiplierStart, c.HpMultiplierEnd, t);
+        }
 
         public static int DisarmGrid(IMyCubeGrid grid)
         {

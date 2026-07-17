@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using FlashGps;
@@ -172,6 +172,8 @@ namespace HnzCoopSeason.Orks
 
         void OnGridSet(IMyCubeGrid grid)
         {
+            OrkHpMultipliers.Register(grid, OrkUtils.ComputeHpMultiplier(GetProgressLevel()));
+
             if (!_disarmNextSpawn) return;
 
             var count = OrkUtils.DisarmGrid(grid);

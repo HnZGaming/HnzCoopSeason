@@ -79,8 +79,16 @@ namespace HnzCoopSeason.Orks
             var ork = new MesEncounter($"revenge-ork-{_increment++}", position);
             _orks.AddLast(ork);
 
+            ork.OnGridSet += OnGridSet; // cleared by the encounter's own Unload
             ork.Load(Array.Empty<IMyCubeGrid>());
             ork.ForceSpawn(spawnGroupNames);
+        }
+
+        static void OnGridSet(IMyCubeGrid grid)
+        {
+            // revenge orks have no poi; they fight at the session's current level
+            var level = Session.Instance.GetProgressLevel();
+            OrkHpMultipliers.Register(grid, OrkUtils.ComputeHpMultiplier(level));
         }
 
         void SpawnNoAi(Vector3D center, string[] spawnGroupNames)
@@ -145,6 +153,7 @@ namespace HnzCoopSeason.Orks
                     foreach (var grid in grids)
                     {
                         _noAiGrids.Add(grid);
+                        OnGridSet(grid);
                         var count = OrkUtils.DisarmGrid(grid);
                         MyLog.Default.Info($"[HnzCoopSeason] no-ai ork spawned: '{grid.CustomName}', disarmed blocks: {count}");
 

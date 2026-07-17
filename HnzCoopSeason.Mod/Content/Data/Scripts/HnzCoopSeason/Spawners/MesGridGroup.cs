@@ -34,6 +34,7 @@ namespace HnzCoopSeason.Spawners
 
         public event Action<IMyCubeGrid> OnMainGridSet;
         public event Action<IMyCubeGrid> OnMainGridUnset;
+        public event Action<IMyCubeGrid> OnGridSet; // every grid of the group, main included
 
         public void Load(IEnumerable<IMyCubeGrid> grids) // called once
         {
@@ -60,6 +61,7 @@ namespace HnzCoopSeason.Spawners
 
             MESApi.Instance.RegisterSuccessfulSpawnAction(OnMesAnySuccessfulSpawn, false);
             OnMainGridSet = null;
+            OnGridSet = null;
 
             if (sessionUnload) return; // otherwise fails to unload session
 
@@ -122,6 +124,8 @@ namespace HnzCoopSeason.Spawners
             _allGrids.Add(context.Index, grid);
 
             MESApi.Instance.RegisterDespawnWatcher(grid, OnGridDespawningByMes);
+
+            OnGridSet?.Invoke(grid);
 
             if (context.Index == 0)
             {

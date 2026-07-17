@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FlashGps;
@@ -20,6 +20,7 @@ namespace HnzCoopSeason.Orks
         readonly PoiOrkConfig[] _configs;
         IMyCubeGrid _mainGrid;
         PoiState _poiState;
+        bool _disarmNextSpawn;
 
         public PoiOrk(string poiId, Vector3D position, PoiOrkConfig[] configs)
         {
@@ -32,6 +33,7 @@ namespace HnzCoopSeason.Orks
         {
             _encounter.OnMainGridSet += OnMainGridSet;
             _encounter.OnMainGridUnset += OnMainGridUnset;
+            _encounter.OnGridSet += OnGridSet;
             _encounter.FilterSpawn = EncounterSpawnDelegate;
             _encounter.Load(grids);
 
@@ -43,6 +45,7 @@ namespace HnzCoopSeason.Orks
             _encounter.Unload(sessionUnload);
             _encounter.OnMainGridSet -= OnMainGridSet;
             _encounter.OnMainGridUnset -= OnMainGridUnset;
+            _encounter.OnGridSet -= OnGridSet;
             _encounter.FilterSpawn = null;
 
             CoopGridTakeover.Instance.OnTakeoverStateChanged -= OnAnyTakeoverStateChanged;
@@ -138,6 +141,8 @@ namespace HnzCoopSeason.Orks
         // called upon encounter spawn
         bool EncounterSpawnDelegate(int playerCount, List<string> spawnGroupNames)
         {
+            _disarmNextSpawn = false; // natural spawns are always armed
+
             var minPlayerCount = GetMinPlayerCount();
             if (playerCount < minPlayerCount) return false;
 
@@ -157,10 +162,20 @@ namespace HnzCoopSeason.Orks
             return SessionConfig.Instance.ProgressionLevels[progressLevel].MinPlayerCount;
         }
 
-        public void Spawn(int configIndex)
+        public void Spawn(int configIndex, bool disarm = false)
         {
+            _disarmNextSpawn = disarm;
+
             var config = _configs[configIndex];
             _encounter.ForceSpawn(config.SpawnGroupNames);
+        }
+
+        void OnGridSet(IMyCubeGrid grid)
+        {
+            if (!_disarmNextSpawn) return;
+
+            var count = OrkUtils.DisarmGrid(grid);
+            MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} grid disarmed: '{grid.CustomName}', blocks: {count}");
         }
 
         int CalcConfigIndex()

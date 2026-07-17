@@ -37,6 +37,12 @@ namespace HnzCoopSeason.Spawners
             remove { _mesGridGroup.OnMainGridUnset -= value; }
         }
 
+        public event Action<IMyCubeGrid> OnGridSet
+        {
+            add { _mesGridGroup.OnGridSet += value; }
+            remove { _mesGridGroup.OnGridSet -= value; }
+        }
+
         public FilterSpawnDelegate FilterSpawn { get; set; }
 
         public void Load(IMyCubeGrid[] grids)

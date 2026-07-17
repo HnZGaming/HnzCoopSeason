@@ -172,10 +172,10 @@ namespace HnzCoopSeason.Orks
                         var count = OrkUtils.DisarmGrid(grid);
                         MyLog.Default.Info($"[HnzCoopSeason] no-ai ork spawned: '{grid.CustomName}', disarmed blocks: {count}");
 
-                        var corners = grid.WorldAABB.GetCorners();
-                        foreach (var corner in corners)
+                        var aabb = grid.WorldAABB;
+                        for (var i = 0; i < 8; i++)
                         {
-                            edge = Math.Max(edge, Vector3D.Dot(corner - _noAiOrigin, _noAiAxis));
+                            edge = Math.Max(edge, Vector3D.Dot(aabb.GetCorner(i) - _noAiOrigin, _noAiAxis));
                         }
                     }
 

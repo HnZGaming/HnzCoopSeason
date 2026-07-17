@@ -26,6 +26,9 @@ namespace HnzCoopSeason
         public int InvasionIntervalHours = 4;
 
         [XmlElement]
+        public int MaxConcurrentInvasions = 1;
+
+        [XmlElement]
         public int EconomyUpdateIntervalMinutes = 20;
 
         [XmlElement]

@@ -23,9 +23,16 @@ namespace HnzCoopSeason.Orks
             var interval = SessionConfig.Instance.InvasionIntervalHours * 60 * 60 * 60;
             if (MyAPIGateway.Session.GameplayFrameCounter % interval != 0) return;
 
-            if (Session.Instance.GetAllPois().Any(p => p.State == PoiState.Invaded))
+            if (Session.Instance.GetProgress() >= 1f)
             {
-                MyLog.Default.Info("[HnzCoopSeason] aborting invasion; already got one");
+                MyLog.Default.Info("[HnzCoopSeason] aborting invasion; peace restored");
+                return;
+            }
+
+            var invadedCount = Session.Instance.GetAllPois().Count(p => p.State == PoiState.Invaded);
+            if (invadedCount >= SessionConfig.Instance.MaxConcurrentInvasions)
+            {
+                MyLog.Default.Info($"[HnzCoopSeason] aborting invasion; max concurrent reached: {invadedCount}");
                 return;
             }
 

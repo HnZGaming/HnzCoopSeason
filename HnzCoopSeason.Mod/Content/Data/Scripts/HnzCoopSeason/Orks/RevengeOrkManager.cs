@@ -5,6 +5,7 @@ using Sandbox.Definitions;
 using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -28,6 +29,7 @@ namespace HnzCoopSeason.Orks
         Vector3D _noAiAxis;
         double _noAiEdge;
         long _noAiOwnerId;
+        int _spawnLevel = 1;
 
         public void Load()
         {
@@ -50,6 +52,18 @@ namespace HnzCoopSeason.Orks
                 {
                     if (grid != null && !grid.MarkedForClose) grid.Close();
                 }
+
+                // grids from before a restart aren't in the list; a stored hp multiplier marks them ork-spawned
+                var entities = new HashSet<IMyEntity>();
+                MyAPIGateway.Entities.GetEntities(entities, e => e is IMyCubeGrid);
+                foreach (var entity in entities)
+                {
+                    if (entity.MarkedForClose) continue;
+                    if (!OrkHpMultipliers.HasStored(entity)) continue;
+
+                    MyLog.Default.Info($"[HnzCoopSeason] revenge despawn: closing restored ork grid '{((IMyCubeGrid)entity).CustomName}'");
+                    entity.Close();
+                }
             }
 
             _noAiGrids.Clear();
@@ -66,8 +80,11 @@ namespace HnzCoopSeason.Orks
             Clear(false);
         }
 
-        public void Spawn(Vector3 position, string[] spawnGroupNames, bool disarm = false)
+        public void Spawn(Vector3 position, string[] spawnGroupNames, int level, bool disarm = false)
         {
+            // revenge orks have no poi; they fight at the level of the ork config they spawned from
+            _spawnLevel = level;
+
             if (disarm)
             {
                 // no-ai spawn: no MES involved at all -- direct prefab spawn owned by the ork faction,
@@ -84,11 +101,9 @@ namespace HnzCoopSeason.Orks
             ork.ForceSpawn(spawnGroupNames);
         }
 
-        static void OnGridSet(IMyCubeGrid grid)
+        void OnGridSet(IMyCubeGrid grid)
         {
-            // revenge orks have no poi; they fight at the session's current level
-            var level = Session.Instance.GetProgressLevel();
-            OrkHpMultipliers.Register(grid, OrkUtils.ComputeHpMultiplier(level));
+            OrkHpMultipliers.Register(grid, OrkUtils.ComputeHpMultiplier(_spawnLevel));
         }
 
         void SpawnNoAi(Vector3D center, string[] spawnGroupNames)

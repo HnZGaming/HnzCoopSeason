@@ -64,6 +64,7 @@ namespace HnzCoopSeason.Orks
             var poi = Session.Instance.GetAllPois()
                 .Where(p => p.State == PoiState.Released)
                 .Where(p => !p.IsPlanetary) // can't have planetary poi invaded; "pending" kicks in
+                .Where(p => nowTicks - p.ReleasedAtGameTicks >= intervalTicks) // grace: don't re-invade a recently-liberated poi
                 .OrderBy(_ => MyRandom.Instance.NextDouble()) // random order
                 .FirstOrDefault();
 

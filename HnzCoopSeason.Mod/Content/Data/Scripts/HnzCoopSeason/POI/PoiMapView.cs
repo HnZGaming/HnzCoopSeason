@@ -18,6 +18,7 @@ namespace HnzCoopSeason.POI
         readonly NetworkMessenger _responseMessenger;
         readonly LocalGpsCollection<string> _markers;
         readonly GpsVisibilityStore _visibility;
+        bool _visibilityLoaded;
 
         PoiMapView()
         {
@@ -29,6 +30,7 @@ namespace HnzCoopSeason.POI
 
         public void Load()
         {
+            _visibilityLoaded = false;
             _requestMessenger.Load(OnRequestMessageReceived);
             _responseMessenger.Load(OnResponseMessageReceived);
         }
@@ -41,15 +43,14 @@ namespace HnzCoopSeason.POI
 
         public void FirstUpdate()
         {
-            if (MyAPIGateway.Session.LocalHumanPlayer == null) return;
+            if (!TryLoadVisibility()) return;
 
-            _visibility.Load(); // client-only; the server has no local markers
             SendRequest();
         }
 
         public void Update()
         {
-            if (MyAPIGateway.Session.LocalHumanPlayer == null) return;
+            if (!TryLoadVisibility()) return;
 
             // catch show/hide toggles the player made in the GPS panel
             if (MyAPIGateway.Session.GameplayFrameCounter % 60 == 0)
@@ -59,6 +60,16 @@ namespace HnzCoopSeason.POI
 
             if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 5) != 0) return;
             SendRequest();
+        }
+
+        bool TryLoadVisibility()
+        {
+            if (_visibilityLoaded) return true;
+            if (MyAPIGateway.Session.LocalHumanPlayer == null) return false;
+
+            _visibility.Load(); // client-only; the server has no local markers
+            _visibilityLoaded = true;
+            return true;
         }
 
         public void OnPoiStateUpdated() // called in server

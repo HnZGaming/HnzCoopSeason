@@ -17,12 +17,14 @@ namespace HnzCoopSeason.POI
         readonly NetworkMessenger _requestMessenger;
         readonly NetworkMessenger _responseMessenger;
         readonly LocalGpsCollection<string> _markers;
+        readonly GpsVisibilityStore _visibility;
 
         PoiMapView()
         {
             _requestMessenger = new NetworkMessenger("HnzCoopSeason.PoiMapView.Request");
             _responseMessenger = new NetworkMessenger("HnzCoopSeason.PoiMapView.Response");
             _markers = new LocalGpsCollection<string>();
+            _visibility = new GpsVisibilityStore();
         }
 
         public void Load()
@@ -40,13 +42,22 @@ namespace HnzCoopSeason.POI
         public void FirstUpdate()
         {
             if (MyAPIGateway.Session.LocalHumanPlayer == null) return;
+
+            _visibility.Load(); // client-only; the server has no local markers
             SendRequest();
         }
 
         public void Update()
         {
-            if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 5) != 0) return;
             if (MyAPIGateway.Session.LocalHumanPlayer == null) return;
+
+            // catch show/hide toggles the player made in the GPS panel
+            if (MyAPIGateway.Session.GameplayFrameCounter % 60 == 0)
+            {
+                _visibility.CaptureChanges(_markers.Pairs);
+            }
+
+            if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 5) != 0) return;
             SendRequest();
         }
 
@@ -115,21 +126,36 @@ namespace HnzCoopSeason.POI
             VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<ResponsePayload>(bytes);
 
+            var presentIds = new HashSet<string>(payload.Markers.Select(m => m.Id));
+
             // remove old markers
-            _markers.RemoveExceptFor(payload.Markers.Select(m => m.Id));
+            _markers.RemoveExceptFor(presentIds);
+
+            // a hidden marker that dropped out of the server's list had its situation resolved,
+            // so the hide expires; otherwise a release-and-reinvade would land on the same
+            // PoiState it was hidden in and stay hidden forever
+            _visibility.PruneAbsent(presentIds);
 
             // add new markers
             foreach (var marker in payload.Markers)
             {
+                // a POI that changed hands (invaded/occupied/released) revives a hidden marker:
+                // dropping the gps here forces the rebuild below, which re-registers the HUD
+                // marker — just flipping ShowOnHud would not
+                if (_visibility.ClearIfStateChanged(marker.Id, marker.State))
+                {
+                    _markers.Remove(marker.Id);
+                }
+
                 IMyGps gps;
                 if (_markers.TryGet(marker.Id, out gps))
                 {
                     UpdateGps(gps, marker);
                     // note: do not update hash
                 }
-                else // new gps
+                else // new gps — honour the player's last show/hide choice for this marker
                 {
-                    gps = MyAPIGateway.Session.GPS.Create("", "", Vector3D.Zero, true, false);
+                    gps = MyAPIGateway.Session.GPS.Create("", "", Vector3D.Zero, _visibility.IsVisible(marker.Id), false);
                     UpdateGps(gps, marker);
                     gps.UpdateHash(); // init hash
                     _markers.Add(marker.Id, gps);

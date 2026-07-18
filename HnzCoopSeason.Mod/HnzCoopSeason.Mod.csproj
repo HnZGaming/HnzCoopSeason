@@ -274,6 +274,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Spawners\SpawnType.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\CoopHud.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\CoopSettingsWindow.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\POI\GpsVisibilityStore.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\MeterAnchor.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\MeterPanel.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\MeterState.cs" />

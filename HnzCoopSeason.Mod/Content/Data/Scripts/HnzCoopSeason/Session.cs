@@ -120,6 +120,10 @@ namespace HnzCoopSeason
                 PoiRandomInvasion.Instance.Unload();
                 RevengeOrkManager.Instance.Unload();
                 OrkDamageReductionScales.Clear();
+            }
+
+            if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
+            {
                 NpcHud.Instance.Unload();
             }
 

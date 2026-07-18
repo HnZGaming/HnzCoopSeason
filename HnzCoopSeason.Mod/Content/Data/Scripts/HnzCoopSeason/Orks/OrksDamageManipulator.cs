@@ -11,7 +11,7 @@ namespace HnzCoopSeason.Orks
     {
         readonly string _factionTag;
         long _factionFounderId;
-        float _multiplier = 1f;
+        float _scale = 1f;
 
         public OrksDamageManipulator(string factionTag)
         {
@@ -36,7 +36,7 @@ namespace HnzCoopSeason.Orks
         {
             var level = Session.Instance.GetProgressLevel();
             var c = SessionConfig.Instance.GetProgressionLevel(level);
-            _multiplier = MathHelper.Lerp(c.HpMultiplierStart, c.HpMultiplierEnd, Session.Instance.GetProgressLevelFraction());
+            _scale = MathHelper.Lerp(c.OrksDamageReductionScaleStart, c.OrksDamageReductionScaleEnd, Session.Instance.GetProgressLevelFraction());
         }
 
         void BeforeDamage(object target, ref MyDamageInformation info)
@@ -48,14 +48,14 @@ namespace HnzCoopSeason.Orks
             if (!block.CubeGrid.BigOwners.TryGetElementAt(0, out ownerId)) return;
             if (ownerId != _factionFounderId) return;
 
-            // per-grid multiplier frozen at spawn time; grids from before a restart fall back to the session level
-            float multiplier;
-            if (!OrkHpMultipliers.TryGet(block.CubeGrid, out multiplier))
+            // per-grid scale frozen at spawn time; grids from before a restart fall back to the session level
+            float scale;
+            if (!OrkDamageReductionScales.TryGet(block.CubeGrid, out scale))
             {
-                multiplier = _multiplier;
+                scale = _scale;
             }
 
-            info.Amount *= 1f / Math.Max(multiplier, 1f);
+            info.Amount *= 1f / Math.Max(scale, 1f);
         }
     }
 }

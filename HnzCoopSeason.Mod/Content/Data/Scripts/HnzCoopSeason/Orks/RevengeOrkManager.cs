@@ -59,7 +59,7 @@ namespace HnzCoopSeason.Orks
                 foreach (var entity in entities)
                 {
                     if (entity.MarkedForClose) continue;
-                    if (!OrkHpMultipliers.HasStored(entity)) continue;
+                    if (!OrkDamageReductionScales.HasStored(entity)) continue;
 
                     MyLog.Default.Info($"[HnzCoopSeason] revenge despawn: closing restored ork grid '{((IMyCubeGrid)entity).CustomName}'");
                     entity.Close();
@@ -103,7 +103,7 @@ namespace HnzCoopSeason.Orks
 
         void OnGridSet(IMyCubeGrid grid)
         {
-            OrkHpMultipliers.Register(grid, OrkUtils.ComputeHpMultiplier(_spawnLevel));
+            OrkDamageReductionScales.Register(grid, OrkUtils.ComputeOrksDamageReductionScale(_spawnLevel));
         }
 
         void SpawnNoAi(Vector3D center, string[] spawnGroupNames)

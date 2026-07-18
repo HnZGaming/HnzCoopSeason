@@ -172,7 +172,7 @@ namespace HnzCoopSeason.Orks
 
         void OnGridSet(IMyCubeGrid grid)
         {
-            OrkHpMultipliers.Register(grid, OrkUtils.ComputeHpMultiplier(GetProgressLevel()));
+            OrkDamageReductionScales.Register(grid, OrkUtils.ComputeOrksDamageReductionScale(GetProgressLevel()));
 
             if (!_disarmNextSpawn) return;
 

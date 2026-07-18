@@ -117,7 +117,7 @@ namespace HnzCoopSeason
                 _dataPadInserter?.Unload();
                 PoiRandomInvasion.Instance.Unload();
                 RevengeOrkManager.Instance.Unload();
-                OrkHpMultipliers.Clear();
+                OrkDamageReductionScales.Clear();
                 NpcHud.Instance.Unload();
             }
 

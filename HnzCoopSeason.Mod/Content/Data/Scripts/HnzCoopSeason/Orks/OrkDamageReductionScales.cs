@@ -8,44 +8,44 @@ using VRage.Utils;
 
 namespace HnzCoopSeason.Orks
 {
-    // hp multiplier per ork grid, frozen at spawn time from the encounter's progress level.
+    // damage reduction scale per ork grid, frozen at spawn time from the encounter's progress level.
     // values only; no entity references held, so a missed removal can't pin a grid.
     // persisted into the grid's mod storage so the value survives a world restart.
-    public static class OrkHpMultipliers
+    public static class OrkDamageReductionScales
     {
         static readonly Guid ModStorageKey = new Guid("f2f7a2a0-4f60-4f4e-9f0e-6f4b1a2e9c11");
 
-        static readonly Dictionary<long, float> Multipliers = new Dictionary<long, float>();
+        static readonly Dictionary<long, float> Scales = new Dictionary<long, float>();
 
-        public static void Register(IMyCubeGrid grid, float multiplier)
+        public static void Register(IMyCubeGrid grid, float scale)
         {
             if (grid == null || grid.Closed || grid.MarkedForClose) return;
 
-            Multipliers[grid.EntityId] = multiplier;
-            grid.UpdateStorageValue(ModStorageKey, multiplier.ToString(CultureInfo.InvariantCulture));
+            Scales[grid.EntityId] = scale;
+            grid.UpdateStorageValue(ModStorageKey, scale.ToString(CultureInfo.InvariantCulture));
 
             grid.OnClosing -= OnGridClosing; // no double-subscribe on re-register
             grid.OnClosing += OnGridClosing;
 
-            MyLog.Default.Info($"[HnzCoopSeason] ork hp multiplier registered: '{grid.CustomName}' x{multiplier:0.##}");
+            MyLog.Default.Info($"[HnzCoopSeason] ork damage reduction scale registered: '{grid.CustomName}' x{scale:0.##}");
         }
 
-        public static bool TryGet(IMyCubeGrid grid, out float multiplier)
+        public static bool TryGet(IMyCubeGrid grid, out float scale)
         {
-            if (Multipliers.TryGetValue(grid.EntityId, out multiplier)) return true;
+            if (Scales.TryGetValue(grid.EntityId, out scale)) return true;
 
             // grid from before a restart: recover from its mod storage, then cache
             string str;
             if (!grid.TryGetStorageValue(ModStorageKey, out str)) return false;
-            if (!float.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out multiplier)) return false;
+            if (!float.TryParse(str, NumberStyles.Float, CultureInfo.InvariantCulture, out scale)) return false;
 
-            Multipliers[grid.EntityId] = multiplier;
+            Scales[grid.EntityId] = scale;
             grid.OnClosing -= OnGridClosing;
             grid.OnClosing += OnGridClosing;
             return true;
         }
 
-        // a stored multiplier doubles as the "this grid was ork-spawned" marker
+        // a stored scale doubles as the "this grid was ork-spawned" marker
         public static bool HasStored(IMyEntity entity)
         {
             string str;
@@ -54,13 +54,13 @@ namespace HnzCoopSeason.Orks
 
         public static void Clear() // session unload
         {
-            Multipliers.Clear();
+            Scales.Clear();
         }
 
         static void OnGridClosing(IMyEntity entity)
         {
             entity.OnClosing -= OnGridClosing;
-            Multipliers.Remove(entity.EntityId);
+            Scales.Remove(entity.EntityId);
         }
     }
 }

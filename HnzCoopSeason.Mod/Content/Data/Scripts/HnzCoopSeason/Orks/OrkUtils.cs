@@ -8,12 +8,12 @@ namespace HnzCoopSeason.Orks
 {
     public static class OrkUtils
     {
-        // hp multiplier a grid of the given progress level should carry, at this point of the season
-        public static float ComputeHpMultiplier(int level)
+        // damage reduction scale a grid of the given progress level should carry, at this point of the season
+        public static float ComputeOrksDamageReductionScale(int level)
         {
             var c = SessionConfig.Instance.GetProgressionLevel(level);
             var t = Session.Instance.GetProgressLevelFraction(level);
-            return MathHelper.Lerp(c.HpMultiplierStart, c.HpMultiplierEnd, t);
+            return MathHelper.Lerp(c.OrksDamageReductionScaleStart, c.OrksDamageReductionScaleEnd, t);
         }
 
         public static int DisarmGrid(IMyCubeGrid grid)

@@ -57,6 +57,7 @@ namespace HnzCoopSeason.HudUtils
         float _plateHeight = 120; // last laid-out plate height; seeds PlateBottomLeft before the meter first draws
         string _titleSource; // raw title the fitted label text was derived from
         float _titleBudget;
+        string _valueCache, _nameCache, _subtitleCache, _descriptionCache; // last text pushed to each label
 
         public MeterPanel(HudParentBase parent) : base(parent)
         {
@@ -126,7 +127,7 @@ namespace HnzCoopSeason.HudUtils
             var y = 0f;
             // value readout first: whatever it leaves is the title's width budget
             _valueLabel.Visible = true;
-            _valueLabel.Text = state.ValueText ?? "";
+            SetTextIfChanged(_valueLabel, state.ValueText ?? "", ref _valueCache);
 
             // optional alert badge sits at the left edge; the title starts after it
             _infoIcon.Visible = state.ShowInfoIcon;
@@ -153,8 +154,8 @@ namespace HnzCoopSeason.HudUtils
             y -= _dotRail.Height + 5;
 
             // minimal mode keeps the title row, bar and rail; the prose lines drop out
-            y = Stack(_subtitleLabel, Minimal ? "" : state.Subtitle, y, true);
-            y = Stack(_descriptionLabel, Minimal ? "" : state.Description, y, true);
+            y = Stack(_subtitleLabel, Minimal ? "" : state.Subtitle, y, ref _subtitleCache);
+            y = Stack(_descriptionLabel, Minimal ? "" : state.Description, y, ref _descriptionCache);
 
             // main plate body covers title through rail (+extra lines when present).
             // the -LineSpacing assumes a text line closed the stack; in minimal mode the rail is
@@ -165,7 +166,7 @@ namespace HnzCoopSeason.HudUtils
 
             // meter name lives on the bottom-left tab below the main body
             _nameLabel.Visible = true;
-            _nameLabel.Text = state.BarName ?? "";
+            SetTextIfChanged(_nameLabel, state.BarName ?? "", ref _nameCache);
             // tab band = exactly one chamfer tall: its edges run straight into the 45-degree
             // cuts with no vertical segment; the label rides up into the bottom padding
             const float tabHeight = 14;
@@ -224,6 +225,21 @@ namespace HnzCoopSeason.HudUtils
         }
 
         /// <summary>
+        ///     Assigns label text only when it actually changed. RichHud's SetText has no equality
+        ///     check — the Master does `formatter.Clear(); formatter.Append(text)`, re-parsing every
+        ///     glyph — so writing unchanged text each frame re-lays-out the whole string 60x/sec.
+        ///     Build Vision throttles the same cost behind a tick counter (TextTickDivider); an
+        ///     exact compare is better still, since these strings change roughly once a second.
+        /// </summary>
+        static void SetTextIfChanged(Label label, string text, ref string cache)
+        {
+            if (text == cache) return;
+
+            cache = text;
+            label.Text = text;
+        }
+
+        /// <summary>
         ///     Sets the title, truncating with an ellipsis if it would run past the % readout —
         ///     NPC grid names are arbitrary player-authored strings and the label auto-sizes to
         ///     its text, so an unclamped one overruns the plate entirely.
@@ -265,7 +281,7 @@ namespace HnzCoopSeason.HudUtils
             _descriptionLabel.Visible = visible;
         }
 
-        float Stack(Label label, string text, float y, bool alignLeft = false)
+        float Stack(Label label, string text, float y, ref string cache)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -274,12 +290,11 @@ namespace HnzCoopSeason.HudUtils
             }
 
             label.Visible = true;
-            label.Text = text;
+            SetTextIfChanged(label, text, ref cache);
 
             // Width is only correct once Text is assigned, so the flush-left x is computed here
             // rather than passed in — a caller-side value would lag a frame behind text changes
-            var x = alignLeft ? -CapsuleBar.BarWidth / 2 + label.Width / 2 : 0;
-            label.Offset = new Vector2(x, y - label.Height / 2);
+            label.Offset = new Vector2(-CapsuleBar.BarWidth / 2 + label.Width / 2, y - label.Height / 2);
             return y - (label.Height + LineSpacing);
         }
 

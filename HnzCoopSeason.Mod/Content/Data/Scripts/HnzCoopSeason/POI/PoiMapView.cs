@@ -37,6 +37,7 @@ namespace HnzCoopSeason.POI
 
         public void Unload()
         {
+            _markers.Clear();
             _requestMessenger.Unload();
             _responseMessenger.Unload();
         }

@@ -81,6 +81,7 @@ namespace HnzCoopSeason.POI
         public void Load()
         {
             _hidden.Clear();
+            _lastSeenState.Clear();
 
             try
             {

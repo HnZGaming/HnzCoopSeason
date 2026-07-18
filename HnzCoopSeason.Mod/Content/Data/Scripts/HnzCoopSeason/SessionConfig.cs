@@ -110,10 +110,10 @@ namespace HnzCoopSeason
         public ProgressionLevelConfig[] ProgressionLevelList =
         {
             new ProgressionLevelConfig(1, 1, 1f, 1f),
-            new ProgressionLevelConfig(2, 1, 1f, 1f),
-            new ProgressionLevelConfig(3, 1, 1f, 1f),
-            new ProgressionLevelConfig(4, 1, 1f, 1f),
-            new ProgressionLevelConfig(5, 1, 1f, 1f)
+            new ProgressionLevelConfig(2, 1, 1f, 1.2f),
+            new ProgressionLevelConfig(3, 1, 1.2f, 1.5f),
+            new ProgressionLevelConfig(4, 1, 1.5f, 2f),
+            new ProgressionLevelConfig(5, 1, 2f, 4f)
         };
 
         public static SessionConfig Instance { get; private set; }

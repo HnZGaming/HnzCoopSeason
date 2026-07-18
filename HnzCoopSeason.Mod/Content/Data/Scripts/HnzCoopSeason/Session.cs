@@ -121,13 +121,13 @@ namespace HnzCoopSeason
             if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
             {
                 NpcHud.Instance.Unload();
+                WcHudApi.Unload();
             }
 
             ProgressionView.Instance.Unload();
 
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                WcHudApi.Unload();
                 ScreenTopHud.Instance.Close();
             }
 

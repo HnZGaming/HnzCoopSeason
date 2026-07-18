@@ -78,6 +78,7 @@ namespace HnzCoopSeason
                 MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init()");
                 RichHudClient.Init(nameof(HnzCoopSeason), RichHudInit, RichHudClosed);
                 NpcHud.Instance.Load();
+                WcHudApi.Load();
             }
 
             ProgressionView.Instance.Load();
@@ -88,6 +89,7 @@ namespace HnzCoopSeason
         void RichHudInit() // client
         {
             MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init() callback");
+            CoopHud.Load();
             MissionWindow.Load();
         }
 
@@ -125,6 +127,7 @@ namespace HnzCoopSeason
 
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
+                WcHudApi.Unload();
                 ScreenTopHud.Instance.Close();
             }
 
@@ -134,6 +137,7 @@ namespace HnzCoopSeason
         void RichHudClosed() // client
         {
             MissionWindow.Instance.Unload();
+            CoopHud.Unload();
         }
 
         void LoadConfig() //server
@@ -195,7 +199,7 @@ namespace HnzCoopSeason
                 if (_richHudApi.Heartbeat)
                 {
                     NpcHud.Instance.Update();
-                    ScreenTopHud.Instance.Render();
+                    ProgressionView.Instance.UpdateClient();
                     MissionWindow.Instance.Update();
                 }
             }

@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using GridStorage.API;
 using HnzCoopSeason.HudUtils;
 using HnzCoopSeason.Spawners;
@@ -31,56 +30,42 @@ namespace HnzCoopSeason.NPC
                 () => new SortedList<double, Analysis>(),
                 l => l.Clear());
 
-        HudElementStack _group;
-        HudElement _titleElement;
-        HudElement _subtitleElement;
-        HudElement _progressElement;
-        HudElement _descriptionElement;
-        NpcHudReticle _reticle;
+        MeterState _state;
         Vector3D? _reticlePosition;
 
         public void Load()
         {
             VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
 
-            _group = new HudElementStack
+            _state = new MeterState
             {
-                Padding = -0.02,
-                Offset = -0.1,
+                BarName = "CAPMETER",
+                ShowInfoIcon = true, // capmeter titles are grid names; the icon marks them as target info
             };
 
-            ScreenTopHud.Instance.AddGroup(nameof(NpcHud), _group, 1);
-
-            _progressElement = new HudElement().AddTo(_group);
-            _titleElement = new HudElement().AddTo(_group);
-            _subtitleElement = new HudElement().AddTo(_group);
-            _descriptionElement = new HudElement().AddTo(_group);
-            _reticle = new NpcHudReticle();
+            ScreenTopHud.Instance.AddGroup(nameof(NpcHud), _state, 1);
         }
 
         public void Unload()
         {
             VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
 
-            _titleElement.Clear();
-            _subtitleElement.Clear();
-            _progressElement.Clear();
-            _descriptionElement.Clear();
-            _group.Clear();
-            _reticle.ClearBody();
+            TargetReticle.Set(Vector3D.Zero, false, 0);
             ScreenTopHud.Instance.RemoveGroup(nameof(NpcHud));
+            _state = null;
         }
 
         public void Update()
         {
             VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
 
-            _reticle.Update(_reticlePosition ?? Vector3D.Zero, _reticlePosition.HasValue, 1000);
+            TargetReticle.Set(_reticlePosition ?? Vector3D.Zero, _reticlePosition.HasValue && CoopHud.ShowTargetReticle, 1000);
 
             if (MyAPIGateway.Session.GameplayFrameCounter % 5 != 0) return;
 
             _reticlePosition = null;
-            var canRender = TryApplyHudElements();
+            // yield the screen-top slot while WeaponCore's target HUD is showing (opt-in)
+            var canRender = !CoopHud.YieldToWeaponCore && TryApplyHudElements();
             ScreenTopHud.Instance.SetActive(nameof(NpcHud), canRender);
         }
 
@@ -150,19 +135,15 @@ namespace HnzCoopSeason.NPC
             var takeoverTargetCount = state.Controllers.Length;
             var takeoverSuccessCount = state.Controllers.Count(id => id == 0 || id == playerGroup);
 
-            var titleText = $"<color=0,255,255>{target.Grid.CustomName}";
-            var subtitleText = target.SpawnGroupIndex == 0 && target.FactionTag == "PORKS"
-                ? "<color=0,255,255>This is the boss Ork! Neutralize it to reclaim the trading hub!"
+            _state.Title = target.Grid.CustomName;
+            _state.Subtitle = target.SpawnGroupIndex == 0 && target.FactionTag == "PORKS"
+                ? "This is the boss Ork! Neutralize it to reclaim the trading hub!"
                 : "";
-
-            var descriptionText = !takeoverReady
-                ? "To neutralize a wild grid, take over all their remote blocks and control seats."
+            _state.Description = !takeoverReady
+                ? "To neutralize a wild grid, take over its remote blocks and control seats."
                 : "You can capture a neutralized grid into a garage block.";
-
-            _progressElement.Apply(CreateProgressionBar(takeoverSuccessCount, takeoverTargetCount));
-            _titleElement.Apply(titleText, 1.2);
-            _subtitleElement.Apply(subtitleText);
-            _descriptionElement.Apply(descriptionText);
+            _state.Progress = takeoverTargetCount == 0 ? 1 : (double)takeoverSuccessCount / takeoverTargetCount;
+            _state.ValueText = $"{takeoverSuccessCount}/{takeoverTargetCount}";
 
             return true;
         }
@@ -188,19 +169,6 @@ namespace HnzCoopSeason.NPC
         static Vector3D GetReticlePosition(IMyCubeGrid grid)
         {
             return grid.WorldAABB.Center;
-        }
-
-        static string CreateProgressionBar(int takeoverCount, int totalCount)
-        {
-            var buffer = new StringBuilder();
-            buffer.Append("CAPMETER ");
-
-            var progress = totalCount == 0 ? 1 : (float)takeoverCount / totalCount;
-            buffer.Append(HudElement.CreateProgressionBar(progress));
-
-            buffer.Append($" {takeoverCount}/{totalCount}");
-
-            return buffer.ToString();
         }
     }
 }

@@ -1,8 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HnzCoopSeason.HudUtils
 {
+    /// <summary>
+    ///     Arbiter for the single screen-top meter slot.
+    ///     Multiple views register a MeterState with a priority; only the
+    ///     highest-priority active state is rendered (by CoopHud's MeterPanel).
+    /// </summary>
     public sealed class ScreenTopHud
     {
         public static readonly ScreenTopHud Instance = new ScreenTopHud();
@@ -15,9 +20,9 @@ namespace HnzCoopSeason.HudUtils
             _targetKey = null;
         }
 
-        public void AddGroup(string key, HudElementStack group, int order)
+        public void AddGroup(string key, MeterState state, int order)
         {
-            _entries.Add(key, new Entry(group, order));
+            _entries.Add(key, new Entry(state, order));
             UpdateTarget();
         }
 
@@ -33,39 +38,45 @@ namespace HnzCoopSeason.HudUtils
             UpdateTarget();
         }
 
+        public void SetEnabled(string key, bool enabled) // config gate (F2), independent of gameplay activity
+        {
+            Entry entry;
+            if (!_entries.TryGetValue(key, out entry)) return;
+
+            entry.Enabled = enabled;
+            UpdateTarget();
+        }
+
+        public MeterState Current
+        {
+            get
+            {
+                if (_targetKey == null) return null;
+
+                Entry entry;
+                return _entries.TryGetValue(_targetKey, out entry) ? entry.State : null;
+            }
+        }
+
         void UpdateTarget()
         {
             _targetKey = _entries
-                .Where(p => p.Value.Active)
+                .Where(p => p.Value.Active && p.Value.Enabled)
                 .OrderByDescending(p => p.Value.Order)
                 .FirstOrDefault()
                 .Key;
         }
 
-        public void Render()
-        {
-            if (_targetKey == null) return; // shouldn't happen
-
-            foreach (var kvp in _entries)
-            {
-                if (kvp.Key != _targetKey)
-                {
-                    kvp.Value.Stack.Render(forceHide: true);
-                }
-            }
-
-            _entries[_targetKey].Stack.Render();
-        }
-
         sealed class Entry
         {
-            public readonly HudElementStack Stack;
+            public readonly MeterState State;
             public readonly int Order;
             public bool Active = true;
+            public bool Enabled = true;
 
-            public Entry(HudElementStack stack, int order)
+            public Entry(MeterState state, int order)
             {
-                Stack = stack;
+                State = state;
                 Order = order;
             }
         }

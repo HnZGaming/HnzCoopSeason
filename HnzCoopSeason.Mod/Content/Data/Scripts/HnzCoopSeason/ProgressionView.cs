@@ -1,5 +1,3 @@
-﻿using System;
-using System.Text;
 using HnzCoopSeason.HudUtils;
 using ProtoBuf;
 using Sandbox.ModAPI;
@@ -9,14 +7,13 @@ namespace HnzCoopSeason
 {
     public sealed class ProgressionView
     {
+        const string SubtitleUnderOrks = "Orks have taken over Merchants' trading hubs... Send help!";
+        const string SubtitleLiberated = "Every Merchants' trading hub is free... The sector is at peace!";
+
         static readonly ushort ModKey = (ushort)"HnzCoopSeason.ProgressionView".GetHashCode();
         public static readonly ProgressionView Instance = new ProgressionView();
 
-        HudElementStack _group;
-        HudElement _progressElement;
-        HudElement _titleElement;
-        HudElement _subtitleElement;
-        HudElement _descriptionElement;
+        MeterState _state;
 
         public void Load()
         {
@@ -27,20 +24,13 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                _group = new HudElementStack
+                _state = new MeterState
                 {
-                    Padding = -0.02,
-                    Offset = -0.1,
+                    BarName = "PEACEMETER",
+                    Subtitle = SubtitleUnderOrks, // replaced per-payload once progress arrives
                 };
 
-                ScreenTopHud.Instance.AddGroup(nameof(ProgressionView), _group, 0);
-
-                _progressElement = new HudElement().AddTo(_group);
-                _titleElement = new HudElement().AddTo(_group);
-                _subtitleElement = new HudElement().AddTo(_group);
-                _descriptionElement = new HudElement().AddTo(_group);
-
-                _subtitleElement.Apply("Orks have taken over Merchants' trading hubs... Send help!");
+                ScreenTopHud.Instance.AddGroup(nameof(ProgressionView), _state, 0);
             }
         }
 
@@ -53,13 +43,18 @@ namespace HnzCoopSeason
             // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                _progressElement.Clear();
-                _titleElement.Clear();
-                _subtitleElement.Clear();
-                _descriptionElement.Clear();
-                _group.Clear();
                 ScreenTopHud.Instance.RemoveGroup(nameof(ProgressionView));
+                _state = null;
             }
+        }
+
+        public void UpdateClient() // called in client, every frame
+        {
+            if (MyAPIGateway.Session.GameplayFrameCounter % 15 != 0) return;
+            if (_state == null) return;
+
+            // yield the screen-top slot while WeaponCore's target HUD is showing (opt-in)
+            ScreenTopHud.Instance.SetActive(nameof(ProgressionView), !CoopHud.YieldToWeaponCore);
         }
 
         public void RequestUpdate() // called in client
@@ -131,23 +126,19 @@ namespace HnzCoopSeason
         void UpdateTexts(Payload payload) // client
         {
             MyLog.Default.Info($"[HnzCoopSeason] UpdateTexts({payload})");
-            _progressElement.Apply(CreateProgressionBar(payload.Progress));
-            _titleElement.Apply($"Peace Restoration Level: {payload.ProgressionLevel}", 1.2);
-            _descriptionElement.Apply($"You need {payload.MinPoiPlayerCount} players to challenge Orks.", active: payload.MinPoiPlayerCount > 1);
-        }
+            if (_state == null) return;
 
-        static string CreateProgressionBar(double progress)
-        {
-            var buffer = new StringBuilder();
-            buffer.Append("PEACEMETER ");
+            var p100 = payload.Progress * 100;
+            _state.Progress = payload.Progress;
+            _state.ValueText = p100 == 0 ? "0%" : p100 < 1f ? $"{p100:0.0}%" : $"{p100:0}%";
+            _state.Title = $"Sector Liberation - Tier {payload.ProgressionLevel}";
 
-            buffer.Append(HudElement.CreateProgressionBar(progress));
+            // same >= 1f test the bar uses to turn green, so the two flip together
+            _state.Subtitle = payload.Progress >= 1f ? SubtitleLiberated : SubtitleUnderOrks;
 
-            var p100 = progress * 100;
-            var pstr = p100 == 0 ? "0" : p100 < 1f ? $"{p100:0.0}" : $"{p100:0}";
-            buffer.Append($" {pstr}%");
-
-            return buffer.ToString();
+            _state.Description = payload.MinPoiPlayerCount > 1
+                ? $"You need {payload.MinPoiPlayerCount} players to challenge Orks."
+                : "";
         }
 
         [ProtoContract]

@@ -11,7 +11,6 @@ using HnzCoopSeason.POI;
 using MES;
 using HnzUtils;
 using HnzUtils.Commands;
-using HudAPI;
 using Sandbox.Game;
 using Sandbox.ModAPI;
 using VRage.Game.Components;
@@ -32,7 +31,7 @@ namespace HnzCoopSeason
         PoiMap _poiMap;
         CommandModule _commandModule;
         bool _doneFirstUpdate;
-        HudAPIv2 _richHudApi;
+        bool _richHudReady;
         DatapadInserter _dataPadInserter;
         OrksDamageManipulator _orksDamageManipulator;
 
@@ -41,8 +40,6 @@ namespace HnzCoopSeason
             MyLog.Default.Info("[HnzCoopSeason] session loading");
             base.LoadData();
             Instance = this;
-
-            _richHudApi = new HudAPIv2();
 
             _commandModule = new CommandModule((ushort)"HnzCoopSeason.CommandModule".GetHashCode(), "coop");
             _commandModule.SendMessage += SendMessage;
@@ -91,14 +88,13 @@ namespace HnzCoopSeason
             MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init() callback");
             CoopHud.Load();
             MissionWindow.Load();
+            _richHudReady = true;
         }
 
         protected override void UnloadData()
         {
             MyLog.Default.Info("[HnzCoopSeason] session unloading");
             base.UnloadData();
-
-            _richHudApi = null;
 
             _commandModule.SendMessage -= SendMessage;
             _commandModule.Unload();
@@ -140,6 +136,7 @@ namespace HnzCoopSeason
 
         void RichHudClosed() // client
         {
+            _richHudReady = false;
             MissionWindow.Instance.Unload();
             CoopHud.Unload();
         }
@@ -200,7 +197,7 @@ namespace HnzCoopSeason
             // client or single player
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                if (_richHudApi.Heartbeat)
+                if (_richHudReady)
                 {
                     NpcHud.Instance.Update();
                     ProgressionView.Instance.UpdateClient();

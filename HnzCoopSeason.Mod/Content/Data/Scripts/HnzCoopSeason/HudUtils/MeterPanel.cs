@@ -120,7 +120,7 @@ namespace HnzCoopSeason.HudUtils
                 AnchorOffsetX(),
                 HudMain.ScreenHeight / HudMain.ResScale * 0.5f - TopMargin);
 
-            _bar.SetProgress(state.Progress);
+            _bar.SetProgress(state.Progress, state.HealthStyle);
 
             const float halfWidth = CapsuleBar.BarWidth / 2;
 
@@ -495,6 +495,11 @@ namespace HnzCoopSeason.HudUtils
             static readonly Color FullFillColor = new Color(46, 204, 64);
             static readonly Color FullCapColor = new Color(150, 240, 165); // same hue, lifted so the end block still reads
 
+            // health style: reads as remaining enemy hp, so it drains red and never turns green
+            static readonly Color HealthOutlineColor = new Color(232, 90, 70, 220);
+            static readonly Color HealthFillColor = new Color(232, 90, 70);
+            static readonly Color HealthCapColor = new Color(255, 150, 135);
+
             readonly BorderBox _outline;
             readonly TexturedBox _fill;
             readonly TexturedBox _cap;
@@ -525,17 +530,29 @@ namespace HnzCoopSeason.HudUtils
                 };
             }
 
-            public void SetProgress(double progress)
+            public void SetProgress(double progress, bool healthStyle)
             {
                 var t = (float)MathHelperD.Clamp(progress, 0, 1);
                 var innerWidth = BarWidth - FillInset * 2;
                 var fillWidth = innerWidth * t;
 
-                // whole bar flips green on completion, outline included, so it reads as one state
-                var full = t >= 1f;
-                _outline.Color = full ? FullOutlineColor : OutlineColor;
-                _fill.Color = full ? FullFillColor : FillColor;
-                _cap.Color = full ? FullCapColor : CapColor;
+                // health style drains rather than fills, so "full" is the untouched state, not the
+                // finished one -- it stays red throughout and never flips green
+                if (healthStyle)
+                {
+                    // drained to nothing = neutralized: only the outline is left to say so
+                    _outline.Color = t <= 0f ? FullOutlineColor : HealthOutlineColor;
+                    _fill.Color = HealthFillColor;
+                    _cap.Color = HealthCapColor;
+                }
+                else
+                {
+                    // whole bar flips green on completion, outline included, so it reads as one state
+                    var full = t >= 1f;
+                    _outline.Color = full ? FullOutlineColor : OutlineColor;
+                    _fill.Color = full ? FullFillColor : FillColor;
+                    _cap.Color = full ? FullCapColor : CapColor;
+                }
 
                 _fill.Visible = fillWidth >= 1;
                 _fill.Width = fillWidth < 1 ? 1 : fillWidth;

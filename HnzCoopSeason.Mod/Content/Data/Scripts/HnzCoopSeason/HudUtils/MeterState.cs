@@ -14,5 +14,6 @@ namespace HnzCoopSeason.HudUtils
         public string SubtitleHighlight; // substring of Subtitle drawn in the alert colour
         public string Description;
         public bool ShowInfoIcon; // draws an (i) badge ahead of the title
+        public bool HealthStyle; // red bar that drains as Progress falls, instead of cyan filling to green
     }
 }

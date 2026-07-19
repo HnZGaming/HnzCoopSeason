@@ -142,8 +142,11 @@ namespace HnzCoopSeason.NPC
             _state.Description = !takeoverReady
                 ? "To neutralize a wild grid, take over its remote blocks and control seats."
                 : "You can capture a neutralized grid into a garage block.";
-            _state.Progress = takeoverTargetCount == 0 ? 1 : (double)takeoverSuccessCount / takeoverTargetCount;
-            _state.ValueText = $"{takeoverSuccessCount}/{takeoverTargetCount}";
+            // reads as the grid's remaining hold: starts full and drains as blocks are taken over
+            var remaining = takeoverTargetCount - takeoverSuccessCount;
+            _state.Progress = takeoverTargetCount == 0 ? 0 : (double)remaining / takeoverTargetCount;
+            _state.ValueText = $"{remaining}/{takeoverTargetCount}";
+            _state.HealthStyle = true;
 
             return true;
         }

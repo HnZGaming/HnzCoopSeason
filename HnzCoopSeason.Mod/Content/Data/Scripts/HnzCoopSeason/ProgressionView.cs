@@ -1,4 +1,5 @@
 using HnzCoopSeason.HudUtils;
+using HnzUtils;
 using ProtoBuf;
 using Sandbox.ModAPI;
 using VRage.Utils;
@@ -10,7 +11,7 @@ namespace HnzCoopSeason
         const string SubtitleUnderOrks = "Orks have taken over Merchants' trading hubs... Send help!";
         const string SubtitleLiberated = "Every Merchants' trading hub is free... The sector is at peace!";
 
-        static readonly ushort ModKey = (ushort)"HnzCoopSeason.ProgressionView".GetHashCode();
+        static readonly ushort ModKey = VRageUtils.StableKey("HnzCoopSeason.ProgressionView");
         public static readonly ProgressionView Instance = new ProgressionView();
 
         MeterState _state;

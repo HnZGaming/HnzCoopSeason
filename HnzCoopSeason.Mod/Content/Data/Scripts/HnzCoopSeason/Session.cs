@@ -41,12 +41,12 @@ namespace HnzCoopSeason
             base.LoadData();
             Instance = this;
 
-            _commandModule = new CommandModule((ushort)"HnzCoopSeason.CommandModule".GetHashCode(), "coop");
+            _commandModule = new CommandModule(VRageUtils.StableKey("HnzCoopSeason.CommandModule"), "coop");
             _commandModule.SendMessage += SendMessage;
             _commandModule.Load();
             InitializeCommands();
 
-            MissionScreen.Load((ushort)nameof(MissionScreen).GetHashCode());
+            MissionScreen.Load(VRageUtils.StableKey(nameof(MissionScreen)));
             PoiMapDebugView.Instance.Load();
             PoiSpectatorCamera.Instance.Load();
             PoiMapView.Instance.Load();

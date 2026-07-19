@@ -40,5 +40,15 @@ namespace GridStorage.API
         [XmlArray]
         [XmlArrayItem("Controller")]
         public long[] Controllers = Array.Empty<long>();
+
+        /// <summary>
+        /// High-water mark of <see cref="Controllers"/>.Length, never decreasing.
+        /// Grinding a control block removes it from Controllers entirely, so a meter that
+        /// divides by the live length renormalizes to the smaller set and reads 3/3 the
+        /// instant you remove one of four -- erasing the progress that removal represents.
+        /// 0 on documents written before this field existed; treat it as "use the live length".
+        /// </summary>
+        [XmlElement]
+        public int MaxControllers;
     }
 }

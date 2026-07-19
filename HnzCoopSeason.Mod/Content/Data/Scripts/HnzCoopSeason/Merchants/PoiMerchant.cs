@@ -22,6 +22,7 @@ namespace HnzCoopSeason.Merchants
     public sealed class PoiMerchant : IPoiObserver
     {
         const float SafezoneRadius = 75f;
+        const float MarkerClearance = 250f; // gap between the hull and the gps ships jump to
         static readonly Guid StorageKey = Guid.Parse("8e562067-5807-49a0-9d7d-108febcece97");
 
         readonly string _poiId;
@@ -124,15 +125,34 @@ namespace HnzCoopSeason.Merchants
 
         bool IPoiObserver.TryGetPosition(out Vector3D position)
         {
-            var hasGrid = _grid != null && !_grid.Closed;
-            if (hasGrid && _poiState == PoiState.Released)
+            if (_poiState != PoiState.Released)
             {
-                position = _grid.GetPosition();
+                position = default(Vector3D);
+                return false;
+            }
+
+            var hasGrid = _grid != null && !_grid.Closed;
+            if (hasGrid)
+            {
+                // the pivot sits inside the hull; stand off the box so jumps don't land in it
+                var obb = new MyOrientedBoundingBoxD(_grid.LocalAABB, _grid.WorldMatrix);
+                position = obb.Center + Vector3D.Up * (ExtentAlong(ref obb, Vector3D.Up) + MarkerClearance);
                 return true;
             }
 
-            position = default(Vector3D);
-            return false;
+            // not spawned yet; it'll try the origin, so stand off from there too
+            position = _position + Vector3D.Up * (SafezoneRadius + MarkerClearance);
+            return true;
+        }
+
+        /// <summary>Half-width of an oriented box along an arbitrary unit axis.</summary>
+        static double ExtentAlong(ref MyOrientedBoundingBoxD obb, Vector3D axis)
+        {
+            var m = MatrixD.CreateFromQuaternion(obb.Orientation);
+
+            return Math.Abs(Vector3D.Dot(axis, m.Right)) * obb.HalfExtent.X
+                   + Math.Abs(Vector3D.Dot(axis, m.Up)) * obb.HalfExtent.Y
+                   + Math.Abs(Vector3D.Dot(axis, m.Forward)) * obb.HalfExtent.Z;
         }
 
         public void Spawn(int configIndex)

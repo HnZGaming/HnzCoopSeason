@@ -151,7 +151,8 @@ namespace HnzCoopSeason.POI
                 var position = poi.GetEntityPosition();
 
                 var bossRange = SessionConfig.Instance.EncounterRadius * 3; // matches PoiOrk's gps radius
-                var hideOnHud = ork != null
+                var hideOnHud = poi.State != PoiState.Released // a merchant has no boss marker to defer to
+                                && ork != null
                                 && ork.HasMainGrid
                                 && Vector3D.DistanceSquared(player.GetPosition(), position) <= bossRange * bossRange;
 

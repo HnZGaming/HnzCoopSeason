@@ -9,6 +9,10 @@ namespace HnzCoopSeason.POI
         Vector3D Position { get; }
         PoiState State { get; }
         bool IsPlanetary { get; }
+
+        // game-time (GameDateTime.Ticks) the poi last entered Released; 0 if never. persisted.
+        long ReleasedAtGameTicks { get; }
+
         IReadOnlyList<IPoiObserver> Observers { get; }
 
         // get the position of the POI entity, as opposed to the POI origin,

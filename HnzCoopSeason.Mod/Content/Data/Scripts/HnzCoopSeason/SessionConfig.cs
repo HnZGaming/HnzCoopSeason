@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
@@ -17,11 +17,16 @@ namespace HnzCoopSeason
     {
         const string FileName = "HnzCoopSeason.Config.xml";
 
+        static readonly ProgressionLevelConfig FallbackLevel = new ProgressionLevelConfig(); // multipliers default to 1 = no effect
+
         [XmlElement]
         public float EncounterClearance = 500;
 
         [XmlElement]
-        public int InvasionIntervalHours = 4;
+        public float InvasionIntervalHours = 4;
+
+        [XmlElement]
+        public int MaxConcurrentInvasions = 1;
 
         [XmlElement]
         public int EconomyUpdateIntervalMinutes = 20;
@@ -86,9 +91,6 @@ namespace HnzCoopSeason
         [XmlElement]
         public string RespawnDatapadTextFormat = "Come here: {0}";
 
-        [XmlElement]
-        public float OrksDamageManipulationScale = 0.5f;
-
         [XmlArray]
         [XmlArrayItem("Poi")]
         public PoiConfig[] PlanetaryPois = { new PoiConfig() };
@@ -107,17 +109,23 @@ namespace HnzCoopSeason
         [XmlArrayItem("Level")]
         public ProgressionLevelConfig[] ProgressionLevelList =
         {
-            new ProgressionLevelConfig(1, 1),
-            new ProgressionLevelConfig(2, 1),
-            new ProgressionLevelConfig(3, 2),
-            new ProgressionLevelConfig(4, 3),
-            new ProgressionLevelConfig(5, 4)
+            new ProgressionLevelConfig(1, 1, 1f, 1f),
+            new ProgressionLevelConfig(2, 1, 1f, 1.2f),
+            new ProgressionLevelConfig(3, 1, 1.2f, 1.5f),
+            new ProgressionLevelConfig(4, 1, 1.5f, 2f),
+            new ProgressionLevelConfig(5, 1, 2f, 4f)
         };
 
         public static SessionConfig Instance { get; private set; }
 
         [XmlIgnore]
         public IReadOnlyDictionary<int, ProgressionLevelConfig> ProgressionLevels { get; private set; }
+
+        public ProgressionLevelConfig GetProgressionLevel(int level)
+        {
+            ProgressionLevelConfig c;
+            return ProgressionLevels.TryGetValue(level, out c) ? c : FallbackLevel;
+        }
 
         void Initialize()
         {

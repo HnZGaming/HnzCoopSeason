@@ -28,11 +28,13 @@ namespace HnzCoopSeason
             _commandModule.Register(new Command("poi release", false, MyPromoteLevel.Moderator, Command_ReleasePoi, "release a POI."));
             _commandModule.Register(new Command("poi occupy", false, MyPromoteLevel.Moderator, Command_OccupyPoi, "invade a POI."));
             _commandModule.Register(new Command("poi invade", false, MyPromoteLevel.Moderator, Command_InvadePoi, "invade a POI."));
+            _commandModule.Register(new Command("poi spawn_noai", false, MyPromoteLevel.Moderator, Command_SpawnNoAi, "spawn ork grids at a POI with remote controls & weapons turned off."));
             _commandModule.Register(new Command("poi spawn", false, MyPromoteLevel.Moderator, Command_Spawn, "spawn grids at a POI given encounter config index."));
             _commandModule.Register(new Command("poi print", false, MyPromoteLevel.Moderator, Command_PrintPoi, "print out the POI state."));
             _commandModule.Register(new Command("stores update", false, MyPromoteLevel.Moderator, Command_UpdateStores, "update all merchant stores."));
             _commandModule.Register(new Command("poi spectate", false, MyPromoteLevel.Moderator, Command_SpectatePoi, "move the spectator camera to a POI."));
             _commandModule.Register(new Command("print", false, MyPromoteLevel.Moderator, Command_Print, "print out the game state."));
+            _commandModule.Register(new Command("revenge spawn_noai", false, MyPromoteLevel.Moderator, Command_RevengeSpawnNoAi, "spawn revenge orks with remote controls & weapons turned off.\n--level N: override hp-multiplier level (default: ork config's ProgressLevel)."));
             _commandModule.Register(new Command("revenge spawn", false, MyPromoteLevel.Moderator, Command_RevengeSpawn, "spawn revenge orks"));
             _commandModule.Register(new Command("revenge despawn all", false, MyPromoteLevel.Moderator, Command_RevengeUnloadAll, "despawn all revenge orks"));
             _commandModule.Register(new Command("mission list", false, MyPromoteLevel.Moderator, Command_ListMissions, "list missions"));
@@ -138,6 +140,30 @@ namespace HnzCoopSeason
             }
         }
 
+        void Command_SpawnNoAi(string text, ulong steamId)
+        {
+            var parts = text.Split(' ');
+            var poiId = parts[0];
+            var configIndex = parts[1].ParseIntOrDefault(0);
+
+            Poi poi;
+            if (!_poiMap.TryGetPoi(poiId, out poi))
+            {
+                SendMessage(steamId, Color.Red, $"POI {poiId} not found.");
+                return;
+            }
+
+            if (poi.State != PoiState.Occupied)
+            {
+                SendMessage(steamId, Color.Red, $"POI {poiId} not occupied; orks won't spawn.");
+                return;
+            }
+
+            var ork = poi.Observers.OfType<PoiOrk>().First();
+            ork.Spawn(configIndex, true);
+            SendMessage(steamId, Color.White, $"orks spawning disarmed at {poiId}.");
+        }
+
         void Command_UpdateStores(string text, ulong steamId)
         {
             foreach (var poi in _poiMap.AllPois)
@@ -173,13 +199,38 @@ namespace HnzCoopSeason
             MissionScreen.Send(steamId, "Print", poi.ToString(), true);
         }
 
+        void Command_RevengeSpawnNoAi(string argsStr, ulong steamId)
+        {
+            Command_RevengeSpawn(argsStr, steamId, true);
+        }
+
         void Command_RevengeSpawn(string argsStr, ulong steamId)
+        {
+            Command_RevengeSpawn(argsStr, steamId, false);
+        }
+
+        void Command_RevengeSpawn(string argsStr, ulong steamId, bool disarm)
         {
             MyLog.Default.Info($"[HnzCoopSeason] revenge; args: '{argsStr}'");
             VRageUtils.AssertNetworkType(NetworkType.DediServer | NetworkType.SinglePlayer);
 
-            var args = argsStr.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (args.Length < 1)
+            var rawArgs = argsStr.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // --level N: override the hp-multiplier level (default: the ork config's ProgressLevel)
+            var levelOverride = 0;
+            var args = new List<string>();
+            for (var i = 0; i < rawArgs.Length; i++)
+            {
+                if (rawArgs[i] == "--level" && i + 1 < rawArgs.Length && int.TryParse(rawArgs[i + 1], out levelOverride))
+                {
+                    i += 1;
+                    continue;
+                }
+
+                args.Add(rawArgs[i]);
+            }
+
+            if (args.Count < 1)
             {
                 SendMessage(steamId, Color.Red, "requires config index");
                 return;
@@ -194,7 +245,7 @@ namespace HnzCoopSeason
             }
 
             IMyEntity targetEntity;
-            if (args.Length >= 2) // target name specified
+            if (args.Count >= 2) // target name specified
             {
                 var targetName = args[1];
                 if (!TryFindEntityByName(targetName, out targetEntity))
@@ -226,8 +277,9 @@ namespace HnzCoopSeason
             }
 
             var config = configs[configIndex];
-            RevengeOrkManager.Instance.Spawn(targetPosition, config.SpawnGroupNames);
-            SendMessage(steamId, Color.White, $"orks spawned; target: '{targetEntity.DisplayName}', group: {config.SpawnGroupNames.ToStringSeq()}");
+            var level = levelOverride > 0 ? levelOverride : config.ProgressLevel;
+            RevengeOrkManager.Instance.Spawn(targetPosition, config.SpawnGroupNames, level, disarm);
+            SendMessage(steamId, Color.White, $"orks spawned{(disarm ? " disarmed" : "")}; target: '{targetEntity.DisplayName}', level: {level}, group: {config.SpawnGroupNames.ToStringSeq()}");
         }
 
         void Command_RevengeUnloadAll(string args, ulong steamId)

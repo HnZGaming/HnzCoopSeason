@@ -3,6 +3,7 @@ using HnzUtils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
+using VRageMath;
 
 namespace HnzCoopSeason.Orks
 {
@@ -10,8 +11,7 @@ namespace HnzCoopSeason.Orks
     {
         readonly string _factionTag;
         long _factionFounderId;
-        int _level;
-
+        float _scale = 1f;
 
         public OrksDamageManipulator(string factionTag)
         {
@@ -34,7 +34,9 @@ namespace HnzCoopSeason.Orks
 
         public void OnEveryFrame()
         {
-            _level = Session.Instance.GetProgressLevel();
+            var level = Session.Instance.GetProgressLevel();
+            var c = SessionConfig.Instance.GetProgressionLevel(level);
+            _scale = MathHelper.Lerp(c.OrksDamageReductionScaleStart, c.OrksDamageReductionScaleEnd, Session.Instance.GetProgressLevelFraction());
         }
 
         void BeforeDamage(object target, ref MyDamageInformation info)
@@ -46,8 +48,14 @@ namespace HnzCoopSeason.Orks
             if (!block.CubeGrid.BigOwners.TryGetElementAt(0, out ownerId)) return;
             if (ownerId != _factionFounderId) return;
 
-            var magnitude = _level * SessionConfig.Instance.OrksDamageManipulationScale;
-            info.Amount *= 1f / Math.Max(magnitude, 1f);
+            // per-grid scale frozen at spawn time; grids from before a restart fall back to the session level
+            float scale;
+            if (!OrkDamageReductionScales.TryGet(block.CubeGrid, out scale))
+            {
+                scale = _scale;
+            }
+
+            info.Amount *= 1f / Math.Max(scale, 1f);
         }
     }
 }

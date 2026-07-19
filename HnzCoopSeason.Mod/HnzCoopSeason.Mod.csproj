@@ -84,6 +84,10 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NPC\NpcHud.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NPC\NpcHudReticle.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Merchants\PoiMerchantStoreConfig.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\OrkDamageReductionScales.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\OrksDamageManipulator.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\OrkUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\PoiOrk.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\PoiOrkConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\PoiRandomInvasion.cs" />

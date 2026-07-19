@@ -13,6 +13,7 @@ namespace HnzCoopSeason.POI
         readonly PoiConfig _config;
         readonly IPoiObserver[] _observers;
         readonly string _variableKey;
+        long _releasedAtTicks;
 
         public Poi(PoiConfig config, bool isPlanetary, IPoiObserver[] observers)
         {
@@ -27,6 +28,7 @@ namespace HnzCoopSeason.POI
         public Vector3D Position => _config.Position;
         public bool IsPlanetary { get; }
         public PoiState State { get; private set; }
+        public long ReleasedAtGameTicks => _releasedAtTicks;
         public IReadOnlyList<IPoiObserver> Observers => _observers;
 
         public void Load(IMyCubeGrid[] grids) // called once
@@ -46,6 +48,7 @@ namespace HnzCoopSeason.POI
                 state = PoiState.Occupied;
                 MyLog.Default.Warning($"[HnzCoopSeason] reset poi state to {state}; backward compatibility");
             }
+            _releasedAtTicks = (long)DictionaryExtensions.GetValueOrDefault(builder, nameof(ReleasedAtGameTicks), (long)0);
 
             SetState(state, true);
         }
@@ -72,6 +75,11 @@ namespace HnzCoopSeason.POI
             }
 
             State = state;
+            if (state == PoiState.Released && !init)
+            {
+                _releasedAtTicks = MyAPIGateway.Session.GameDateTime.Ticks;
+            }
+
             foreach (var o in _observers) o.OnStateChanged(State);
 
             if (!init)
@@ -101,6 +109,7 @@ namespace HnzCoopSeason.POI
             var data = new SerializableDictionary<string, object>
             {
                 [nameof(State)] = (int)State,
+                [nameof(ReleasedAtGameTicks)] = _releasedAtTicks,
             };
 
             MyAPIGateway.Utilities.SetVariable(_variableKey, data);

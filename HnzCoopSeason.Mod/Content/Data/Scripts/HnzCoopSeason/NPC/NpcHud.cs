@@ -136,9 +136,9 @@ namespace HnzCoopSeason.NPC
             var takeoverSuccessCount = state.Controllers.Count(id => id == 0 || id == playerGroup);
 
             _state.Title = target.Grid.CustomName;
-            _state.Subtitle = target.SpawnGroupIndex == 0 && target.FactionTag == "PORKS"
-                ? "This is the boss Ork! Neutralize it to reclaim the trading hub!"
-                : "";
+            var isBoss = target.SpawnGroupIndex == 0 && target.FactionTag == "PORKS";
+            _state.Subtitle = isBoss ? "This is the boss Ork! Neutralize it to reclaim the trading hub!" : "";
+            _state.SubtitleHighlight = isBoss ? "boss Ork" : null;
             _state.Description = !takeoverReady
                 ? "To neutralize a wild grid, take over its remote blocks and control seats."
                 : "You can capture a neutralized grid into a garage block.";

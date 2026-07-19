@@ -11,6 +11,7 @@ namespace HnzCoopSeason.HudUtils
         public double Progress; // 0..1
         public string ValueText; // e.g. "42%" or "2/5"
         public string Subtitle;
+        public string SubtitleHighlight; // substring of Subtitle drawn in the alert colour
         public string Description;
         public bool ShowInfoIcon; // draws an (i) badge ahead of the title
     }

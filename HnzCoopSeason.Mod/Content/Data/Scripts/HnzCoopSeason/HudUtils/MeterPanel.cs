@@ -20,6 +20,7 @@ namespace HnzCoopSeason.HudUtils
     public sealed class MeterPanel : HudElementBase
     {
         const float LineSpacing = 7;
+        const float ProseSpacing = 1; // subtitle -> description: they read as one block
         const float BackPaddingX = 18;
         const float BackPaddingY = 14;
         const float BottomTrimPadding = 17; // main body's trimmed bottom edge sits this far under the last line
@@ -38,6 +39,7 @@ namespace HnzCoopSeason.HudUtils
         static readonly Color TitleColor = VanillaCyan;
         static readonly Color DescriptionColor = new Color(187, 233, 246, 150); // accent at ~60%
         static readonly Color SubtitleColor = DescriptionColor; // body lines share one colour so the two meters read alike
+        static readonly Color SubtitleHighlightColor = new Color(232, 90, 70); // alert red, matches the warning icon
 
         public float TopMargin = 50; // px down from the top edge of the screen (1080p-normalized); F2 slider
         public MeterAnchor Anchor = MeterAnchor.Left; // which horizontal edge to pin to; F2 setting
@@ -153,8 +155,10 @@ namespace HnzCoopSeason.HudUtils
             _dotRail.Offset = new Vector2(0, y - _dotRail.Height / 2 - 3); // drawn a touch lower; stacking unchanged
             y -= _dotRail.Height + 5;
 
-            // minimal mode keeps the title row, bar and rail; the prose lines drop out
-            y = Stack(_subtitleLabel, Minimal ? "" : state.Subtitle, y, ref _subtitleCache);
+            // minimal mode keeps the title row, bar and rail; the prose lines drop out.
+            // the two prose lines sit tighter together than the rest of the stack -- they read
+            // as one block, and LineSpacing between them leaves an obvious hole
+            y = StackSubtitle(Minimal ? "" : state.Subtitle, Minimal ? null : state.SubtitleHighlight, y, ProseSpacing);
             y = Stack(_descriptionLabel, Minimal ? "" : state.Description, y, ref _descriptionCache);
 
             // main plate body covers title through rail (+extra lines when present).
@@ -279,6 +283,47 @@ namespace HnzCoopSeason.HudUtils
             _nameLabel.Visible = visible;
             _subtitleLabel.Visible = visible;
             _descriptionLabel.Visible = visible;
+        }
+
+        // subtitle gets its own stacker: the highlight phrase is drawn in the alert colour, so the
+        // line is built as RichText segments rather than a plain string
+        float StackSubtitle(string text, string highlight, float y, float spacing)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                _subtitleLabel.Visible = false;
+                return y;
+            }
+
+            _subtitleLabel.Visible = true;
+
+            var cacheKey = text + " " + highlight;
+            if (cacheKey != _subtitleCache)
+            {
+                _subtitleCache = cacheKey;
+
+                var at = string.IsNullOrEmpty(highlight) ? -1 : text.IndexOf(highlight, StringComparison.Ordinal);
+                if (at < 0)
+                {
+                    _subtitleLabel.Text = text;
+                }
+                else
+                {
+                    var body = _subtitleLabel.Format;
+                    var alert = body.WithColor(SubtitleHighlightColor);
+
+                    var rich = new RichText();
+                    if (at > 0) rich.Add(text.Substring(0, at), body);
+                    rich.Add(highlight, alert);
+                    var tail = at + highlight.Length;
+                    if (tail < text.Length) rich.Add(text.Substring(tail), body);
+
+                    _subtitleLabel.TextBoard.SetText(rich);
+                }
+            }
+
+            _subtitleLabel.Offset = new Vector2(-CapsuleBar.BarWidth / 2 + _subtitleLabel.Width / 2, y - _subtitleLabel.Height / 2);
+            return y - (_subtitleLabel.Height + spacing);
         }
 
         float Stack(Label label, string text, float y, ref string cache)

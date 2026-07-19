@@ -21,7 +21,7 @@ namespace HnzCoopSeason.HudUtils
         const float SegmentHeight = 28;
         const float MeterGap = 12; // vertical gap under the meter plate when the window is parked there
         const float CloseGlyphSize = 24;
-        const float MaxContentHeight = 350; // cap; taller than this and the body scrolls
+        const float MaxContentHeight = 360; // cap; taller than this and the body scrolls
         const float ScrollBarWidth = 3;
         const float ScrollStep = 28;
         const float Chamfer = 14;

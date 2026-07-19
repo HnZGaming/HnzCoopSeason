@@ -29,7 +29,7 @@ namespace HnzCoopSeason
         public static Session Instance { get; private set; }
 
         const int DiscoverySeconds = 15;
-        const int NearDiscoverySeconds = 1; // already in sight of the boss marker
+        const int NearDiscoverySeconds = 3; // already in sight of the boss marker
         const double NearDiscoveryRangeFactor = 2; // x EncounterRadius
 
         readonly List<DiscoveryGps> _discoveryGpss = new List<DiscoveryGps>();

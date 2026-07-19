@@ -57,17 +57,38 @@ namespace HnzCoopSeason.Orks
             UpdateBossGps();
         }
 
+        /// <summary>
+        ///     A working antenna already puts the boss on everyone's hud, as a red enemy marker.
+        ///     Suppressor modules are radio antennas too but broadcast nothing, so they don't count.
+        /// </summary>
+        bool HasBroadcastingAntenna()
+        {
+            foreach (var antenna in _mainGrid.GetFatBlocks<IMyRadioAntenna>())
+            {
+                if (antenna.BlockDefinition.SubtypeName.IndexOf("Suppressor", StringComparison.OrdinalIgnoreCase) >= 0) continue;
+                if (!antenna.IsWorking) continue; // destroyed, unpowered or switched off
+                if (!antenna.EnableBroadcasting) continue;
+
+                return true;
+            }
+
+            return false;
+        }
+
         void UpdateBossGps()
         {
             if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 1) != 0) return;
             if (_mainGrid == null) return;
+
+            // fallback only: while the boss can broadcast for itself, ours would just double up
+            if (HasBroadcastingAntenna()) return;
 
             FlashGpsApi.Send(new FlashGpsApi.Entry
             {
                 Id = $"{nameof(PoiOrk)}-boss-{_poiId}".GetHashCode(),
                 Name = "ORK BOSS",
                 Position = _mainGrid.GetPosition(),
-                Color = Color.Orange,
+                Color = new Color(237, 0, 211), // #ED00D3, matching TargetReticle's boss brackets
                 Duration = 3,
                 Radius = SessionConfig.Instance.EncounterRadius * 3,
                 EntityId = _mainGrid.EntityId,
@@ -83,6 +104,9 @@ namespace HnzCoopSeason.Orks
                 state == PoiState.Occupied ||
                 state == PoiState.Invaded);
         }
+
+        /// <summary>The boss grid is spawned and alive, so it carries its own ORK BOSS marker.</summary>
+        public bool HasMainGrid => _mainGrid != null && !_mainGrid.Closed;
 
         bool IPoiObserver.TryGetPosition(out Vector3D position)
         {
@@ -107,9 +131,18 @@ namespace HnzCoopSeason.Orks
                 beacon.HudText = $"[BOSS] {grid.CustomName}";
             }
 
+            // the boss should be visible as far out as its ORK BOSS gps reaches. only the main
+            // grid gets this, and suppressor modules are skipped -- they are radio antennas too,
+            // and their radius is the suppression field, not a broadcast range
+            var bossRange = (float)(SessionConfig.Instance.EncounterRadius * 3);
             foreach (var antenna in grid.GetFatBlocks<IMyRadioAntenna>())
             {
                 antenna.HudText = $"[BOSS] {grid.CustomName}";
+
+                if (antenna.BlockDefinition.SubtypeName.IndexOf("Suppressor", StringComparison.OrdinalIgnoreCase) >= 0) continue;
+
+                antenna.Radius = bossRange; // clamps to the block's MaxBroadcastRadius
+                antenna.EnableBroadcasting = true;
             }
 
             Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());

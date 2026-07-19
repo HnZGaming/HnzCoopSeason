@@ -28,6 +28,12 @@ namespace HnzCoopSeason
     {
         public static Session Instance { get; private set; }
 
+        const int DiscoverySeconds = 15;
+        const int NearDiscoverySeconds = 1; // already in sight of the boss marker
+        const double NearDiscoveryRangeFactor = 2; // x EncounterRadius
+
+        readonly List<DiscoveryGps> _discoveryGpss = new List<DiscoveryGps>();
+
         PoiMap _poiMap;
         CommandModule _commandModule;
         bool _doneFirstUpdate;
@@ -192,6 +198,7 @@ namespace HnzCoopSeason
                 _poiMap.Update();
                 PoiRandomInvasion.Instance.Update();
                 _orksDamageManipulator.OnEveryFrame();
+                DiscardExpiredDiscoveryGps();
             }
 
             // client or single player
@@ -295,15 +302,56 @@ namespace HnzCoopSeason
 
         void OnPoiDiscovered(string name, Vector3D position)
         {
-            MyVisualScriptLogicProvider.ShowNotificationToAll("Someone just discovered something!", 10000);
-            FlashGpsApi.Send(new FlashGpsApi.Entry
+            // discovery gps per player; duration by range, near ones clear fast
+            var nearRange = SessionConfig.Instance.EncounterRadius * NearDiscoveryRangeFactor;
+            var now = MyAPIGateway.Session.ElapsedPlayTime;
+
+            var players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
+
+            foreach (var player in players)
             {
-                Id = "POI Discovery".GetHashCode(),
-                Name = $"{name} Discovery",
-                Position = position,
-                Color = Color.Orange,
-                Duration = 10,
-            });
+                var character = player.Character;
+                var near = character != null &&
+                           Vector3D.DistanceSquared(character.GetPosition(), position) <= nearRange * nearRange;
+                var seconds = near ? NearDiscoverySeconds : DiscoverySeconds;
+
+                MyVisualScriptLogicProvider.ShowNotification("Someone just discovered something!", seconds * 1000, "White", player.IdentityId);
+
+                var gps = MyAPIGateway.Session.GPS.Create($"{name} Discovery", "", position, true, true);
+                gps.GPSColor = Color.Orange;
+                MyAPIGateway.Session.GPS.AddGps(player.IdentityId, gps);
+
+                // DiscardAt is only swept on world load/save, so expire it ourselves
+                _discoveryGpss.Add(new DiscoveryGps
+                {
+                    IdentityId = player.IdentityId,
+                    Gps = gps,
+                    ExpiresAt = now + TimeSpan.FromSeconds(seconds),
+                });
+            }
+        }
+
+        struct DiscoveryGps
+        {
+            public long IdentityId;
+            public IMyGps Gps;
+            public TimeSpan ExpiresAt;
+        }
+
+        void DiscardExpiredDiscoveryGps()
+        {
+            if (_discoveryGpss.Count == 0) return;
+
+            var now = MyAPIGateway.Session.ElapsedPlayTime;
+            for (var i = _discoveryGpss.Count - 1; i >= 0; i--)
+            {
+                var entry = _discoveryGpss[i];
+                if (now < entry.ExpiresAt) continue;
+
+                MyAPIGateway.Session.GPS.RemoveGps(entry.IdentityId, entry.Gps);
+                _discoveryGpss.RemoveAt(i);
+            }
         }
 
         void OnPoiReleased(string poiId, Vector3D position)

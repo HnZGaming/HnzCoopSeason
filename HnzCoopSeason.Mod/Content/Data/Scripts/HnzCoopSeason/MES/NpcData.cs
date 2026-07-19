@@ -17,6 +17,18 @@ namespace MES
         [ProtoMember(42)]
         public string Context; // arbitrary user data via MESApi
 
+        /// <summary>
+        ///     The undecoded blob. Cheap next to a full read, so a caller that caches parsed data
+        ///     can use it to tell whether its entry is still current.
+        /// </summary>
+        public static bool TryGetRawData(IMyCubeGrid grid, out string value)
+        {
+            value = null;
+            if (grid.Storage == null) return false;
+
+            return grid.Storage.TryGetValue(Key, out value);
+        }
+
         public static bool TryGetNpcData(IMyCubeGrid grid, out NpcData npcData)
         {
             npcData = null;

@@ -8,11 +8,7 @@ using VRageMath;
 
 namespace HnzCoopSeason.HudUtils
 {
-    /// <summary>
-    ///     Client-side HUD root: owns the RichHud MeterPanel and the mod's
-    ///     F2 (Rich HUD Terminal) settings page. Load/Unload from the
-    ///     RichHudClient init/closed callbacks only.
-    /// </summary>
+    // client-side HUD root; Load/Unload from the RichHudClient callbacks only
     public static class CoopHud
     {
         const string ConfigFileName = "HnzCoopSeason.HudConfig.xml";
@@ -27,14 +23,10 @@ namespace HnzCoopSeason.HudUtils
         public static int MinTargetBlocks => _config.MinTargetBlocks;
         public static double ReticleMinDistance => _config.ReticleMinDistance;
 
-        /// <summary>
-        ///     True while the meter should stand down for WeaponCore's target panel.
-        ///     Opt-in: without it the meter stays up alongside WC (config default).
-        /// </summary>
         public static bool YieldToWeaponCore => _config.HideWithWeaponCore && WcHudApi.HasFocusTarget();
 
         internal static HudConfig Config => _config;
-        internal static MeterPanel Meter => _meterPanel; // settings window parks itself under the meter
+        internal static MeterPanel Meter => _meterPanel;
 
         internal static void ApplyConfigNow() => ApplyConfig();
         internal static void SaveNow() => SaveConfig(_config);
@@ -87,7 +79,7 @@ namespace HnzCoopSeason.HudUtils
             }
         }
 
-        static void CreateTerminalPage() // F2 menu: just a launcher for the custom window
+        static void CreateTerminalPage()
         {
             var openButton = new TerminalButton
             {
@@ -97,11 +89,10 @@ namespace HnzCoopSeason.HudUtils
 
             openButton.ControlChanged += (sender, e) =>
             {
-                // toggle: a second click closes the window instead of re-opening it
                 var opening = _settingsWindow != null && !_settingsWindow.IsOpen;
                 _settingsWindow?.Toggle();
 
-                if (opening) RichHudTerminal.CloseMenu(); // get the terminal out of the way
+                if (opening) RichHudTerminal.CloseMenu();
             };
 
             var category = new ControlCategory
@@ -114,7 +105,7 @@ namespace HnzCoopSeason.HudUtils
             var page = new ControlPage { Name = "Settings" };
             page.Add(category);
             RichHudTerminal.Root.Add(page);
-            RichHudTerminal.Root.Enabled = true; // mod roots are hidden in the F2 terminal until enabled
+            RichHudTerminal.Root.Enabled = true; // mod roots stay hidden in the F2 terminal until enabled
         }
 
         static HudConfig LoadConfig()
@@ -158,15 +149,14 @@ namespace HnzCoopSeason.HudUtils
             public bool ShowCaptureMeter = true;
             public bool ShowTargetReticle = true;
             public float MeterTopMargin = 50;
-            public float ReticleFov = 10; // half-angle from screen centre, degrees, within which a grid can be targeted
-            public int MinTargetBlocks = 10; // grids smaller than this are wreckage, not targets; 0 disables the filter
-            public float ReticleMinDistance = 0; // brackets hidden closer than this, in metres; 0 keeps them on all the way in
+            public float ReticleFov = 10; // half-angle from screen centre, degrees
+            public int MinTargetBlocks = 10; // 0 disables the filter
+            public float ReticleMinDistance = 0; // metres; 0 = never hide by distance
             public MeterAnchor MeterAnchor = MeterAnchor.Left;
-            public bool HideWithWeaponCore = false; // yield the meter slot while WC draws its target panel
-            public bool MinimalMeter = false; // drop the meters' subtitle/description lines, keeping title + bar
+            public bool HideWithWeaponCore = false;
+            public bool MinimalMeter = false;
 
-            // settings window placement (HighDpiRoot px, 1080p-normalized). Until the player
-            // drags it, the window tracks the meter instead of using a stored position.
+            // HighDpiRoot px, 1080p-normalized; unused until the player drags the window
             public bool SettingsWindowMoved = false;
             public Vector2 SettingsWindowOffset = Vector2.Zero;
         }

@@ -6,17 +6,7 @@ using VRage.Utils;
 
 namespace HnzCoopSeason.POI
 {
-    /// <summary>
-    ///     Client-side memory of which POI markers the player hid in the GPS panel.
-    ///     The game will never do this for us: local GPS entries are deliberately excluded
-    ///     from the world save (MyGpsCollection.SaveGpss skips gps.IsLocal), so every rejoin
-    ///     recreates our markers from scratch and they come back shown.
-    ///     Only hidden ids are stored — an unknown marker defaults to visible, so brand new
-    ///     POIs (and a first-ever join) show up without needing an entry.
-    ///     Each hidden id remembers the PoiState it was hidden in: the player dismissed *that*
-    ///     situation, so when the POI flips (released -> invaded, occupied -> released, ...)
-    ///     the marker un-hides itself and demands attention again.
-    /// </summary>
+    // client-side store of hidden markers; unknown ids default to visible
     public sealed class GpsVisibilityStore
     {
         const string FileName = "HnzCoopSeason.GpsVisibility.xml";
@@ -26,11 +16,7 @@ namespace HnzCoopSeason.POI
 
         public bool IsVisible(string markerId) => !_hidden.ContainsKey(markerId);
 
-        /// <summary>
-        ///     Records the marker's current state and reports whether that state has moved on
-        ///     since the player hid it — in which case the hide is dropped and the caller should
-        ///     rebuild the GPS so it shows again. Call once per marker per server response.
-        /// </summary>
+        // true when the state moved on since the player hid it; call once per server response
         public bool ClearIfStateChanged(string markerId, PoiState state)
         {
             _lastSeenState[markerId] = state;
@@ -44,15 +30,7 @@ namespace HnzCoopSeason.POI
             return true;
         }
 
-        /// <summary>
-        ///     Drops hides for markers the server no longer sends. Absence means the situation the
-        ///     player dismissed is over: the server only ships nearby POIs, ALL invaded ones, and a
-        ///     single nearest merchant. So a POI hidden while Invaded stays in the payload for as
-        ///     long as that invasion lasts, and falls out of it the moment the invasion ends.
-        ///     Without this, a hide stamped "Invaded" survives release-and-reinvade — the state
-        ///     value returns to Invaded, the comparison sees no change, and the marker never
-        ///     comes back. Call once per server response, after processing the markers.
-        /// </summary>
+        // absence from the payload means the dismissed situation is over
         public void PruneAbsent(ICollection<string> presentIds)
         {
             if (_hidden.Count == 0) return;
@@ -106,12 +84,7 @@ namespace HnzCoopSeason.POI
             }
         }
 
-        /// <summary>
-        ///     Picks up toggles the player made in the GPS panel. The panel mutates the very
-        ///     MyGps instance we handed to AddLocalGps (MyGpsCollection.ShowOnHudSuccess),
-        ///     so reading ShowOnHud back off our own reference is enough — no events needed.
-        ///     Writes to disk only when something actually changed.
-        /// </summary>
+        // the gps panel mutates our own MyGps instance, so reading ShowOnHud back is enough
         public void CaptureChanges(IEnumerable<KeyValuePair<string, IMyGps>> markers)
         {
             var changed = false;
@@ -123,7 +96,7 @@ namespace HnzCoopSeason.POI
 
                 if (hidden)
                 {
-                    // stamp the state it was dismissed in, so a later flip can revive it
+                    // stamp the state it was dismissed in
                     PoiState state;
                     _hidden[marker.Key] = _lastSeenState.TryGetValue(marker.Key, out state) ? state : PoiState.Occupied;
                 }

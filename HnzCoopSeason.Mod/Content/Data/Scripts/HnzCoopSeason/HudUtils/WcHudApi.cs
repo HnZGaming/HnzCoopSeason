@@ -6,13 +6,9 @@ using VRage.Game.ModAPI;
 
 namespace HnzCoopSeason.HudUtils
 {
-    /// <summary>
-    ///     Minimal WeaponCore mod-API client; only pulls the focus-target accessor.
-    ///     Used to hide our screen-top meter while WeaponCore's target HUD is showing.
-    /// </summary>
     public static class WcHudApi
     {
-        const long Channel = 67549756549; // WeaponCore api endpoint channel
+        const long Channel = 67549756549; // WeaponCore api endpoint
 
         static Func<MyEntity, int, MyEntity> _getAiFocus;
 
@@ -40,10 +36,6 @@ namespace HnzCoopSeason.HudUtils
             }
         }
 
-        /// <summary>
-        ///     True while the player's controlled grid has a WeaponCore focus target,
-        ///     i.e. while WeaponCore is drawing its target info panel.
-        /// </summary>
         public static bool HasFocusTarget()
         {
             if (_getAiFocus == null) return false; // WeaponCore absent or not ready

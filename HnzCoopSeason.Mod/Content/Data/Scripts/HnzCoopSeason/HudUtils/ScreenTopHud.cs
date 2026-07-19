@@ -3,11 +3,7 @@ using System.Linq;
 
 namespace HnzCoopSeason.HudUtils
 {
-    /// <summary>
-    ///     Arbiter for the single screen-top meter slot.
-    ///     Multiple views register a MeterState with a priority; only the
-    ///     highest-priority active state is rendered (by CoopHud's MeterPanel).
-    /// </summary>
+    // arbiter for the single screen-top meter slot; highest-priority active state wins
     public sealed class ScreenTopHud
     {
         public static readonly ScreenTopHud Instance = new ScreenTopHud();
@@ -38,7 +34,7 @@ namespace HnzCoopSeason.HudUtils
             UpdateTarget();
         }
 
-        public void SetEnabled(string key, bool enabled) // config gate (F2), independent of gameplay activity
+        public void SetEnabled(string key, bool enabled) // config gate, independent of gameplay activity
         {
             Entry entry;
             if (!_entries.TryGetValue(key, out entry)) return;

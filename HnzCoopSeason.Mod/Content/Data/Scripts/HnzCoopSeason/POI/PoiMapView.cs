@@ -18,7 +18,7 @@ namespace HnzCoopSeason.POI
         readonly NetworkMessenger _responseMessenger;
         readonly LocalGpsCollection<string> _markers;
         readonly GpsVisibilityStore _visibility;
-        readonly HashSet<string> _autoHidden = new HashSet<string>(); // hidden by us when a boss marker appeared, not by the player
+        readonly HashSet<string> _autoHidden = new HashSet<string>(); // hidden by us, not by the player
         readonly HashSet<string> _autoHideOverridden = new HashSet<string>(); // player turned an auto-hidden marker back on
         bool _visibilityLoaded;
 
@@ -55,12 +55,8 @@ namespace HnzCoopSeason.POI
         {
             if (!TryLoadVisibility()) return;
 
-            // catch show/hide toggles the player made in the GPS panel
             if (MyAPIGateway.Session.GameplayFrameCounter % 60 == 0)
             {
-                // turning an auto-hidden marker back on countermands the boss suppression:
-                // the player wants to see this one, so we stop forcing it down until the
-                // boss marker goes away and a later spawn earns a fresh hide
                 if (_autoHidden.Count > 0)
                 {
                     foreach (var pair in _markers.Pairs)
@@ -80,10 +76,6 @@ namespace HnzCoopSeason.POI
             SendRequest();
         }
 
-        /// <summary>
-        ///     Folds show/hide toggles the player made in the GPS panel into the store. Markers we
-        ///     auto-hid are excluded: their ShowOnHud is false because WE set it, not the player.
-        /// </summary>
         void CapturePlayerToggles()
         {
             _visibility.CaptureChanges(_autoHidden.Count == 0
@@ -154,9 +146,6 @@ namespace HnzCoopSeason.POI
                 var ork = (PoiOrk)poi.Observers.FirstOrDefault(o => o is PoiOrk); //todo messy
                 var position = poi.GetEntityPosition();
 
-                // the boss broadcasts its own ORK BOSS marker at the same spot, so drop ours to
-                // avoid a "Mixed Signals" cluster -- but only inside the range that marker
-                // reaches, or players further out would be left with nothing to navigate to
                 var bossRange = SessionConfig.Instance.EncounterRadius * 3; // matches PoiOrk's gps radius
                 var hideOnHud = ork != null
                                 && ork.HasMainGrid
@@ -175,13 +164,7 @@ namespace HnzCoopSeason.POI
             VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<ResponsePayload>(bytes);
 
-            // flush pending toggles BEFORE the new states land. CaptureChanges otherwise runs on a
-            // 60-frame tick and stamps each hide with _lastSeenState, so a marker hidden in the
-            // second before a payload arrives gets stamped with the state from THIS payload -- the
-            // very transition that was supposed to revive it. hide a merchant, have orks take the
-            // hub a moment later, and it records hiddenIn=Invaded against a now-Invaded POI: the
-            // comparison sees no change and the marker stays hidden forever. capturing first
-            // stamps it against the state the player was actually looking at
+            // capture before the new states land, or a fresh hide gets stamped with the incoming state
             if (_visibilityLoaded) CapturePlayerToggles();
 
             var presentIds = new HashSet<string>(payload.Markers.Select(m => m.Id));
@@ -190,15 +173,13 @@ namespace HnzCoopSeason.POI
             {
                 if (m.HideOnHud)
                 {
-                    // the boss is broadcasting here: hide our marker once, on the transition
-                    // into that situation. re-asserting it every response would nail the
-                    // marker down and make the GPS panel's show toggle useless
+                    // hide once on the transition; re-asserting would defeat the panel's show toggle
                     if (!_autoHideOverridden.Contains(m.Id) && _autoHidden.Add(m.Id))
                     {
                         MyLog.Default.Info($"[HnzCoopSeason] gps {m.Id} auto-hidden: boss marker in range");
                     }
                 }
-                else // boss gone or out of its marker's reach; our marker is needed again
+                else
                 {
                     _autoHidden.Remove(m.Id);
                     _autoHideOverridden.Remove(m.Id);
@@ -211,27 +192,19 @@ namespace HnzCoopSeason.POI
             // remove old markers
             _markers.RemoveExceptFor(presentIds);
 
-            // a hidden marker that dropped out of the server's list had its situation resolved,
-            // so the hide expires; otherwise a release-and-reinvade would land on the same
-            // PoiState it was hidden in and stay hidden forever
             _visibility.PruneAbsent(presentIds);
 
             // add new markers
             foreach (var marker in payload.Markers)
             {
-                // a POI that changed hands (invaded/occupied/released) revives a hidden marker:
-                // dropping the gps here forces the rebuild below, which re-registers the HUD
-                // marker — just flipping ShowOnHud would not
+                // rebuild the gps: flipping ShowOnHud alone does not re-register the hud marker
                 if (_visibility.ClearIfStateChanged(marker.Id, marker.State))
                 {
                     _markers.Remove(marker.Id);
                 }
 
-                // the player's own choice, unless our one-shot boss auto-hide is still standing
                 var showOnHud = _visibility.IsVisible(marker.Id) && !_autoHidden.Contains(marker.Id);
 
-                // same reason as above: assigning ShowOnHud does not re-register the hud marker,
-                // so a change in visibility has to go through a rebuild
                 IMyGps current;
                 if (_markers.TryGet(marker.Id, out current) && current.ShowOnHud != showOnHud)
                 {
@@ -244,20 +217,16 @@ namespace HnzCoopSeason.POI
                     UpdateGps(gps, marker);
                     // note: do not update hash
                 }
-                else // new gps — honour the player's last show/hide choice for this marker
+                else
                 {
                     gps = MyAPIGateway.Session.GPS.Create("", "", Vector3D.Zero, showOnHud, false);
                     UpdateGps(gps, marker);
-                    gps.UpdateHash(); // init hash
+                    gps.UpdateHash();
                     _markers.Add(marker.Id, gps);
                 }
             }
         }
 
-        /// <summary>
-        ///     Drops ids the server stopped reporting. Both sets track a live boss situation, so a
-        ///     marker leaving the payload ends it — and a later spawn at that POI starts clean.
-        /// </summary>
         static void PruneAbsent(HashSet<string> ids, ICollection<string> presentIds)
         {
             if (ids.Count == 0) return;
@@ -351,7 +320,7 @@ namespace HnzCoopSeason.POI
             public int Level;
 
             [ProtoMember(5)]
-            public bool HideOnHud; // boss is broadcasting its own marker here; keep the gps, drop the hud pin
+            public bool HideOnHud; // boss broadcasts its own marker here
 
             // ReSharper disable once UnusedMember.Local
             Marker()

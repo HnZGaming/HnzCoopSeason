@@ -6,11 +6,6 @@ using VRageMath;
 
 namespace HnzCoopSeason.HudUtils
 {
-    /// <summary>
-    ///     Custom HUD settings window in the mod's own design language (chamfered plate,
-    ///     vanilla-cyan accent, flush-aligned rows) — replaces the Rich HUD Terminal page
-    ///     whose tile layout/spacing is hard-coded in the Master mod and cannot be styled.
-    /// </summary>
     public sealed class CoopSettingsWindow : HudElementBase
     {
         const float WindowWidth = 360;
@@ -19,9 +14,9 @@ namespace HnzCoopSeason.HudUtils
         const float RowHeight = 34;
         const float CheckboxSize = 24;
         const float SegmentHeight = 28;
-        const float MeterGap = 12; // vertical gap under the meter plate when the window is parked there
+        const float MeterGap = 12;
         const float CloseGlyphSize = 24;
-        const float MaxContentHeight = 360; // cap; taller than this and the body scrolls
+        const float MaxContentHeight = 360; // taller than this and the body scrolls
         const float ScrollBarWidth = 3;
         const float ScrollStep = 28;
         const float Chamfer = 14;
@@ -31,22 +26,19 @@ namespace HnzCoopSeason.HudUtils
         static readonly Color Accent = new Color(187, 233, 246);
         static readonly Color LabelColor = new Color(187, 233, 246, 210);
         static readonly Color HintColor = new Color(187, 233, 246, 110);
-        static readonly Color SectionColor = new Color(187, 233, 246, 165); // between label and hint: a divider, not a control
+        static readonly Color SectionColor = new Color(187, 233, 246, 165);
         static readonly Color SectionRuleColor = new Color(187, 233, 246, 55);
 
-        // plate (created first = drawn behind everything)
-        readonly TexturedBox[] _plateStrips; // top band / middle / bottom band
+        // created first = drawn behind everything
+        readonly TexturedBox[] _plateStrips;
         readonly TexturedBox[] _plateCorners; // TL, TR, BL, BR
 
         readonly Label _header;
         readonly TexturedBox _headerRule;
-        readonly MouseInputElement _dragInput; // grab area: the header band
+        readonly MouseInputElement _dragInput;
         readonly GlyphButton _closeButton;
 
-        // scrolling body. _clip masks to the visible band; _content is a zero-size anchor inside it
-        // whose offset carries both the alignment to the viewport top and the scroll position, so
-        // the whole control stack below can lay itself out in plain content space and stay ignorant
-        // of either. everything outside _clip's bounds is clipped by the framework.
+        // _clip masks to the visible band; _content's offset carries the scroll
         readonly Pane _clip;
         readonly Pane _content;
         readonly TexturedBox _scrollTrack;
@@ -105,14 +97,12 @@ namespace HnzCoopSeason.HudUtils
 
             _header = new Label(this) { Format = new GlyphFormat(Accent, TextAlignment.Left, 1.05f), Text = "HUD SETTINGS" };
             _headerRule = new TexturedBox(this) { Color = new Color(187, 233, 246, 90), Height = 2 };
-            // DimAlignments.None: MouseInputElement defaults to filling its parent, which would
-            // make the whole window a drag handle and swallow clicks meant for the controls
+            // without None it fills the parent and swallows clicks meant for the controls
             _dragInput = new MouseInputElement(this) { DimAlignment = DimAlignments.None };
 
             _closeButton = new GlyphButton(this, "X", CloseGlyphSize);
             _closeButton.Clicked = Hide;
 
-            // everything from here down lives inside the scroll viewport
             _clip = new Pane(this) { IsMasking = true };
             _content = new Pane(_clip) { Size = Vector2.Zero };
 
@@ -154,7 +144,7 @@ namespace HnzCoopSeason.HudUtils
             _blocksValue = new Label(_content) { Format = new GlyphFormat(Accent, TextAlignment.Right, 0.9f) };
             _blocksSlider = new SliderBox(_content)
             {
-                Min = 0, // 0 = off; the meter goes back to targeting anything with takeover state
+                Min = 0, // 0 = off
                 Max = 500,
                 Width = WindowWidth - PaddingX * 2,
                 Height = 36,
@@ -166,13 +156,12 @@ namespace HnzCoopSeason.HudUtils
             _reticleDistValue = new Label(_content) { Format = new GlyphFormat(Accent, TextAlignment.Right, 0.9f) };
             _reticleDistSlider = new SliderBox(_content)
             {
-                Min = 0, // 0 = never hide by distance; brackets stay on right up to the hull
+                Min = 0, // 0 = never hide by distance
                 Max = 500,
                 Width = WindowWidth - PaddingX * 2,
                 Height = 36,
             };
 
-            // scrollbar rides in the right margin, outside the content's text column
             _scrollTrack = new TexturedBox(this) { Color = new Color(187, 233, 246, 40) };
             _scrollThumb = new TexturedBox(this) { Color = new Color(187, 233, 246, 130) };
 
@@ -236,10 +225,8 @@ namespace HnzCoopSeason.HudUtils
 
             var config = CoopHud.Config;
 
-            // place the window: stored position once dragged, otherwise parked under the meter
             Offset = config.SettingsWindowMoved ? ClampToScreen(config.SettingsWindowOffset) : ParkedUnderMeter();
 
-            // sync checkbox clicks -> config
             var changed = false;
             changed |= Apply(_toggleRows[0].Checkbox.IsBoxChecked, ref config.ShowProgressMeter);
             changed |= Apply(_toggleRows[1].Checkbox.IsBoxChecked, ref config.ShowCaptureMeter);
@@ -247,7 +234,6 @@ namespace HnzCoopSeason.HudUtils
             changed |= Apply(_toggleRows[3].Checkbox.IsBoxChecked, ref config.HideWithWeaponCore);
             changed |= Apply(_toggleRows[4].Checkbox.IsBoxChecked, ref config.MinimalMeter);
 
-            // anchor segments -> config
             var anchor = (MeterAnchor)_anchorSelector.SelectedIndex;
             if (anchor != config.MeterAnchor)
             {
@@ -255,7 +241,7 @@ namespace HnzCoopSeason.HudUtils
                 changed = true;
             }
 
-            // slider: apply live, save once it settles
+            // apply live, save once it settles
             if (Math.Abs(_slider.Current - _lastSliderValue) > 0.5f)
             {
                 _lastSliderValue = _slider.Current;
@@ -280,7 +266,7 @@ namespace HnzCoopSeason.HudUtils
                 CoopHud.SaveNow();
             }
 
-            // integer setting, so compare on the rounded value or every sub-step drag flags a change
+            // compare rounded, or every sub-step drag flags a change
             if ((int)_blocksSlider.Current != (int)_lastBlocksValue)
             {
                 _lastBlocksValue = _blocksSlider.Current;
@@ -312,15 +298,14 @@ namespace HnzCoopSeason.HudUtils
             _blocksValue.Text = (int)_blocksSlider.Current == 0 ? "off" : $"{(int)_blocksSlider.Current} blocks";
             _reticleDistValue.Text = (int)_reticleDistSlider.Current == 0 ? "off" : $"{(int)_reticleDistSlider.Current}m";
 
-            // content stack: header, rule, checkbox rows, slider block, hint
             var left = -WindowWidth / 2 + PaddingX;
             var right = WindowWidth / 2 - PaddingX;
-            var y = 0f; // content top; the plate wraps around the final extent
+            var y = 0f;
 
             _header.Offset = new Vector2(left + _header.Width / 2, y - _header.Height / 2);
             _closeButton.Offset = new Vector2(right - CloseGlyphSize / 2, y - _header.Height / 2);
 
-            // grab band: the header row plus the padding above it, stopping short of the close button
+            // grab band stops short of the close button
             var grabWidth = WindowWidth - CloseGlyphSize - PaddingX;
             _dragInput.Size = new Vector2(grabWidth, PaddingY + _header.Height);
             _dragInput.Offset = new Vector2(-(WindowWidth - grabWidth) / 2, (PaddingY - _header.Height) / 2);
@@ -330,10 +315,7 @@ namespace HnzCoopSeason.HudUtils
             _headerRule.Offset = new Vector2(0, y - 1);
             y -= 14;
 
-            // ---- scrolling body ----------------------------------------------------------
-            // laid out in CONTENT space: yc = 0 at the top of the stack, growing downward. the
-            // viewport alignment and the scroll are both applied once, via _content's own offset,
-            // so nothing in the stack below has to know that it might be scrolled or clipped
+            // scrolling body, laid out in content space: yc = 0 at the top of the stack
             var viewportTop = y;
             var yc = 0f;
 
@@ -356,7 +338,6 @@ namespace HnzCoopSeason.HudUtils
             _slider.Offset = new Vector2(0, yc - _slider.Height / 2);
             yc -= _slider.Height + 6;
 
-            // CAPMETER section break, then its two target-selection sliders
             yc = _capSection.Layout(left, right, yc);
 
             _fovLabel.Offset = new Vector2(left + _fovLabel.Width / 2, yc - _fovLabel.Height / 2);
@@ -371,7 +352,6 @@ namespace HnzCoopSeason.HudUtils
             _blocksSlider.Offset = new Vector2(0, yc - _blocksSlider.Height / 2);
             yc -= _blocksSlider.Height + 6;
 
-            // RETICLE section: the boss brackets are their own overlay, not a capmeter setting
             yc = _reticleSection.Layout(left, right, yc);
 
             _reticleDistLabel.Offset = new Vector2(left + _reticleDistLabel.Width / 2, yc - _reticleDistLabel.Height / 2);
@@ -387,7 +367,6 @@ namespace HnzCoopSeason.HudUtils
 
             _clip.Size = new Vector2(WindowWidth, viewHeight);
             _clip.Offset = new Vector2(0, viewportTop - viewHeight / 2);
-            // content top sits at the viewport top, pushed up by the scroll
             _content.Offset = new Vector2(0, viewHeight / 2 + _scroll);
 
             var scrollable = maxScroll > 0.5f;
@@ -399,7 +378,7 @@ namespace HnzCoopSeason.HudUtils
                 _scrollTrack.Size = new Vector2(ScrollBarWidth, viewHeight);
                 _scrollTrack.Offset = new Vector2(barX, viewportTop - viewHeight / 2);
 
-                // thumb length shows what fraction is on screen; floor it so it stays grabbable
+                // floor the thumb length so it stays grabbable
                 var thumbHeight = MathHelper.Max(24, viewHeight * viewHeight / contentHeight);
                 var travel = viewHeight - thumbHeight;
                 _scrollThumb.Size = new Vector2(ScrollBarWidth, thumbHeight);
@@ -414,18 +393,11 @@ namespace HnzCoopSeason.HudUtils
             LayoutPlate(-y);
         }
 
-        /// <summary>
-        ///     Grab-offset drag on the header band: capture (position - cursor) on click and
-        ///     re-apply it every frame while held, so the window never drifts from the grab
-        ///     point. Position is written live for WYSIWYG; the disk write waits for release.
-        /// </summary>
         protected override void HandleInput(Vector2 cursorPos)
         {
             if (!Visible) return;
 
-            // wheel scrolls the body while the cursor is anywhere over the window. bounds are
-            // tested by hand rather than via the framework's mouseover: LayoutPlate hangs the
-            // plate PaddingY above the element centre, so the drawn box is not centred on Origin
+            // bounds tested by hand: the plate hangs PaddingY above the element centre
             var local = cursorPos - (Origin + Offset);
             if (Math.Abs(local.X) <= WindowWidth / 2 && local.Y <= PaddingY && local.Y >= PaddingY - Size.Y)
             {
@@ -453,7 +425,6 @@ namespace HnzCoopSeason.HudUtils
             config.SettingsWindowMoved = true;
         }
 
-        /// <summary>Default spot: tucked under the meter plate, left edges flush.</summary>
         Vector2 ParkedUnderMeter()
         {
             var meter = CoopHud.Meter;
@@ -463,7 +434,7 @@ namespace HnzCoopSeason.HudUtils
             return ClampToScreen(new Vector2(bottomLeft.X + WindowWidth / 2, bottomLeft.Y - MeterGap - PaddingY));
         }
 
-        /// <summary>Keeps the whole plate on screen. The plate sits PaddingY above the element center.</summary>
+        // the plate sits PaddingY above the element center
         Vector2 ClampToScreen(Vector2 offset)
         {
             var halfScreenX = HudMain.ScreenWidth / HudMain.ResScale * 0.5f;
@@ -474,10 +445,7 @@ namespace HnzCoopSeason.HudUtils
                 MathHelper.Clamp(offset.Y, -halfScreenY + Size.Y - PaddingY, halfScreenY - PaddingY));
         }
 
-        /// <summary>
-        ///     Bare container. HudElementBase is abstract and the framework has no plain-node
-        ///     element, but a parent is all that is needed here: one to mask, one to scroll.
-        /// </summary>
+        // bare container; the framework has no plain-node element
         sealed class Pane : HudElementBase
         {
             public Pane(HudParentBase parent) : base(parent)
@@ -485,14 +453,9 @@ namespace HnzCoopSeason.HudUtils
             }
         }
 
-        /// <summary>
-        ///     Group divider: LABEL followed by a rule running out to the right edge. Deliberately
-        ///     not the window header's full-width underline — at the same width and weight that
-        ///     reads as a second title rather than a break inside one window.
-        /// </summary>
         sealed class SectionHeader
         {
-            const float GapBefore = 10; // breathing room above the break
+            const float GapBefore = 10;
             const float GapAfter = 8;
             const float LabelToRule = 10;
 
@@ -505,7 +468,7 @@ namespace HnzCoopSeason.HudUtils
                 _rule = new TexturedBox(parent) { Color = SectionRuleColor, Height = 1 };
             }
 
-            /// <returns>the new content top, below the divider</returns>
+            // returns the new content top, below the divider
             public float Layout(float left, float right, float y)
             {
                 y -= GapBefore;
@@ -530,8 +493,7 @@ namespace HnzCoopSeason.HudUtils
 
         void LayoutPlate(float contentHeight)
         {
-            // plate reads exactly like the meter's: same RGB, alpha driven by the game's
-            // HUD background opacity setting, so both plates sit at the same weight
+            // alpha follows the game's HUD background opacity, like the meter plate
             var opacity = MathHelper.Clamp(Sandbox.ModAPI.MyAPIGateway.Session.Config.HUDBkOpacity, 0f, 1f);
             var plateColor = new Color(MeterPanel.BackColor.R, MeterPanel.BackColor.G, MeterPanel.BackColor.B, (byte)(opacity * 255));
 
@@ -567,16 +529,12 @@ namespace HnzCoopSeason.HudUtils
             }
         }
 
-        /// <summary>
-        ///     Small square action button: flat box with a centered accent glyph,
-        ///     brightening on hover.
-        /// </summary>
         sealed class GlyphButton : HudElementBase
         {
             static readonly Color IdleFill = new Color(187, 233, 246, 28);
             static readonly Color HoverFill = new Color(187, 233, 246, 90);
 
-            public Action Clicked; // Action, not EventHandler — EventHandler is off the SE whitelist
+            public Action Clicked; // EventHandler is off the SE whitelist
 
             readonly TexturedBox _box;
             readonly MouseInputElement _input;
@@ -587,7 +545,7 @@ namespace HnzCoopSeason.HudUtils
 
                 _box = new TexturedBox(this) { DimAlignment = DimAlignments.Both, Color = IdleFill };
 
-                // ReSharper disable once ObjectCreationAsStatement — the glyph parents itself
+                // ReSharper disable once ObjectCreationAsStatement
                 new Label(this) { Format = new GlyphFormat(Accent, TextAlignment.Center, 0.8f), Text = glyph };
 
                 _input = new MouseInputElement(this);
@@ -600,14 +558,6 @@ namespace HnzCoopSeason.HudUtils
             }
         }
 
-        /// <summary>
-        ///     Segmented option row — the whole choice is visible and one click wide:
-        ///     [ LEFT ][ CENTER ][ RIGHT ]. The selected segment gets a single bright edge
-        ///     rather than a solid fill — a fill this bright leaves the label unreadable
-        ///     at any text colour.
-        ///     (A dropdown would hide two of three options behind an extra click and drop
-        ///     an unstyled Rich HUD list over this window's plate.)
-        /// </summary>
         sealed class SegmentedSelector
         {
             const float SegmentGap = 4;
@@ -615,7 +565,7 @@ namespace HnzCoopSeason.HudUtils
             static readonly Color IdleFill = new Color(187, 233, 246, 14);
             static readonly Color HoverFill = new Color(187, 233, 246, 45);
             static readonly Color EdgeColor = new Color(187, 233, 246, 255);
-            static readonly Color SelectedTextColor = new Color(225, 246, 255); // brightest text in the row
+            static readonly Color SelectedTextColor = new Color(225, 246, 255);
 
             public int SelectedIndex;
 
@@ -632,11 +582,11 @@ namespace HnzCoopSeason.HudUtils
 
                 for (var i = 0; i < options.Length; i++)
                 {
-                    var index = i; // capture per iteration for the click handler
+                    var index = i; // capture per iteration
                     var segment = new Button(parent)
                     {
                         Color = IdleFill,
-                        HighlightEnabled = false, // built-in highlight swaps Color and would fight the selected state
+                        HighlightEnabled = false, // built-in highlight would fight the selected state
                     };
 
                     segment.MouseInput.LeftClicked += (sender, e) => SelectedIndex = index;
@@ -644,7 +594,7 @@ namespace HnzCoopSeason.HudUtils
 
                     _edges[i] = new BorderBox(parent) { Color = EdgeColor, Thickness = 1.5f };
 
-                    // labels are registered last, so they draw on top of the segment art
+                    // registered last so they draw on top of the segment art
                     _labels[i] = new Label(parent)
                     {
                         Format = new GlyphFormat(LabelColor, TextAlignment.Center, 0.82f),
@@ -675,7 +625,7 @@ namespace HnzCoopSeason.HudUtils
                     _labels[i].Offset = center;
                 }
 
-                // re-formatting rebuilds the text board; only touch it when the selection moves
+                // re-formatting rebuilds the text board
                 if (_formattedIndex == SelectedIndex) return;
 
                 for (var i = 0; i < _labels.Length; i++)
@@ -687,10 +637,6 @@ namespace HnzCoopSeason.HudUtils
             }
         }
 
-        /// <summary>
-        ///     One settings row: label flush-left, checkbox flush-right — the alignment the
-        ///     Rich HUD terminal can't do.
-        /// </summary>
         sealed class CheckboxRow
         {
             public readonly BorderedCheckBox Checkbox;

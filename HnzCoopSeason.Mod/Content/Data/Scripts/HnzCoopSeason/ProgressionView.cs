@@ -22,13 +22,12 @@ namespace HnzCoopSeason
 
             MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(ModKey, OnMessageReceived);
 
-            // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
                 _state = new MeterState
                 {
                     BarName = "PEACEMETER",
-                    Subtitle = SubtitleUnderOrks, // replaced per-payload once progress arrives
+                    Subtitle = SubtitleUnderOrks,
                 };
 
                 ScreenTopHud.Instance.AddGroup(nameof(ProgressionView), _state, 0);
@@ -41,7 +40,6 @@ namespace HnzCoopSeason
 
             MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
 
-            // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
                 ScreenTopHud.Instance.RemoveGroup(nameof(ProgressionView));
@@ -54,7 +52,6 @@ namespace HnzCoopSeason
             if (MyAPIGateway.Session.GameplayFrameCounter % 15 != 0) return;
             if (_state == null) return;
 
-            // yield the screen-top slot while WeaponCore's target HUD is showing (opt-in)
             ScreenTopHud.Instance.SetActive(nameof(ProgressionView), !CoopHud.YieldToWeaponCore);
         }
 
@@ -77,7 +74,7 @@ namespace HnzCoopSeason
             var payload = CreateUpdatePayload();
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
 
-            if (MyAPIGateway.Utilities.IsDedicated) // dedi
+            if (MyAPIGateway.Utilities.IsDedicated)
             {
                 MyAPIGateway.Multiplayer.SendMessageToOthers(ModKey, bytes, true);
                 MyLog.Default.Info("[HnzCoopSeason] progress sent: {0:0.00}", payload.Progress);
@@ -98,7 +95,7 @@ namespace HnzCoopSeason
                 payload = CreateUpdatePayload();
                 bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
 
-                if (MyAPIGateway.Utilities.IsDedicated) // dedi
+                if (MyAPIGateway.Utilities.IsDedicated)
                 {
                     MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, senderId, true);
                 }
@@ -134,7 +131,6 @@ namespace HnzCoopSeason
             _state.ValueText = p100 == 0 ? "0%" : p100 < 1f ? $"{p100:0.0}%" : $"{p100:0}%";
             _state.Title = $"Sector Liberation - Tier {payload.ProgressionLevel}";
 
-            // same >= 1f test the bar uses to turn green, so the two flip together
             _state.Subtitle = payload.Progress >= 1f ? SubtitleLiberated : SubtitleUnderOrks;
 
             _state.Description = payload.MinPoiPlayerCount > 1

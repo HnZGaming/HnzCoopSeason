@@ -98,9 +98,7 @@ namespace HnzCoopSeason
             {
                 var state = ComputeTakeover(grid);
 
-                // carry the controller high-water mark forward. ComputeTakeover only ever sees the
-                // blocks that are on the grid NOW, so a ground-off controller silently shrinks the
-                // set; the capmeter needs the original count to keep reading 3/4 rather than 3/3
+                // carry the high-water mark forward; grinding a controller shrinks the live set
                 TakeoverState previous;
                 if (TryLoadTakeoverState(grid, out previous) && previous != null)
                 {

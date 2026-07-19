@@ -103,6 +103,7 @@ namespace HnzCoopSeason.Orks
         }
 
         public bool HasMainGrid => _mainGrid != null && !_mainGrid.Closed;
+        public long MainGridId => HasMainGrid ? _mainGrid.EntityId : 0;
 
         bool IPoiObserver.TryGetPosition(out Vector3D position)
         {
@@ -142,12 +143,16 @@ namespace HnzCoopSeason.Orks
             Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
 
             _mainGrid = grid;
+
+            PoiMapView.Instance.OnPoiStateUpdated(); // spawn isn't a state change, so nothing else pushes it
         }
 
         void OnMainGridUnset(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid despawn");
             _mainGrid = null;
+
+            PoiMapView.Instance.OnPoiStateUpdated();
         }
 
         void OnAnyTakeoverStateChanged(long gridId)

@@ -20,7 +20,10 @@ namespace HnzCoopSeason.POI
         readonly GpsVisibilityStore _visibility;
         readonly HashSet<string> _autoHidden = new HashSet<string>(); // hidden by us, not by the player
         readonly HashSet<string> _autoHideOverridden = new HashSet<string>(); // player turned an auto-hidden marker back on
+        static readonly HashSet<long> BossGrids = new HashSet<long>(); // server-told; see PoiOrk.MainGridId
         bool _visibilityLoaded;
+
+        public static bool IsBossGrid(long entityId) => entityId != 0 && BossGrids.Contains(entityId);
 
         PoiMapView()
         {
@@ -40,6 +43,7 @@ namespace HnzCoopSeason.POI
         public void Unload()
         {
             _markers.Clear();
+            BossGrids.Clear();
             _requestMessenger.Unload();
             _responseMessenger.Unload();
         }
@@ -151,7 +155,7 @@ namespace HnzCoopSeason.POI
                                 && ork.HasMainGrid
                                 && Vector3D.DistanceSquared(player.GetPosition(), position) <= bossRange * bossRange;
 
-                markers.Add(new Marker(poi.Id, position, poi.State, ork?.GetProgressLevel() ?? 0, hideOnHud));
+                markers.Add(new Marker(poi.Id, position, poi.State, ork?.GetProgressLevel() ?? 0, hideOnHud, ork?.MainGridId ?? 0));
             }
 
             MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending response");
@@ -166,6 +170,12 @@ namespace HnzCoopSeason.POI
 
             // capture before the new states land, or a fresh hide gets stamped with the incoming state
             if (_visibilityLoaded) CapturePlayerToggles();
+
+            BossGrids.Clear();
+            foreach (var m in payload.Markers)
+            {
+                if (m.BossGridId != 0) BossGrids.Add(m.BossGridId);
+            }
 
             var presentIds = new HashSet<string>(payload.Markers.Select(m => m.Id));
 
@@ -322,18 +332,22 @@ namespace HnzCoopSeason.POI
             [ProtoMember(5)]
             public bool HideOnHud; // boss broadcasts its own marker here
 
+            [ProtoMember(6)]
+            public long BossGridId; // 0 if no boss is up
+
             // ReSharper disable once UnusedMember.Local
             Marker()
             {
             }
 
-            public Marker(string id, Vector3D position, PoiState state, int level, bool hideOnHud)
+            public Marker(string id, Vector3D position, PoiState state, int level, bool hideOnHud, long bossGridId)
             {
                 Id = id;
                 Position = position;
                 State = state;
                 Level = level;
                 HideOnHud = hideOnHud;
+                BossGridId = bossGridId;
             }
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GridStorage.API;
 using HnzCoopSeason.HudUtils;
+using HnzCoopSeason.POI;
 using HnzCoopSeason.Spawners;
 using HnzUtils;
 using HnzUtils.Pools;
@@ -239,12 +240,16 @@ namespace HnzCoopSeason.NPC
                 Position = GetReticlePosition(analysis.Grid),
                 LocalBox = analysis.Grid.LocalAABB,
                 WorldMatrix = analysis.Grid.WorldMatrix,
-                IsBoss = analysis.SpawnGroupIndex == 0 && analysis.FactionTag == "PORKS",
+                IsBoss = IsBossOrk(ref analysis),
             });
         }
 
         static bool IsBossOrk(ref Analysis analysis)
         {
+            // the server tells us; the spawn-group index below is a same-frame fallback that only
+            // resolves in single player, since MES writes its context after the grid replicates
+            if (analysis.Grid != null && PoiMapView.IsBossGrid(analysis.Grid.EntityId)) return true;
+
             return analysis.SpawnGroupIndex == 0 && analysis.FactionTag == "PORKS";
         }
 

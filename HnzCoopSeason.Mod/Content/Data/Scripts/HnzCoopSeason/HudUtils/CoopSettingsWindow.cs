@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
@@ -21,6 +21,9 @@ namespace HnzCoopSeason.HudUtils
         const float SegmentHeight = 28;
         const float MeterGap = 12; // vertical gap under the meter plate when the window is parked there
         const float CloseGlyphSize = 24;
+        const float MaxContentHeight = 350; // cap; taller than this and the body scrolls
+        const float ScrollBarWidth = 3;
+        const float ScrollStep = 28;
         const float Chamfer = 14;
         const float AtlasSize = 64;
         const float CellSize = 32;
@@ -28,6 +31,8 @@ namespace HnzCoopSeason.HudUtils
         static readonly Color Accent = new Color(187, 233, 246);
         static readonly Color LabelColor = new Color(187, 233, 246, 210);
         static readonly Color HintColor = new Color(187, 233, 246, 110);
+        static readonly Color SectionColor = new Color(187, 233, 246, 165); // between label and hint: a divider, not a control
+        static readonly Color SectionRuleColor = new Color(187, 233, 246, 55);
 
         // plate (created first = drawn behind everything)
         readonly TexturedBox[] _plateStrips; // top band / middle / bottom band
@@ -38,6 +43,16 @@ namespace HnzCoopSeason.HudUtils
         readonly MouseInputElement _dragInput; // grab area: the header band
         readonly GlyphButton _closeButton;
 
+        // scrolling body. _clip masks to the visible band; _content is a zero-size anchor inside it
+        // whose offset carries both the alignment to the viewport top and the scroll position, so
+        // the whole control stack below can lay itself out in plain content space and stay ignorant
+        // of either. everything outside _clip's bounds is clipped by the framework.
+        readonly Pane _clip;
+        readonly Pane _content;
+        readonly TexturedBox _scrollTrack;
+        readonly TexturedBox _scrollThumb;
+        float _scroll;
+
         Vector2 _cursorOffset;
         bool _dragging;
         readonly CheckboxRow[] _toggleRows;
@@ -46,10 +61,27 @@ namespace HnzCoopSeason.HudUtils
         readonly Label _sliderLabel;
         readonly Label _sliderValue;
         readonly SliderBox _slider;
+        readonly SectionHeader _capSection;
+        readonly Label _fovLabel;
+        readonly Label _fovValue;
+        readonly SliderBox _fovSlider;
+        readonly Label _blocksLabel;
+        readonly Label _blocksValue;
+        readonly SliderBox _blocksSlider;
+        readonly SectionHeader _reticleSection;
+        readonly Label _reticleDistLabel;
+        readonly Label _reticleDistValue;
+        readonly SliderBox _reticleDistSlider;
         readonly Label _hint;
 
         float _lastSliderValue;
         int _sliderSettleFrames;
+        float _lastFovValue;
+        int _fovSettleFrames;
+        float _lastBlocksValue;
+        int _blocksSettleFrames;
+        float _lastReticleDistValue;
+        int _reticleDistSettleFrames;
 
         public CoopSettingsWindow(HudParentBase parent) : base(parent)
         {
@@ -80,27 +112,69 @@ namespace HnzCoopSeason.HudUtils
             _closeButton = new GlyphButton(this, "X", CloseGlyphSize);
             _closeButton.Clicked = Hide;
 
+            // everything from here down lives inside the scroll viewport
+            _clip = new Pane(this) { IsMasking = true };
+            _content = new Pane(_clip) { Size = Vector2.Zero };
+
             _toggleRows = new[]
             {
-                new CheckboxRow(this, "Progress meter"),
-                new CheckboxRow(this, "Capture meter"),
-                new CheckboxRow(this, "Target reticle"),
-                new CheckboxRow(this, "Hide with WeaponCore"),
-                new CheckboxRow(this, "Minimal meter"),
+                new CheckboxRow(_content, "Progress meter"),
+                new CheckboxRow(_content, "Capture meter"),
+                new CheckboxRow(_content, "Target reticle"),
+                new CheckboxRow(_content, "Hide with WeaponCore"),
+                new CheckboxRow(_content, "Minimal meter"),
             };
 
-            _anchorLabel = new Label(this) { Format = new GlyphFormat(LabelColor, TextAlignment.Left, 0.9f), Text = "Meter anchor" };
-            _anchorSelector = new SegmentedSelector(this, "LEFT", "CENTER", "RIGHT");
+            _anchorLabel = new Label(_content) { Format = new GlyphFormat(LabelColor, TextAlignment.Left, 0.9f), Text = "Meter anchor" };
+            _anchorSelector = new SegmentedSelector(_content, "LEFT", "CENTER", "RIGHT");
 
-            _sliderLabel = new Label(this) { Format = new GlyphFormat(LabelColor, TextAlignment.Left, 0.9f), Text = "Meter vertical offset" };
-            _sliderValue = new Label(this) { Format = new GlyphFormat(Accent, TextAlignment.Right, 0.9f) };
-            _slider = new SliderBox(this)
+            _sliderLabel = new Label(_content) { Format = new GlyphFormat(LabelColor, TextAlignment.Left, 0.9f), Text = "Meter vertical offset" };
+            _sliderValue = new Label(_content) { Format = new GlyphFormat(Accent, TextAlignment.Right, 0.9f) };
+            _slider = new SliderBox(_content)
             {
                 Min = 40,
                 Max = 300,
                 Width = WindowWidth - PaddingX * 2,
                 Height = 36,
             };
+
+            _capSection = new SectionHeader(_content, "CAPMETER");
+
+            _fovLabel = new Label(_content) { Format = new GlyphFormat(LabelColor, TextAlignment.Left, 0.9f), Text = "Target cone" };
+            _fovValue = new Label(_content) { Format = new GlyphFormat(Accent, TextAlignment.Right, 0.9f) };
+            _fovSlider = new SliderBox(_content)
+            {
+                Min = 2,
+                Max = 45,
+                Width = WindowWidth - PaddingX * 2,
+                Height = 36,
+            };
+
+            _blocksLabel = new Label(_content) { Format = new GlyphFormat(LabelColor, TextAlignment.Left, 0.9f), Text = "Ignore grids under" };
+            _blocksValue = new Label(_content) { Format = new GlyphFormat(Accent, TextAlignment.Right, 0.9f) };
+            _blocksSlider = new SliderBox(_content)
+            {
+                Min = 0, // 0 = off; the meter goes back to targeting anything with takeover state
+                Max = 500,
+                Width = WindowWidth - PaddingX * 2,
+                Height = 36,
+            };
+
+            _reticleSection = new SectionHeader(_content, "RETICLE");
+
+            _reticleDistLabel = new Label(_content) { Format = new GlyphFormat(LabelColor, TextAlignment.Left, 0.9f), Text = "Hide reticle within" };
+            _reticleDistValue = new Label(_content) { Format = new GlyphFormat(Accent, TextAlignment.Right, 0.9f) };
+            _reticleDistSlider = new SliderBox(_content)
+            {
+                Min = 0, // 0 = never hide by distance; brackets stay on right up to the hull
+                Max = 500,
+                Width = WindowWidth - PaddingX * 2,
+                Height = 36,
+            };
+
+            // scrollbar rides in the right margin, outside the content's text column
+            _scrollTrack = new TexturedBox(this) { Color = new Color(187, 233, 246, 40) };
+            _scrollThumb = new TexturedBox(this) { Color = new Color(187, 233, 246, 130) };
 
             _hint = new Label(this) { Format = new GlyphFormat(HintColor, TextAlignment.Center, 0.72f), Text = "drag the header to move" };
 
@@ -118,6 +192,17 @@ namespace HnzCoopSeason.HudUtils
             _anchorSelector.SelectedIndex = (int)config.MeterAnchor;
             _slider.Current = config.MeterTopMargin;
             _lastSliderValue = config.MeterTopMargin;
+
+            _fovSlider.Current = config.ReticleFov;
+            _lastFovValue = config.ReticleFov;
+
+            _blocksSlider.Current = config.MinTargetBlocks;
+            _lastBlocksValue = config.MinTargetBlocks;
+
+            _reticleDistSlider.Current = config.ReticleMinDistance;
+            _lastReticleDistValue = config.ReticleMinDistance;
+
+            _scroll = 0; // reopen at the top
 
             Visible = true;
             HudMain.EnableCursor = true;
@@ -183,9 +268,49 @@ namespace HnzCoopSeason.HudUtils
                 CoopHud.SaveNow();
             }
 
+            if (Math.Abs(_fovSlider.Current - _lastFovValue) > 0.25f)
+            {
+                _lastFovValue = _fovSlider.Current;
+                config.ReticleFov = _fovSlider.Current;
+                _fovSettleFrames = 45;
+                changed = true;
+            }
+            else if (_fovSettleFrames > 0 && --_fovSettleFrames == 0)
+            {
+                CoopHud.SaveNow();
+            }
+
+            // integer setting, so compare on the rounded value or every sub-step drag flags a change
+            if ((int)_blocksSlider.Current != (int)_lastBlocksValue)
+            {
+                _lastBlocksValue = _blocksSlider.Current;
+                config.MinTargetBlocks = (int)_blocksSlider.Current;
+                _blocksSettleFrames = 45;
+                changed = true;
+            }
+            else if (_blocksSettleFrames > 0 && --_blocksSettleFrames == 0)
+            {
+                CoopHud.SaveNow();
+            }
+
+            if ((int)_reticleDistSlider.Current != (int)_lastReticleDistValue)
+            {
+                _lastReticleDistValue = _reticleDistSlider.Current;
+                config.ReticleMinDistance = _reticleDistSlider.Current;
+                _reticleDistSettleFrames = 45;
+                changed = true;
+            }
+            else if (_reticleDistSettleFrames > 0 && --_reticleDistSettleFrames == 0)
+            {
+                CoopHud.SaveNow();
+            }
+
             if (changed) CoopHud.ApplyConfigNow();
 
             _sliderValue.Text = $"{(int)_slider.Current}px";
+            _fovValue.Text = $"{(int)_fovSlider.Current}°";
+            _blocksValue.Text = (int)_blocksSlider.Current == 0 ? "off" : $"{(int)_blocksSlider.Current} blocks";
+            _reticleDistValue.Text = (int)_reticleDistSlider.Current == 0 ? "off" : $"{(int)_reticleDistSlider.Current}m";
 
             // content stack: header, rule, checkbox rows, slider block, hint
             var left = -WindowWidth / 2 + PaddingX;
@@ -205,24 +330,83 @@ namespace HnzCoopSeason.HudUtils
             _headerRule.Offset = new Vector2(0, y - 1);
             y -= 14;
 
+            // ---- scrolling body ----------------------------------------------------------
+            // laid out in CONTENT space: yc = 0 at the top of the stack, growing downward. the
+            // viewport alignment and the scroll are both applied once, via _content's own offset,
+            // so nothing in the stack below has to know that it might be scrolled or clipped
+            var viewportTop = y;
+            var yc = 0f;
+
             foreach (var row in _toggleRows)
             {
-                row.Layout(left, right, y, RowHeight, CheckboxSize);
-                y -= RowHeight;
+                row.Layout(left, right, yc, RowHeight, CheckboxSize);
+                yc -= RowHeight;
             }
 
-            y -= 8;
-            _anchorLabel.Offset = new Vector2(left + _anchorLabel.Width / 2, y - _anchorLabel.Height / 2);
-            y -= _anchorLabel.Height + 6;
-            _anchorSelector.Layout(left, right, y, SegmentHeight);
-            y -= SegmentHeight;
+            yc -= 8;
+            _anchorLabel.Offset = new Vector2(left + _anchorLabel.Width / 2, yc - _anchorLabel.Height / 2);
+            yc -= _anchorLabel.Height + 6;
+            _anchorSelector.Layout(left, right, yc, SegmentHeight);
+            yc -= SegmentHeight;
 
-            y -= 8;
-            _sliderLabel.Offset = new Vector2(left + _sliderLabel.Width / 2, y - _sliderLabel.Height / 2);
-            _sliderValue.Offset = new Vector2(right - _sliderValue.Width / 2, y - _sliderValue.Height / 2);
-            y -= MathHelper.Max(_sliderLabel.Height, _sliderValue.Height) + 4;
-            _slider.Offset = new Vector2(0, y - _slider.Height / 2);
-            y -= _slider.Height + 6;
+            yc -= 8;
+            _sliderLabel.Offset = new Vector2(left + _sliderLabel.Width / 2, yc - _sliderLabel.Height / 2);
+            _sliderValue.Offset = new Vector2(right - _sliderValue.Width / 2, yc - _sliderValue.Height / 2);
+            yc -= MathHelper.Max(_sliderLabel.Height, _sliderValue.Height) + 4;
+            _slider.Offset = new Vector2(0, yc - _slider.Height / 2);
+            yc -= _slider.Height + 6;
+
+            // CAPMETER section break, then its two target-selection sliders
+            yc = _capSection.Layout(left, right, yc);
+
+            _fovLabel.Offset = new Vector2(left + _fovLabel.Width / 2, yc - _fovLabel.Height / 2);
+            _fovValue.Offset = new Vector2(right - _fovValue.Width / 2, yc - _fovValue.Height / 2);
+            yc -= MathHelper.Max(_fovLabel.Height, _fovValue.Height) + 4;
+            _fovSlider.Offset = new Vector2(0, yc - _fovSlider.Height / 2);
+            yc -= _fovSlider.Height + 6;
+
+            _blocksLabel.Offset = new Vector2(left + _blocksLabel.Width / 2, yc - _blocksLabel.Height / 2);
+            _blocksValue.Offset = new Vector2(right - _blocksValue.Width / 2, yc - _blocksValue.Height / 2);
+            yc -= MathHelper.Max(_blocksLabel.Height, _blocksValue.Height) + 4;
+            _blocksSlider.Offset = new Vector2(0, yc - _blocksSlider.Height / 2);
+            yc -= _blocksSlider.Height + 6;
+
+            // RETICLE section: the boss brackets are their own overlay, not a capmeter setting
+            yc = _reticleSection.Layout(left, right, yc);
+
+            _reticleDistLabel.Offset = new Vector2(left + _reticleDistLabel.Width / 2, yc - _reticleDistLabel.Height / 2);
+            _reticleDistValue.Offset = new Vector2(right - _reticleDistValue.Width / 2, yc - _reticleDistValue.Height / 2);
+            yc -= MathHelper.Max(_reticleDistLabel.Height, _reticleDistValue.Height) + 4;
+            _reticleDistSlider.Offset = new Vector2(0, yc - _reticleDistSlider.Height / 2);
+            yc -= _reticleDistSlider.Height + 6;
+
+            var contentHeight = -yc;
+            var viewHeight = MathHelper.Min(contentHeight, MaxContentHeight);
+            var maxScroll = MathHelper.Max(0, contentHeight - viewHeight);
+            _scroll = MathHelper.Clamp(_scroll, 0, maxScroll);
+
+            _clip.Size = new Vector2(WindowWidth, viewHeight);
+            _clip.Offset = new Vector2(0, viewportTop - viewHeight / 2);
+            // content top sits at the viewport top, pushed up by the scroll
+            _content.Offset = new Vector2(0, viewHeight / 2 + _scroll);
+
+            var scrollable = maxScroll > 0.5f;
+            _scrollTrack.Visible = scrollable;
+            _scrollThumb.Visible = scrollable;
+            if (scrollable)
+            {
+                var barX = WindowWidth / 2 - PaddingX / 2;
+                _scrollTrack.Size = new Vector2(ScrollBarWidth, viewHeight);
+                _scrollTrack.Offset = new Vector2(barX, viewportTop - viewHeight / 2);
+
+                // thumb length shows what fraction is on screen; floor it so it stays grabbable
+                var thumbHeight = MathHelper.Max(24, viewHeight * viewHeight / contentHeight);
+                var travel = viewHeight - thumbHeight;
+                _scrollThumb.Size = new Vector2(ScrollBarWidth, thumbHeight);
+                _scrollThumb.Offset = new Vector2(barX, viewportTop - thumbHeight / 2 - travel * (_scroll / maxScroll));
+            }
+
+            y = viewportTop - viewHeight - 8;
 
             _hint.Offset = new Vector2(0, y - _hint.Height / 2);
             y -= _hint.Height;
@@ -238,6 +422,16 @@ namespace HnzCoopSeason.HudUtils
         protected override void HandleInput(Vector2 cursorPos)
         {
             if (!Visible) return;
+
+            // wheel scrolls the body while the cursor is anywhere over the window. bounds are
+            // tested by hand rather than via the framework's mouseover: LayoutPlate hangs the
+            // plate PaddingY above the element centre, so the drawn box is not centred on Origin
+            var local = cursorPos - (Origin + Offset);
+            if (Math.Abs(local.X) <= WindowWidth / 2 && local.Y <= PaddingY && local.Y >= PaddingY - Size.Y)
+            {
+                if (SharedBinds.MousewheelUp.IsPressed) _scroll -= ScrollStep;
+                else if (SharedBinds.MousewheelDown.IsPressed) _scroll += ScrollStep; // clamped in Layout
+            }
 
             if (_dragInput.IsNewLeftClicked)
             {
@@ -278,6 +472,52 @@ namespace HnzCoopSeason.HudUtils
             return new Vector2(
                 MathHelper.Clamp(offset.X, -halfScreenX + WindowWidth / 2, halfScreenX - WindowWidth / 2),
                 MathHelper.Clamp(offset.Y, -halfScreenY + Size.Y - PaddingY, halfScreenY - PaddingY));
+        }
+
+        /// <summary>
+        ///     Bare container. HudElementBase is abstract and the framework has no plain-node
+        ///     element, but a parent is all that is needed here: one to mask, one to scroll.
+        /// </summary>
+        sealed class Pane : HudElementBase
+        {
+            public Pane(HudParentBase parent) : base(parent)
+            {
+            }
+        }
+
+        /// <summary>
+        ///     Group divider: LABEL followed by a rule running out to the right edge. Deliberately
+        ///     not the window header's full-width underline — at the same width and weight that
+        ///     reads as a second title rather than a break inside one window.
+        /// </summary>
+        sealed class SectionHeader
+        {
+            const float GapBefore = 10; // breathing room above the break
+            const float GapAfter = 8;
+            const float LabelToRule = 10;
+
+            readonly Label _label;
+            readonly TexturedBox _rule;
+
+            public SectionHeader(HudParentBase parent, string text)
+            {
+                _label = new Label(parent) { Format = new GlyphFormat(SectionColor, TextAlignment.Left, 0.82f), Text = text };
+                _rule = new TexturedBox(parent) { Color = SectionRuleColor, Height = 1 };
+            }
+
+            /// <returns>the new content top, below the divider</returns>
+            public float Layout(float left, float right, float y)
+            {
+                y -= GapBefore;
+
+                _label.Offset = new Vector2(left + _label.Width / 2, y - _label.Height / 2);
+
+                var ruleLeft = left + _label.Width + LabelToRule;
+                _rule.Width = MathHelper.Max(right - ruleLeft, 1);
+                _rule.Offset = new Vector2(ruleLeft + _rule.Width / 2, y - _label.Height / 2);
+
+                return y - (_label.Height + GapAfter);
+            }
         }
 
         static bool Apply(bool value, ref bool target)

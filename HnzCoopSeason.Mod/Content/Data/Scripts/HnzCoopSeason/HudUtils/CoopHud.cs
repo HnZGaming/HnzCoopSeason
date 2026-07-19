@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using HnzCoopSeason.NPC;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
@@ -18,11 +18,14 @@ namespace HnzCoopSeason.HudUtils
         const string ConfigFileName = "HnzCoopSeason.HudConfig.xml";
 
         static MeterPanel _meterPanel;
-        static TargetReticle _targetReticle;
+        static TargetReticle[] _targetReticles;
         static CoopSettingsWindow _settingsWindow;
         static HudConfig _config = new HudConfig();
 
         public static bool ShowTargetReticle => _config.ShowTargetReticle;
+        public static float ReticleFov => _config.ReticleFov;
+        public static int MinTargetBlocks => _config.MinTargetBlocks;
+        public static double ReticleMinDistance => _config.ReticleMinDistance;
 
         /// <summary>
         ///     True while the meter should stand down for WeaponCore's target panel.
@@ -42,7 +45,11 @@ namespace HnzCoopSeason.HudUtils
 
             _config = LoadConfig();
             _meterPanel = new MeterPanel(HudMain.HighDpiRoot);
-            _targetReticle = new TargetReticle(HudMain.HighDpiRoot);
+            _targetReticles = new TargetReticle[TargetReticle.PoolSize];
+            for (var i = 0; i < _targetReticles.Length; i++)
+            {
+                _targetReticles[i] = new TargetReticle(HudMain.HighDpiRoot, i);
+            }
             _settingsWindow = new CoopSettingsWindow(HudMain.HighDpiRoot);
             ApplyConfig();
             CreateTerminalPage();
@@ -53,8 +60,16 @@ namespace HnzCoopSeason.HudUtils
             MyLog.Default.Info("[HnzCoopSeason] CoopHud.Unload()");
             _meterPanel?.Unregister();
             _meterPanel = null;
-            _targetReticle?.Unregister();
-            _targetReticle = null;
+            TargetReticle.Clear();
+            if (_targetReticles != null)
+            {
+                foreach (var reticle in _targetReticles)
+                {
+                    reticle?.Unregister();
+                }
+
+                _targetReticles = null;
+            }
             _settingsWindow?.Close();
             _settingsWindow = null;
         }
@@ -143,6 +158,9 @@ namespace HnzCoopSeason.HudUtils
             public bool ShowCaptureMeter = true;
             public bool ShowTargetReticle = true;
             public float MeterTopMargin = 50;
+            public float ReticleFov = 10; // half-angle from screen centre, degrees, within which a grid can be targeted
+            public int MinTargetBlocks = 10; // grids smaller than this are wreckage, not targets; 0 disables the filter
+            public float ReticleMinDistance = 0; // brackets hidden closer than this, in metres; 0 keeps them on all the way in
             public MeterAnchor MeterAnchor = MeterAnchor.Left;
             public bool HideWithWeaponCore = false; // yield the meter slot while WC draws its target panel
             public bool MinimalMeter = false; // drop the meters' subtitle/description lines, keeping title + bar

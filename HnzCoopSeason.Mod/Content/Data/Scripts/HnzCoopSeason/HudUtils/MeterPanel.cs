@@ -120,7 +120,7 @@ namespace HnzCoopSeason.HudUtils
                 AnchorOffsetX(),
                 HudMain.ScreenHeight / HudMain.ResScale * 0.5f - TopMargin);
 
-            _bar.SetProgress(state.Progress, state.HealthStyle);
+            _bar.SetProgress(state.Progress, state.HealthStyle, state.CompleteText);
 
             const float halfWidth = CapsuleBar.BarWidth / 2;
 
@@ -503,6 +503,8 @@ namespace HnzCoopSeason.HudUtils
             readonly BorderBox _outline;
             readonly TexturedBox _fill;
             readonly TexturedBox _cap;
+            readonly Label _completeLabel;
+            string _completeCache;
 
             public CapsuleBar(HudParentBase parent) : base(parent)
             {
@@ -528,9 +530,18 @@ namespace HnzCoopSeason.HudUtils
                     Size = new Vector2(CapWidth, BarHeight - FillInset * 2),
                     Color = CapColor,
                 };
+
+                // registered last so it draws over the track; centred on the bar, which is where
+                // the fill has vacated by the time this is shown
+                _completeLabel = new Label(this)
+                {
+                    Format = new GlyphFormat(FullCapColor, TextAlignment.Center, 0.62f),
+                    Offset = Vector2.Zero,
+                    Visible = false,
+                };
             }
 
-            public void SetProgress(double progress, bool healthStyle)
+            public void SetProgress(double progress, bool healthStyle, string completeText)
             {
                 var t = (float)MathHelperD.Clamp(progress, 0, 1);
                 var innerWidth = BarWidth - FillInset * 2;
@@ -538,20 +549,33 @@ namespace HnzCoopSeason.HudUtils
 
                 // health style drains rather than fills, so "full" is the untouched state, not the
                 // finished one -- it stays red throughout and never flips green
+                var complete = healthStyle ? t <= 0f : t >= 1f;
+
                 if (healthStyle)
                 {
                     // drained to nothing = neutralized: only the outline is left to say so
-                    _outline.Color = t <= 0f ? FullOutlineColor : HealthOutlineColor;
+                    _outline.Color = complete ? FullOutlineColor : HealthOutlineColor;
                     _fill.Color = HealthFillColor;
                     _cap.Color = HealthCapColor;
                 }
                 else
                 {
                     // whole bar flips green on completion, outline included, so it reads as one state
-                    var full = t >= 1f;
-                    _outline.Color = full ? FullOutlineColor : OutlineColor;
-                    _fill.Color = full ? FullFillColor : FillColor;
-                    _cap.Color = full ? FullCapColor : CapColor;
+                    _outline.Color = complete ? FullOutlineColor : OutlineColor;
+                    _fill.Color = complete ? FullFillColor : FillColor;
+                    _cap.Color = complete ? FullCapColor : CapColor;
+                }
+
+                // status stamp inside the track, shown only on the green state the caller wrote it
+                // for. today that is always a drained health bar, whose track is empty; a filled
+                // bar would put this on top of its own green fill, so pick a readable colour there
+                // if one ever wants it
+                var showStamp = complete && !string.IsNullOrEmpty(completeText);
+                _completeLabel.Visible = showStamp;
+                if (showStamp && completeText != _completeCache)
+                {
+                    _completeCache = completeText;
+                    _completeLabel.Text = completeText;
                 }
 
                 _fill.Visible = fillWidth >= 1;

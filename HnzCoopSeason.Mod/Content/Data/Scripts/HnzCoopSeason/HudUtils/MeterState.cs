@@ -15,5 +15,9 @@ namespace HnzCoopSeason.HudUtils
         public string Description;
         public bool ShowInfoIcon; // draws an (i) badge ahead of the title
         public bool HealthStyle; // red bar that drains as Progress falls, instead of cyan filling to green
+        // stamped inside the track once the bar reaches its green "done" state, where the fill has
+        // vacated it. names what the player can do next -- in minimal mode the description line is
+        // hidden, so this is the only cue left
+        public string CompleteText;
     }
 }

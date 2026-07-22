@@ -6,37 +6,70 @@ using VRage.Utils;
 
 namespace HnzCoopSeason.POI
 {
-    // client-side store of hidden markers; unknown ids default to visible
+    /// <summary>
+    /// client-side store of hidden POI markers (SP + DS client); the DS never loads it.
+    /// </summary>
     public sealed class GpsVisibilityStore
     {
         const string FileName = "HnzCoopSeason.GpsVisibility.xml";
 
-        readonly Dictionary<string, PoiState> _hidden = new Dictionary<string, PoiState>();
-        readonly Dictionary<string, PoiState> _lastSeenState = new Dictionary<string, PoiState>();
+        readonly HashSet<string> _hidden = new HashSet<string>();
 
-        public bool IsVisible(string markerId) => !_hidden.ContainsKey(markerId);
+        #region Query
 
-        // true when the state moved on since the player hid it; call once per server response
-        public bool ClearIfStateChanged(string markerId, PoiState state)
+        public bool IsVisible(string markerId) => !_hidden.Contains(markerId);
+
+        #endregion
+
+        #region From Player
+
+        public void CaptureChanges(IEnumerable<KeyValuePair<string, IMyGps>> markers)
         {
-            _lastSeenState[markerId] = state;
+            var changed = false;
+            foreach (var marker in markers)
+            {
+                changed |= CaptureChange(marker.Key, marker.Value);
+            }
+            if (changed) Save();
+        }
 
-            PoiState hiddenIn;
-            if (!_hidden.TryGetValue(markerId, out hiddenIn) || hiddenIn == state) return false;
+        // returns true if the player toggled this marker since the last pass
+        bool CaptureChange(string markerId, IMyGps gps)
+        {
+            var isHiddenNow = !gps.ShowOnHud;
+            var wasHidden = _hidden.Contains(markerId);
+            if (isHiddenNow == wasHidden) return false;
 
-            _hidden.Remove(markerId);
-            Save();
-            MyLog.Default.Info($"[HnzCoopSeason] gps {markerId} un-hidden: {hiddenIn} -> {state}");
+            //edge detected
+            if (isHiddenNow) _hidden.Add(markerId);
+            else _hidden.Remove(markerId);
+
             return true;
         }
 
-        // absence from the payload means the dismissed situation is over
+        #endregion
+
+        #region From Server
+
+        // server-forced visibility (e.g. boss entering/leaving range, or the poi's situation changing)
+        public void SetHidden(string markerId, bool hidden)
+        {
+            var changed = hidden ? _hidden.Add(markerId) : _hidden.Remove(markerId);
+            if (changed) Save();
+        }
+
+        #endregion
+
+        #region Cleanup
+
+        /// <summary>Un-hides markers absent from the server payload — their dismissed situation is over. Saves if changed.</summary>
+        /// <param name="presentIds">Marker ids the server still reports; hidden ones not in here are un-hidden.</param>
         public void PruneAbsent(ICollection<string> presentIds)
         {
             if (_hidden.Count == 0) return;
 
             List<string> gone = null;
-            foreach (var id in _hidden.Keys)
+            foreach (var id in _hidden)
             {
                 if (presentIds.Contains(id)) continue;
 
@@ -49,17 +82,19 @@ namespace HnzCoopSeason.POI
             foreach (var id in gone)
             {
                 _hidden.Remove(id);
-                _lastSeenState.Remove(id);
                 MyLog.Default.Info($"[HnzCoopSeason] gps {id} un-hidden: no longer reported by server");
             }
 
             Save();
         }
 
+        #endregion
+
+        #region Storage
+
         public void Load()
         {
             _hidden.Clear();
-            _lastSeenState.Clear();
 
             try
             {
@@ -70,11 +105,9 @@ namespace HnzCoopSeason.POI
                     var payload = MyAPIGateway.Utilities.SerializeFromXML<Payload>(reader.ReadToEnd());
                     if (payload?.HiddenMarkers == null) return;
 
-                    foreach (var entry in payload.HiddenMarkers)
+                    foreach (var id in payload.HiddenMarkers)
                     {
-                        if (entry?.MarkerId == null) continue;
-
-                        _hidden[entry.MarkerId] = entry.State;
+                        if (id != null) _hidden.Add(id);
                     }
                 }
             }
@@ -84,41 +117,14 @@ namespace HnzCoopSeason.POI
             }
         }
 
-        // the gps panel mutates our own MyGps instance, so reading ShowOnHud back is enough
-        public void CaptureChanges(IEnumerable<KeyValuePair<string, IMyGps>> markers)
-        {
-            var changed = false;
-
-            foreach (var marker in markers)
-            {
-                var hidden = !marker.Value.ShowOnHud;
-                if (hidden == _hidden.ContainsKey(marker.Key)) continue;
-
-                if (hidden)
-                {
-                    // stamp the state it was dismissed in
-                    PoiState state;
-                    _hidden[marker.Key] = _lastSeenState.TryGetValue(marker.Key, out state) ? state : PoiState.Occupied;
-                }
-                else
-                {
-                    _hidden.Remove(marker.Key);
-                }
-
-                changed = true;
-            }
-
-            if (changed) Save();
-        }
-
         void Save()
         {
             try
             {
                 var payload = new Payload();
-                foreach (var pair in _hidden)
+                foreach (var id in _hidden)
                 {
-                    payload.HiddenMarkers.Add(new Entry { MarkerId = pair.Key, State = pair.Value });
+                    payload.HiddenMarkers.Add(id);
                 }
 
                 using (var writer = MyAPIGateway.Utilities.WriteFileInLocalStorage(FileName, typeof(GpsVisibilityStore)))
@@ -132,15 +138,15 @@ namespace HnzCoopSeason.POI
             }
         }
 
+        #endregion
+
+        #region Serialization
+
         public sealed class Payload
         {
-            public List<Entry> HiddenMarkers = new List<Entry>();
+            public List<string> HiddenMarkers = new List<string>();
         }
 
-        public sealed class Entry
-        {
-            public string MarkerId;
-            public PoiState State;
-        }
+        #endregion
     }
 }

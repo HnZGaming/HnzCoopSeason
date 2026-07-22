@@ -104,6 +104,20 @@ namespace HnzCoopSeason.POI
             return Position;
         }
 
+        public Vector3D GetMarkerPosition()
+        {
+            foreach (var o in _observers)
+            {
+                Vector3D position;
+                if (o.TryGetMarkerPosition(out position))
+                {
+                    return position;
+                }
+            }
+
+            return Position;
+        }
+
         void Save()
         {
             var data = new SerializableDictionary<string, object>

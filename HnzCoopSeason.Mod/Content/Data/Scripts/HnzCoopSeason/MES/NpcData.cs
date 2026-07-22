@@ -17,7 +17,7 @@ namespace MES
         [ProtoMember(42)]
         public string Context; // arbitrary user data via MESApi
 
-        /// <summary>The undecoded blob; cheap staleness check for callers that cache parsed data.</summary>
+        /// <summary>The stored text, A cheap way to check if the data changed.</summary>
         public static bool TryGetRawData(IMyCubeGrid grid, out string value)
         {
             value = null;

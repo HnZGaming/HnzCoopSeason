@@ -28,11 +28,11 @@ namespace HnzCoopSeason
     {
         public static Session Instance { get; private set; }
 
-        const int DiscoverySeconds = 15;
-        const int NearDiscoverySeconds = 3; // already in sight of the boss marker
+        const int DiscoverySeconds = 15; // gps duration (secs)
+        const int NearDiscoverySeconds = 3; // gps duration (secs)
         const double NearDiscoveryRangeFactor = 2; // x EncounterRadius
 
-        readonly List<DiscoveryGps> _discoveryGpss = new List<DiscoveryGps>();
+        readonly List<DiscoveryGps> _discoveryGpss = new List<DiscoveryGps>(); //manual duration track
 
         PoiMap _poiMap;
         CommandModule _commandModule;
@@ -292,15 +292,15 @@ namespace HnzCoopSeason
 
         public void OnMerchantDiscovered(string poiId, Vector3D position)
         {
-            OnPoiDiscovered("Merchant", position);
+            OnPoiDiscovered("Merchant", position, Color.Orange);
         }
 
         public void OnOrkDiscovered(string poiId, Vector3D position)
         {
-            OnPoiDiscovered("Ork", position);
+            OnPoiDiscovered("Ork", position, new Color(0xED, 0x00, 0xD3)); // #ED00D3
         }
 
-        void OnPoiDiscovered(string name, Vector3D position)
+        void OnPoiDiscovered(string name, Vector3D position, Color color)
         {
             // discovery gps per player; duration by range, near ones clear fast
             var nearRange = SessionConfig.Instance.EncounterRadius * NearDiscoveryRangeFactor;
@@ -309,17 +309,18 @@ namespace HnzCoopSeason
             var players = new List<IMyPlayer>();
             MyAPIGateway.Players.GetPlayers(players);
 
+            var nearRangeSq  =  nearRange * nearRange;
             foreach (var player in players)
             {
                 var character = player.Character;
                 var near = character != null &&
-                           Vector3D.DistanceSquared(character.GetPosition(), position) <= nearRange * nearRange;
+                           Vector3D.DistanceSquared(character.GetPosition(), position) <= nearRangeSq;
                 var seconds = near ? NearDiscoverySeconds : DiscoverySeconds;
 
                 MyVisualScriptLogicProvider.ShowNotification("Someone just discovered something!", seconds * 1000, "White", player.IdentityId);
 
                 var gps = MyAPIGateway.Session.GPS.Create($"{name} Discovery", "", position, true, true);
-                gps.GPSColor = Color.Orange;
+                gps.GPSColor = color;
                 MyAPIGateway.Session.GPS.AddGps(player.IdentityId, gps);
 
                 // DiscardAt is only swept on world load/save, so expire it ourselves
@@ -329,28 +330,6 @@ namespace HnzCoopSeason
                     Gps = gps,
                     ExpiresAt = now + TimeSpan.FromSeconds(seconds),
                 });
-            }
-        }
-
-        struct DiscoveryGps
-        {
-            public long IdentityId;
-            public IMyGps Gps;
-            public TimeSpan ExpiresAt;
-        }
-
-        void DiscardExpiredDiscoveryGps()
-        {
-            if (_discoveryGpss.Count == 0) return;
-
-            var now = MyAPIGateway.Session.ElapsedPlayTime;
-            for (var i = _discoveryGpss.Count - 1; i >= 0; i--)
-            {
-                var entry = _discoveryGpss[i];
-                if (now < entry.ExpiresAt) continue;
-
-                MyAPIGateway.Session.GPS.RemoveGps(entry.IdentityId, entry.Gps);
-                _discoveryGpss.RemoveAt(i);
             }
         }
 
@@ -418,6 +397,29 @@ namespace HnzCoopSeason
         public override string ToString()
         {
             return $"Session(progress: {GetProgress()}, progressLevel: {GetProgressLevel()}, {nameof(_poiMap)}: {_poiMap})";
+        }
+
+        struct DiscoveryGps
+        {
+            /// <summary>player</summary>
+            public long IdentityId;
+            public IMyGps Gps;
+            public TimeSpan ExpiresAt;
+        }
+
+        void DiscardExpiredDiscoveryGps()
+        {
+            if (_discoveryGpss.Count == 0) return;
+
+            var now = MyAPIGateway.Session.ElapsedPlayTime;
+            for (var i = _discoveryGpss.Count - 1; i >= 0; i--)
+            {
+                var entry = _discoveryGpss[i];
+                if (now < entry.ExpiresAt) continue;
+
+                MyAPIGateway.Session.GPS.RemoveGps(entry.IdentityId, entry.Gps);
+                _discoveryGpss.RemoveAt(i);
+            }
         }
     }
 }

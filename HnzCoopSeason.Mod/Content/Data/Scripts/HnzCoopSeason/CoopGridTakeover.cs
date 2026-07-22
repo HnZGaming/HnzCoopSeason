@@ -98,7 +98,6 @@ namespace HnzCoopSeason
             {
                 var state = ComputeTakeover(grid);
 
-                // carry the high-water mark forward; grinding a controller shrinks the live set
                 TakeoverState previous;
                 if (TryLoadTakeoverState(grid, out previous) && previous != null)
                 {

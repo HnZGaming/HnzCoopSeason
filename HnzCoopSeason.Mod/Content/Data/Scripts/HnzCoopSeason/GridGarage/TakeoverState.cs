@@ -41,7 +41,7 @@ namespace GridStorage.API
         [XmlArrayItem("Controller")]
         public long[] Controllers = Array.Empty<long>();
 
-        /// <summary>High-water mark of <see cref="Controllers"/>.Length. 0 in documents written before this field existed.</summary>
+        /// <summary>Peak <see cref="Controllers"/>.Length; never decreases.</summary>
         [XmlElement]
         public int MaxControllers;
     }

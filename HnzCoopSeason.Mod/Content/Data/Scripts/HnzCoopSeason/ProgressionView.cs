@@ -22,6 +22,7 @@ namespace HnzCoopSeason
 
             MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(ModKey, OnMessageReceived);
 
+            // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
                 _state = new MeterState
@@ -39,7 +40,7 @@ namespace HnzCoopSeason
             MyLog.Default.Debug("[HnzCoopSeason] ProgressionView.Unload()");
 
             MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(ModKey, OnMessageReceived);
-
+            // client
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
                 ScreenTopHud.Instance.RemoveGroup(nameof(ProgressionView));
@@ -74,7 +75,7 @@ namespace HnzCoopSeason
             var payload = CreateUpdatePayload();
             var bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
 
-            if (MyAPIGateway.Utilities.IsDedicated)
+            if (MyAPIGateway.Utilities.IsDedicated) // dedi
             {
                 MyAPIGateway.Multiplayer.SendMessageToOthers(ModKey, bytes, true);
                 MyLog.Default.Info("[HnzCoopSeason] progress sent: {0:0.00}", payload.Progress);
@@ -95,7 +96,7 @@ namespace HnzCoopSeason
                 payload = CreateUpdatePayload();
                 bytes = MyAPIGateway.Utilities.SerializeToBinary(payload);
 
-                if (MyAPIGateway.Utilities.IsDedicated)
+                if (MyAPIGateway.Utilities.IsDedicated) // dedi
                 {
                     MyAPIGateway.Multiplayer.SendMessageTo(ModKey, bytes, senderId, true);
                 }

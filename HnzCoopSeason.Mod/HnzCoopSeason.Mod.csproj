@@ -12,6 +12,7 @@
         <FileAlignment>512</FileAlignment>
         <LangVersion>6</LangVersion>
         <TargetFramework>netframework48</TargetFramework>
+        <!-- <Compile> items are listed explicitly below; disable the implicit glob to avoid duplicates (NETSDK1022). -->
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
@@ -84,6 +85,7 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NPC\NpcHud.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\NPC\NpcTargetFinder.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NPC\TargetReticle.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Merchants\PoiMerchantStoreConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\OrkDamageReductionScales.cs" />

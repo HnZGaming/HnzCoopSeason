@@ -3,7 +3,6 @@ using System.Linq;
 
 namespace HnzCoopSeason.HudUtils
 {
-    // arbiter for the single screen-top meter slot; highest-priority active state wins
     public sealed class ScreenTopHud
     {
         public static readonly ScreenTopHud Instance = new ScreenTopHud();

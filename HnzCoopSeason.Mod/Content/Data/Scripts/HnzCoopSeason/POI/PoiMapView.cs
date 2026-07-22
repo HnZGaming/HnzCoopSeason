@@ -17,10 +17,11 @@ namespace HnzCoopSeason.POI
         readonly NetworkMessenger _requestMessenger;
         readonly NetworkMessenger _responseMessenger;
         readonly LocalGpsCollection<string> _markers;
-        readonly GpsVisibilityStore _visibility;
-        readonly HashSet<string> _autoHidden = new HashSet<string>(); // hidden by us, not by the player
-        readonly HashSet<string> _autoHideOverridden = new HashSet<string>(); // player turned an auto-hidden marker back on
-        static readonly HashSet<long> BossGrids = new HashSet<long>(); // server-told; see PoiOrk.MainGridId
+        readonly GpsVisibilityStore _visibility; //stored on client storage
+
+        // last payload's snapshot per marker, for edge detection
+        readonly Dictionary<string, MarkerSnapshot> _prev = new Dictionary<string, MarkerSnapshot>();
+        static readonly HashSet<long> BossGrids = new HashSet<long>(); // server-sent. see PoiOrk.MainGridId
         bool _visibilityLoaded;
 
         public static bool IsBossGrid(long entityId) => entityId != 0 && BossGrids.Contains(entityId);
@@ -44,6 +45,7 @@ namespace HnzCoopSeason.POI
         {
             _markers.Clear();
             BossGrids.Clear();
+            _prev.Clear();
             _requestMessenger.Unload();
             _responseMessenger.Unload();
         }
@@ -61,18 +63,6 @@ namespace HnzCoopSeason.POI
 
             if (MyAPIGateway.Session.GameplayFrameCounter % 60 == 0)
             {
-                if (_autoHidden.Count > 0)
-                {
-                    foreach (var pair in _markers.Pairs)
-                    {
-                        if (!pair.Value.ShowOnHud) continue;
-                        if (!_autoHidden.Remove(pair.Key)) continue;
-
-                        _autoHideOverridden.Add(pair.Key);
-                        MyLog.Default.Info($"[HnzCoopSeason] gps {pair.Key} auto-hide overridden by player");
-                    }
-                }
-
                 CapturePlayerToggles();
             }
 
@@ -82,9 +72,7 @@ namespace HnzCoopSeason.POI
 
         void CapturePlayerToggles()
         {
-            _visibility.CaptureChanges(_autoHidden.Count == 0
-                ? _markers.Pairs
-                : _markers.Pairs.Where(p => !_autoHidden.Contains(p.Key)));
+            _visibility.CaptureChanges(_markers.Pairs);
         }
 
         bool TryLoadVisibility()
@@ -145,18 +133,20 @@ namespace HnzCoopSeason.POI
             }
 
             var markers = new List<Marker>();
+            var bossRange = SessionConfig.Instance.EncounterRadius * PoiOrk.BossRangeMultiplier;
+            var bossRangeSq = bossRange * bossRange;
             foreach (var poi in pois)
             {
                 var ork = (PoiOrk)poi.Observers.FirstOrDefault(o => o is PoiOrk); //todo messy
                 var position = poi.GetEntityPosition();
+                var markerPosition = poi.GetMarkerPosition();
 
-                var bossRange = SessionConfig.Instance.EncounterRadius * 3; // matches PoiOrk's gps radius
                 var hideOnHud = poi.State != PoiState.Released // a merchant has no boss marker to defer to
                                 && ork != null
                                 && ork.HasMainGrid
-                                && Vector3D.DistanceSquared(player.GetPosition(), position) <= bossRange * bossRange;
+                                && Vector3D.DistanceSquared(player.GetPosition(), position) <= bossRangeSq;
 
-                markers.Add(new Marker(poi.Id, position, poi.State, ork?.GetProgressLevel() ?? 0, hideOnHud, ork?.MainGridId ?? 0));
+                markers.Add(new Marker(poi.Id, markerPosition, poi.State, ork?.GetProgressLevel() ?? 0, hideOnHud, ork?.MainGridId ?? 0));
             }
 
             MyLog.Default.Debug("[HnzCoopSeason] PoiMapView sending response");
@@ -169,93 +159,79 @@ namespace HnzCoopSeason.POI
             VRageUtils.AssertNetworkType(NetworkType.DediClient | NetworkType.SinglePlayer);
             var payload = MyAPIGateway.Utilities.SerializeFromBinary<ResponsePayload>(bytes);
 
-            // capture before the new states land, or a fresh hide gets stamped with the incoming state
             if (_visibilityLoaded) CapturePlayerToggles();
 
-            BossGrids.Clear();
-            foreach (var m in payload.Markers)
-            {
-                if (m.BossGridId != 0) BossGrids.Add(m.BossGridId);
-            }
+            UpdateBossGrids(payload.Markers);
+            ApplyMarkersVisibility(payload.Markers);
+            RemoveAbsentMarkers(payload.Markers);
 
-            var presentIds = new HashSet<string>(payload.Markers.Select(m => m.Id));
-
-            foreach (var m in payload.Markers)
-            {
-                if (m.HideOnHud)
-                {
-                    // hide once on the transition; re-asserting would defeat the panel's show toggle
-                    if (!_autoHideOverridden.Contains(m.Id) && _autoHidden.Add(m.Id))
-                    {
-                        MyLog.Default.Info($"[HnzCoopSeason] gps {m.Id} auto-hidden: boss marker in range");
-                    }
-                }
-                else
-                {
-                    _autoHidden.Remove(m.Id);
-                    _autoHideOverridden.Remove(m.Id);
-                }
-            }
-
-            PruneAbsent(_autoHidden, presentIds);
-            PruneAbsent(_autoHideOverridden, presentIds);
-
-            // remove old markers
-            _markers.RemoveExceptFor(presentIds);
-
-            _visibility.PruneAbsent(presentIds);
-
-            // add new markers
             foreach (var marker in payload.Markers)
             {
-                // rebuild the gps: flipping ShowOnHud alone does not re-register the hud marker
-                if (_visibility.ClearIfStateChanged(marker.Id, marker.State))
-                {
-                    _markers.Remove(marker.Id);
-                }
-
-                var showOnHud = _visibility.IsVisible(marker.Id) && !_autoHidden.Contains(marker.Id);
-
-                IMyGps current;
-                if (_markers.TryGet(marker.Id, out current) && current.ShowOnHud != showOnHud)
-                {
-                    _markers.Remove(marker.Id);
-                }
-
-                IMyGps gps;
-                if (_markers.TryGet(marker.Id, out gps))
-                {
-                    UpdateGps(gps, marker);
-                    // note: do not update hash
-                }
-                else
-                {
-                    gps = MyAPIGateway.Session.GPS.Create("", "", Vector3D.Zero, showOnHud, false);
-                    UpdateGps(gps, marker);
-                    gps.UpdateHash();
-                    _markers.Add(marker.Id, gps);
-                }
+                UpsertMarker(marker);
             }
         }
 
-        static void PruneAbsent(HashSet<string> ids, ICollection<string> presentIds)
+        // boss EntityId sent from server.
+        void UpdateBossGrids(List<Marker> markers)
         {
-            if (ids.Count == 0) return;
-
-            List<string> gone = null;
-            foreach (var id in ids)
+            BossGrids.Clear();
+            foreach (var m in markers)
             {
-                if (presentIds.Contains(id)) continue;
+                if (m.BossGridId != 0) BossGrids.Add(m.BossGridId);
+            }
+        }
 
-                if (gone == null) gone = new List<string>();
-                gone.Add(id);
+        // server drives marker visibility;
+        void ApplyMarkersVisibility(List<Marker> markers)
+        {
+            foreach (var m in markers)
+            {
+                MarkerSnapshot prev;
+                var hadPrev = _prev.TryGetValue(m.Id, out prev);
+
+                if (m.HideOnHud && !(hadPrev && prev.HideOnHud)) _visibility.SetHidden(m.Id, true); // boss came into range
+                else if (!m.HideOnHud && hadPrev && prev.HideOnHud) _visibility.SetHidden(m.Id, false); // boss left range
+
+                if (hadPrev && prev.State != m.State) _visibility.SetHidden(m.Id, false); // poi state change -> force show
+
+                _prev[m.Id] = new MarkerSnapshot(m.HideOnHud, m.State);
+            }
+        }
+
+        // drop markers
+        void RemoveAbsentMarkers(List<Marker> markers)
+        {
+            var presentIds = new HashSet<string>(markers.Select(m => m.Id));
+            _markers.RemoveExceptFor(presentIds);
+            _visibility.PruneAbsent(presentIds);
+
+            var stale = _prev.Keys.Where(id => !presentIds.Contains(id)).ToList();
+            foreach (var id in stale) _prev.Remove(id);
+        }
+
+        void UpsertMarker(Marker marker)
+        {
+            var showOnHud = _visibility.IsVisible(marker.Id);
+
+            // rebuild the gps: flipping ShowOnHud alone does not re-register the hud marker
+            IMyGps current;
+            if (_markers.TryGet(marker.Id, out current) && current.ShowOnHud != showOnHud)
+            {
+                _markers.Remove(marker.Id);
             }
 
-            if (gone == null) return;
-
-            foreach (var id in gone)
+            IMyGps gps;
+            if (_markers.TryGet(marker.Id, out gps))
             {
-                ids.Remove(id);
+                UpdateGps(gps, marker);
+                // note: do not update hash
+            }
+            else // new gps
+            {
+                gps = MyAPIGateway.Session.GPS.Create("", "", Vector3D.Zero, showOnHud, false);
+                UpdateGps(gps, marker);
+                gps.UpdateHash();
+                _markers.Add(marker.Id, gps);
             }
         }
 
@@ -308,6 +284,19 @@ namespace HnzCoopSeason.POI
             return MyAPIGateway.Players.TryGetIdentityId(playerId);
         }
 
+        // previous payload snapshot per marker, for edge detection
+        struct MarkerSnapshot
+        {
+            public bool HideOnHud;
+            public PoiState State;
+
+            public MarkerSnapshot(bool hideOnHud, PoiState state)
+            {
+                HideOnHud = hideOnHud;
+                State = state;
+            }
+        }
+
         [ProtoContract]
         sealed class ResponsePayload
         {
@@ -331,10 +320,10 @@ namespace HnzCoopSeason.POI
             public int Level;
 
             [ProtoMember(5)]
-            public bool HideOnHud; // boss broadcasts its own marker here
+            public bool HideOnHud; // for marker
 
             [ProtoMember(6)]
-            public long BossGridId; // 0 if no boss is up
+            public long BossGridId; // 0 if not boss
 
             // ReSharper disable once UnusedMember.Local
             Marker()

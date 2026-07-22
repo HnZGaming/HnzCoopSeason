@@ -22,7 +22,7 @@ namespace HnzCoopSeason.Merchants
     public sealed class PoiMerchant : IPoiObserver
     {
         const float SafezoneRadius = 75f;
-        const float MarkerClearance = 250f; // gap between the hull and the gps ships jump to
+        const float MarkerClearance = 250f; // gap between the hull and the gps for jump
         static readonly Guid StorageKey = Guid.Parse("8e562067-5807-49a0-9d7d-108febcece97");
 
         readonly string _poiId;
@@ -50,6 +50,7 @@ namespace HnzCoopSeason.Merchants
 
         PoiMerchantConfig Config => _configs[_configIndex % _configs.Length];
         PoiMerchantStoreConfig StoreConfig => SessionConfig.Instance.MerchantStores.WrappedElementAt(_configIndex);
+        bool HasGrid => _grid != null && !_grid.Closed;
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
@@ -131,28 +132,19 @@ namespace HnzCoopSeason.Merchants
                 return false;
             }
 
-            var hasGrid = _grid != null && !_grid.Closed;
-            if (hasGrid)
-            {
-                // the pivot sits inside the hull; stand off the box so jumps don't land in it
-                var obb = new MyOrientedBoundingBoxD(_grid.LocalAABB, _grid.WorldMatrix);
-                position = obb.Center + Vector3D.Up * (ExtentAlong(ref obb, Vector3D.Up) + MarkerClearance);
-                return true;
-            }
-
-            // not spawned yet; it'll try the origin, so stand off from there too
-            position = _position + Vector3D.Up * (SafezoneRadius + MarkerClearance);
+            position = HasGrid
+                ? new MyOrientedBoundingBoxD(_grid.LocalAABB, _grid.WorldMatrix).Center
+                : _position;
             return true;
         }
 
-        /// <summary>Half-width of an oriented box along an arbitrary unit axis.</summary>
-        static double ExtentAlong(ref MyOrientedBoundingBoxD obb, Vector3D axis)
+        /// <summary>GPS only: (SafezoneRadius + MarkerClearance) above the actual position.</summary>
+        /// <returns>if released.</returns>
+        bool IPoiObserver.TryGetMarkerPosition(out Vector3D position)
         {
-            var m = MatrixD.CreateFromQuaternion(obb.Orientation);
-
-            return Math.Abs(Vector3D.Dot(axis, m.Right)) * obb.HalfExtent.X
-                   + Math.Abs(Vector3D.Dot(axis, m.Up)) * obb.HalfExtent.Y
-                   + Math.Abs(Vector3D.Dot(axis, m.Forward)) * obb.HalfExtent.Z;
+            if (!((IPoiObserver)this).TryGetPosition(out position)) return false;
+            position += Vector3D.Up * (SafezoneRadius + MarkerClearance);
+            return true;
         }
 
         public void Spawn(int configIndex)

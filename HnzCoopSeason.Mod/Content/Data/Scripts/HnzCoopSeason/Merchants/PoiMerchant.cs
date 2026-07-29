@@ -22,6 +22,7 @@ namespace HnzCoopSeason.Merchants
     public sealed class PoiMerchant : IPoiObserver
     {
         const float SafezoneRadius = 75f;
+        const float MarkerClearance = 250f; // gap between the hull and the gps for jump
         static readonly Guid StorageKey = Guid.Parse("8e562067-5807-49a0-9d7d-108febcece97");
 
         readonly string _poiId;
@@ -49,6 +50,7 @@ namespace HnzCoopSeason.Merchants
 
         PoiMerchantConfig Config => _configs[_configIndex % _configs.Length];
         PoiMerchantStoreConfig StoreConfig => SessionConfig.Instance.MerchantStores.WrappedElementAt(_configIndex);
+        bool HasGrid => _grid != null && !_grid.Closed;
 
         void IPoiObserver.Load(IMyCubeGrid[] grids)
         {
@@ -124,15 +126,25 @@ namespace HnzCoopSeason.Merchants
 
         bool IPoiObserver.TryGetPosition(out Vector3D position)
         {
-            var hasGrid = _grid != null && !_grid.Closed;
-            if (hasGrid && _poiState == PoiState.Released)
+            if (_poiState != PoiState.Released)
             {
-                position = _grid.GetPosition();
-                return true;
+                position = default(Vector3D);
+                return false;
             }
 
-            position = default(Vector3D);
-            return false;
+            position = HasGrid
+                ? new MyOrientedBoundingBoxD(_grid.LocalAABB, _grid.WorldMatrix).Center
+                : _position;
+            return true;
+        }
+
+        /// <summary>GPS only: (SafezoneRadius + MarkerClearance) above the actual position.</summary>
+        /// <returns>if released.</returns>
+        bool IPoiObserver.TryGetMarkerPosition(out Vector3D position)
+        {
+            if (!((IPoiObserver)this).TryGetPosition(out position)) return false;
+            position += Vector3D.Up * (SafezoneRadius + MarkerClearance);
+            return true;
         }
 
         public void Spawn(int configIndex)

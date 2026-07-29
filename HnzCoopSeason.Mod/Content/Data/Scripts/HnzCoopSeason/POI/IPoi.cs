@@ -15,9 +15,10 @@ namespace HnzCoopSeason.POI
 
         IReadOnlyList<IPoiObserver> Observers { get; }
 
-        // get the position of the POI entity, as opposed to the POI origin,
-        // so that players won't get lost when the POI entity spawned in a distance.
-        // if no entities have spawned, get the origin position.
+        // the spawned entity's position
         Vector3D GetEntityPosition();
+
+        // GetEntityPosition with offset to clear the entity's hull (jump target).
+        Vector3D GetMarkerPosition();
     }
 }

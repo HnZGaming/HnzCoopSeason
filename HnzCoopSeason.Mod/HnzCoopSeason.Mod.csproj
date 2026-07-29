@@ -12,6 +12,8 @@
         <FileAlignment>512</FileAlignment>
         <LangVersion>6</LangVersion>
         <TargetFramework>netframework48</TargetFramework>
+        <!-- <Compile> items are listed explicitly below; disable the implicit glob to avoid duplicates (NETSDK1022). -->
+        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
       <DebugType>pdbonly</DebugType>
@@ -83,7 +85,8 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Missions\MissionUtils.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\FlashGps\FlashGpsApi.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\NPC\NpcHud.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\NPC\NpcHudReticle.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\NPC\NpcTargetFinder.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\NPC\TargetReticle.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Merchants\PoiMerchantStoreConfig.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\OrkDamageReductionScales.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Orks\OrksDamageManipulator.cs" />
@@ -271,13 +274,20 @@
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Session_Commands.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Spawners\SpawnMatrixBuilder.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\Spawners\SpawnType.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\HudElement.cs" />
-      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\HudElementStack.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\CoopHud.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\CoopSettingsWindow.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\POI\GpsVisibilityStore.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\MeterAnchor.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\MeterPanel.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\MeterState.cs" />
       <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\ScreenTopHud.cs" />
+      <Compile Include="Content\Data\Scripts\HnzCoopSeason\HudUtils\WcHudApi.cs" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="Content\Data\CubeBlocks\CoopContractBlock.sbc" />
       <Content Include="Content\Data\Factions.sbc" />
+      <Content Include="Content\Data\TransparentMaterials.sbc" />
+      <Content Include="Content\Textures\GUI\CoopHudCorners.dds" />
       <Content Include="Content\Data\ModStorageComponents.sbc" />
       <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_1.sbc" />
       <Content Include="Content\Data\Prefabs\Coop_Economy_Outpost_2.sbc" />

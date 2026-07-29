@@ -17,6 +17,15 @@ namespace MES
         [ProtoMember(42)]
         public string Context; // arbitrary user data via MESApi
 
+        /// <summary>The stored text; a cheap way to check whether the data changed.</summary>
+        public static bool TryGetRawData(IMyCubeGrid grid, out string value)
+        {
+            value = null;
+            if (grid.Storage == null) return false;
+
+            return grid.Storage.TryGetValue(Key, out value);
+        }
+
         public static bool TryGetNpcData(IMyCubeGrid grid, out NpcData npcData)
         {
             npcData = null;

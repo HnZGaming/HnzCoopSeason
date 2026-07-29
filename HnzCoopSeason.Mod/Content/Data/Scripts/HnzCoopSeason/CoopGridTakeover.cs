@@ -97,7 +97,16 @@ namespace HnzCoopSeason
             try
             {
                 var state = ComputeTakeover(grid);
-                MyLog.Default.Debug($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}; frame: {MyAPIGateway.Session.GameplayFrameCounter}");
+
+                TakeoverState previous;
+                if (TryLoadTakeoverState(grid, out previous) && previous != null)
+                {
+                    state.MaxControllers = previous.MaxControllers;
+                }
+
+                state.MaxControllers = Math.Max(state.MaxControllers, state.Controllers.Length);
+
+                MyLog.Default.Debug($"[HnzCoopSeason] takeover state updated; grid: '{grid.DisplayName}' -> {state.CanTakeOver}, {state.TakeoverPlayerGroup}, {state.Controllers.Length}/{state.MaxControllers}; frame: {MyAPIGateway.Session.GameplayFrameCounter}");
 
                 var stateXml = MyAPIGateway.Utilities.SerializeToXML(state);
                 grid.UpdateStorageValue(TakeoverState.ModStorageKey, stateXml);

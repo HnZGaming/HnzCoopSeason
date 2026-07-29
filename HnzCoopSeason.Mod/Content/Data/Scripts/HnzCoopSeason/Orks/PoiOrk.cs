@@ -15,12 +15,21 @@ namespace HnzCoopSeason.Orks
 {
     public sealed class PoiOrk : IPoiObserver
     {
+        public const int BossRangeMultiplier = 3; // times of a normal encounter radius
+        static float BossGpsRange => (float)(SessionConfig.Instance.EncounterRadius * BossRangeMultiplier);
+
         readonly string _poiId;
         readonly MesEncounter _encounter;
         readonly PoiOrkConfig[] _configs;
         IMyCubeGrid _mainGrid;
         PoiState _poiState;
         bool _disarmNextSpawn;
+        // two 16-bit StableKeys packed into 32 bits; GetHashCode() reseeds per process on .NET 10
+        long BossGpsId => ((long)VRageUtils.StableKey($"{nameof(PoiOrk)}-boss-hi-{_poiId}") << 16)
+                          | VRageUtils.StableKey($"{nameof(PoiOrk)}-boss-lo-{_poiId}");
+
+        public bool HasMainGrid => _mainGrid != null && !_mainGrid.Closed;
+        public long MainGridId => HasMainGrid ? _mainGrid.EntityId : 0;
 
         public PoiOrk(string poiId, Vector3D position, PoiOrkConfig[] configs)
         {
@@ -60,18 +69,34 @@ namespace HnzCoopSeason.Orks
         void UpdateBossGps()
         {
             if (MyAPIGateway.Session.GameplayFrameCounter % (60 * 1) != 0) return;
-            if (_mainGrid == null) return;
+            if (!HasMainGrid) return;
+
+            // a working antenna already marks it on the HUD, so skip the FlashGps
+            if (HasBroadcastingAntenna()) return;
 
             FlashGpsApi.Send(new FlashGpsApi.Entry
             {
-                Id = $"{nameof(PoiOrk)}-boss-{_poiId}".GetHashCode(),
+                Id = BossGpsId,
                 Name = "ORK BOSS",
                 Position = _mainGrid.GetPosition(),
-                Color = Color.Orange,
+                Color = new Color(237, 0, 211), // #ED00D3, matching TargetReticle's boss brackets
                 Duration = 3,
-                Radius = SessionConfig.Instance.EncounterRadius * 3,
-                EntityId = _mainGrid.EntityId,
+                Radius = BossGpsRange,
+                EntityId = _mainGrid.EntityId, // client live-tracks the grid; RemoveBossGps drops it on despawn
                 Mute = true,
+            });
+        }
+
+        void RemoveBossGps()
+        {
+            FlashGpsApi.Send(new FlashGpsApi.Entry
+            {
+                Id = BossGpsId,
+                Name = "ORK BOSS",
+                Duration = 0,
+                Radius = 0,
+                Mute = true,
+                Position = Vector3.Zero
             });
         }
 
@@ -87,8 +112,7 @@ namespace HnzCoopSeason.Orks
         bool IPoiObserver.TryGetPosition(out Vector3D position)
         {
             var hasOrkState = _poiState == PoiState.Occupied || _poiState == PoiState.Invaded;
-            var hasGrid = _mainGrid != null && !_mainGrid.Closed;
-            if (hasOrkState && hasGrid)
+            if (hasOrkState && HasMainGrid)
             {
                 position = _mainGrid.GetPosition();
                 return true;
@@ -97,6 +121,8 @@ namespace HnzCoopSeason.Orks
             position = Vector3D.Zero;
             return false;
         }
+
+        bool IPoiObserver.TryGetMarkerPosition(out Vector3D position) => ((IPoiObserver)this).TryGetPosition(out position);
 
         void OnMainGridSet(IMyCubeGrid grid)
         {
@@ -110,17 +136,23 @@ namespace HnzCoopSeason.Orks
             foreach (var antenna in grid.GetFatBlocks<IMyRadioAntenna>())
             {
                 antenna.HudText = $"[BOSS] {grid.CustomName}";
+                if (IsSignalJammer(antenna)) continue;
+                antenna.Radius = BossGpsRange;
+                antenna.EnableBroadcasting = true;
             }
 
             Session.Instance.OnOrkDiscovered(_poiId, grid.GetPosition());
 
             _mainGrid = grid;
+            PoiMapView.Instance.OnPoiStateUpdated();
         }
 
         void OnMainGridUnset(IMyCubeGrid grid)
         {
             MyLog.Default.Info($"[HnzCoopSeason] ork {_poiId} main grid despawn");
+            RemoveBossGps();
             _mainGrid = null;
+            PoiMapView.Instance.OnPoiStateUpdated();
         }
 
         void OnAnyTakeoverStateChanged(long gridId)
@@ -229,5 +261,24 @@ namespace HnzCoopSeason.Orks
             var takeover = GetTakeoverPlayerGroup();
             return $"Ork({nameof(_poiId)}: {_poiId},  {nameof(_encounter)}: {_encounter}, Takeover: {takeover.ToStringSeq()})";
         }
+
+        bool HasBroadcastingAntenna()
+        {
+            foreach (var antenna in _mainGrid.GetFatBlocks<IMyRadioAntenna>())
+            {
+                if (IsSignalJammer(antenna)) continue;
+                if (!antenna.IsWorking) continue; // destroyed, unpowered or switched off
+                if (!antenna.EnableBroadcasting) continue;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        // MES suppression-field blocks are RadioAntennas with a 'MES-Suppressor-*' subtype
+        static bool IsSignalJammer(IMyRadioAntenna antenna) =>
+            antenna.BlockDefinition.SubtypeName.IndexOf("Suppressor", StringComparison.OrdinalIgnoreCase) >= 0;
+
     }
 }

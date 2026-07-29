@@ -11,7 +11,6 @@ using HnzCoopSeason.POI;
 using MES;
 using HnzUtils;
 using HnzUtils.Commands;
-using HudAPI;
 using Sandbox.Game;
 using Sandbox.ModAPI;
 using VRage.Game.Components;
@@ -29,10 +28,16 @@ namespace HnzCoopSeason
     {
         public static Session Instance { get; private set; }
 
+        const int DiscoverySeconds = 15; // gps duration (secs)
+        const int NearDiscoverySeconds = 3; // gps duration (secs)
+        const double NearDiscoveryRangeFactor = 2; // x EncounterRadius
+
+        readonly List<DiscoveryGps> _discoveryGpss = new List<DiscoveryGps>(); //manual duration track
+
         PoiMap _poiMap;
         CommandModule _commandModule;
         bool _doneFirstUpdate;
-        HudAPIv2 _richHudApi;
+        bool _richHudReady;
         DatapadInserter _dataPadInserter;
         OrksDamageManipulator _orksDamageManipulator;
 
@@ -42,14 +47,12 @@ namespace HnzCoopSeason
             base.LoadData();
             Instance = this;
 
-            _richHudApi = new HudAPIv2();
-
-            _commandModule = new CommandModule((ushort)"HnzCoopSeason.CommandModule".GetHashCode(), "coop");
+            _commandModule = new CommandModule(VRageUtils.StableKey("HnzCoopSeason.CommandModule"), "coop");
             _commandModule.SendMessage += SendMessage;
             _commandModule.Load();
             InitializeCommands();
 
-            MissionScreen.Load((ushort)nameof(MissionScreen).GetHashCode());
+            MissionScreen.Load(VRageUtils.StableKey(nameof(MissionScreen)));
             PoiMapDebugView.Instance.Load();
             PoiSpectatorCamera.Instance.Load();
             PoiMapView.Instance.Load();
@@ -78,6 +81,7 @@ namespace HnzCoopSeason
                 MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init()");
                 RichHudClient.Init(nameof(HnzCoopSeason), RichHudInit, RichHudClosed);
                 NpcHud.Instance.Load();
+                WcHudApi.Load();
             }
 
             ProgressionView.Instance.Load();
@@ -88,15 +92,15 @@ namespace HnzCoopSeason
         void RichHudInit() // client
         {
             MyLog.Default.Info("[HnzCoopSeason] RichHudClient.Init() callback");
+            CoopHud.Load();
             MissionWindow.Load();
+            _richHudReady = true;
         }
 
         protected override void UnloadData()
         {
             MyLog.Default.Info("[HnzCoopSeason] session unloading");
             base.UnloadData();
-
-            _richHudApi = null;
 
             _commandModule.SendMessage -= SendMessage;
             _commandModule.Unload();
@@ -118,7 +122,12 @@ namespace HnzCoopSeason
                 PoiRandomInvasion.Instance.Unload();
                 RevengeOrkManager.Instance.Unload();
                 OrkDamageReductionScales.Clear();
+            }
+
+            if (VRageUtils.NetworkTypeIn(NetworkType.DediClient | NetworkType.SinglePlayer))
+            {
                 NpcHud.Instance.Unload();
+                WcHudApi.Unload();
             }
 
             ProgressionView.Instance.Unload();
@@ -133,7 +142,9 @@ namespace HnzCoopSeason
 
         void RichHudClosed() // client
         {
+            _richHudReady = false;
             MissionWindow.Instance.Unload();
+            CoopHud.Unload();
         }
 
         void LoadConfig() //server
@@ -187,15 +198,16 @@ namespace HnzCoopSeason
                 _poiMap.Update();
                 PoiRandomInvasion.Instance.Update();
                 _orksDamageManipulator.OnEveryFrame();
+                DiscardExpiredDiscoveryGps();
             }
 
             // client or single player
             if (!MyAPIGateway.Utilities.IsDedicated)
             {
-                if (_richHudApi.Heartbeat)
+                if (_richHudReady)
                 {
                     NpcHud.Instance.Update();
-                    ScreenTopHud.Instance.Render();
+                    ProgressionView.Instance.UpdateClient();
                     MissionWindow.Instance.Update();
                 }
             }
@@ -280,25 +292,45 @@ namespace HnzCoopSeason
 
         public void OnMerchantDiscovered(string poiId, Vector3D position)
         {
-            OnPoiDiscovered("Merchant", position);
+            OnPoiDiscovered("Merchant", position, Color.Orange);
         }
 
         public void OnOrkDiscovered(string poiId, Vector3D position)
         {
-            OnPoiDiscovered("Ork", position);
+            OnPoiDiscovered("Ork", position, new Color(0xED, 0x00, 0xD3)); // #ED00D3
         }
 
-        void OnPoiDiscovered(string name, Vector3D position)
+        void OnPoiDiscovered(string name, Vector3D position, Color color)
         {
-            MyVisualScriptLogicProvider.ShowNotificationToAll("Someone just discovered something!", 10000);
-            FlashGpsApi.Send(new FlashGpsApi.Entry
+            // discovery gps per player; duration by range, near ones clear fast
+            var nearRange = SessionConfig.Instance.EncounterRadius * NearDiscoveryRangeFactor;
+            var now = MyAPIGateway.Session.ElapsedPlayTime;
+
+            var players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
+
+            var nearRangeSq  =  nearRange * nearRange;
+            foreach (var player in players)
             {
-                Id = "POI Discovery".GetHashCode(),
-                Name = $"{name} Discovery",
-                Position = position,
-                Color = Color.Orange,
-                Duration = 10,
-            });
+                var character = player.Character;
+                var near = character != null &&
+                           Vector3D.DistanceSquared(character.GetPosition(), position) <= nearRangeSq;
+                var seconds = near ? NearDiscoverySeconds : DiscoverySeconds;
+
+                MyVisualScriptLogicProvider.ShowNotification("Someone just discovered something!", seconds * 1000, "White", player.IdentityId);
+
+                var gps = MyAPIGateway.Session.GPS.Create($"{name} Discovery", "", position, true, true);
+                gps.GPSColor = color;
+                MyAPIGateway.Session.GPS.AddGps(player.IdentityId, gps);
+
+                // DiscardAt is only swept on world load/save, so expire it ourselves
+                _discoveryGpss.Add(new DiscoveryGps
+                {
+                    IdentityId = player.IdentityId,
+                    Gps = gps,
+                    ExpiresAt = now + TimeSpan.FromSeconds(seconds),
+                });
+            }
         }
 
         void OnPoiReleased(string poiId, Vector3D position)
@@ -365,6 +397,29 @@ namespace HnzCoopSeason
         public override string ToString()
         {
             return $"Session(progress: {GetProgress()}, progressLevel: {GetProgressLevel()}, {nameof(_poiMap)}: {_poiMap})";
+        }
+
+        struct DiscoveryGps
+        {
+            /// <summary>player</summary>
+            public long IdentityId;
+            public IMyGps Gps;
+            public TimeSpan ExpiresAt;
+        }
+
+        void DiscardExpiredDiscoveryGps()
+        {
+            if (_discoveryGpss.Count == 0) return;
+
+            var now = MyAPIGateway.Session.ElapsedPlayTime;
+            for (var i = _discoveryGpss.Count - 1; i >= 0; i--)
+            {
+                var entry = _discoveryGpss[i];
+                if (now < entry.ExpiresAt) continue;
+
+                MyAPIGateway.Session.GPS.RemoveGps(entry.IdentityId, entry.Gps);
+                _discoveryGpss.RemoveAt(i);
+            }
         }
     }
 }

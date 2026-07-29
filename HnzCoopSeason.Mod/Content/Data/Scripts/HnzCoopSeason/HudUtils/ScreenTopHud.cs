@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace HnzCoopSeason.HudUtils
 {
@@ -15,9 +14,9 @@ namespace HnzCoopSeason.HudUtils
             _targetKey = null;
         }
 
-        public void AddGroup(string key, HudElementStack group, int order)
+        public void AddGroup(string key, MeterState state, int order)
         {
-            _entries.Add(key, new Entry(group, order));
+            _entries.Add(key, new Entry(state, order));
             UpdateTarget();
         }
 
@@ -29,43 +28,61 @@ namespace HnzCoopSeason.HudUtils
 
         public void SetActive(string key, bool active)
         {
-            _entries[key].Active = active;
+            Entry entry;
+            if (!_entries.TryGetValue(key, out entry)) return;
+
+            entry.Active = active;
             UpdateTarget();
+        }
+
+        public void SetEnabled(string key, bool enabled) // config gate, independent of gameplay activity
+        {
+            Entry entry;
+            if (!_entries.TryGetValue(key, out entry)) return;
+
+            entry.Enabled = enabled;
+            UpdateTarget();
+        }
+
+        public MeterState Current
+        {
+            get
+            {
+                if (_targetKey == null) return null;
+
+                Entry entry;
+                return _entries.TryGetValue(_targetKey, out entry) ? entry.State : null;
+            }
         }
 
         void UpdateTarget()
         {
-            _targetKey = _entries
-                .Where(p => p.Value.Active)
-                .OrderByDescending(p => p.Value.Order)
-                .FirstOrDefault()
-                .Key;
-        }
+            string best = null;
+            var bestOrder = 0;
 
-        public void Render()
-        {
-            if (_targetKey == null) return; // shouldn't happen
-
-            foreach (var kvp in _entries)
+            foreach (var pair in _entries)
             {
-                if (kvp.Key != _targetKey)
-                {
-                    kvp.Value.Stack.Render(forceHide: true);
-                }
+                var entry = pair.Value;
+                if (!entry.Active || !entry.Enabled) continue;
+                if (best != null && entry.Order <= bestOrder) continue;
+
+                best = pair.Key;
+                bestOrder = entry.Order;
             }
 
-            _entries[_targetKey].Stack.Render();
+            _targetKey = best;
         }
 
         sealed class Entry
         {
-            public readonly HudElementStack Stack;
+            public readonly MeterState State;
             public readonly int Order;
             public bool Active = true;
+            public bool Enabled = true;
 
-            public Entry(HudElementStack stack, int order)
+            public Entry(MeterState state, int order)
             {
-                Stack = stack;
+                State = state;
                 Order = order;
             }
         }

@@ -73,6 +73,7 @@ namespace HnzCoopSeason.POI
         void CapturePlayerToggles()
         {
             _visibility.CaptureChanges(_markers.Pairs);
+            _visibility.Flush();
         }
 
         bool TryLoadVisibility()
@@ -164,6 +165,7 @@ namespace HnzCoopSeason.POI
             UpdateBossGrids(payload.Markers);
             ApplyMarkersVisibility(payload.Markers);
             RemoveAbsentMarkers(payload.Markers);
+            _visibility.Flush();
 
             foreach (var marker in payload.Markers)
             {

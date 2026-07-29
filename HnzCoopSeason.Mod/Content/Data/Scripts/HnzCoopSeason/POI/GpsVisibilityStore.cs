@@ -16,6 +16,7 @@ namespace HnzCoopSeason.POI
 
         readonly HashSet<string> _hidden = new HashSet<string>();
         string _fileName;
+        bool _dirty;
 
         #region Query
 
@@ -27,12 +28,10 @@ namespace HnzCoopSeason.POI
 
         public void CaptureChanges(IEnumerable<KeyValuePair<string, IMyGps>> markers)
         {
-            var changed = false;
             foreach (var marker in markers)
             {
-                changed |= CaptureChange(marker.Key, marker.Value);
+                _dirty |= CaptureChange(marker.Key, marker.Value);
             }
-            if (changed) Save();
         }
 
         // returns true if the player toggled this marker since the last pass
@@ -56,15 +55,14 @@ namespace HnzCoopSeason.POI
         // server-forced visibility (e.g. boss entering/leaving range, or the poi's situation changing)
         public void SetHidden(string markerId, bool hidden)
         {
-            var changed = hidden ? _hidden.Add(markerId) : _hidden.Remove(markerId);
-            if (changed) Save();
+            _dirty |= hidden ? _hidden.Add(markerId) : _hidden.Remove(markerId);
         }
 
         #endregion
 
         #region Cleanup
 
-        /// <summary>Un-hides markers absent from the server payload — their dismissed situation is over. Saves if changed.</summary>
+        /// <summary>Un-hides markers absent from the server payload — their dismissed situation is over.</summary>
         /// <param name="presentIds">Marker ids the server still reports; hidden ones not in here are un-hidden.</param>
         public void PruneAbsent(ICollection<string> presentIds)
         {
@@ -87,7 +85,7 @@ namespace HnzCoopSeason.POI
                 MyLog.Default.Info($"[HnzCoopSeason] gps {id} un-hidden: no longer reported by server");
             }
 
-            Save();
+            _dirty = true;
         }
 
         #endregion
@@ -129,6 +127,15 @@ namespace HnzCoopSeason.POI
             {
                 MyLog.Default.Warning($"[HnzCoopSeason] failed loading gps visibility; all markers will show; {e}");
             }
+        }
+
+        /// <summary>Writes pending changes; call once per batch, not per marker.</summary>
+        public void Flush()
+        {
+            if (!_dirty) return;
+
+            _dirty = false;
+            Save();
         }
 
         void Save()

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace HnzCoopSeason.HudUtils
 {
@@ -29,7 +28,10 @@ namespace HnzCoopSeason.HudUtils
 
         public void SetActive(string key, bool active)
         {
-            _entries[key].Active = active;
+            Entry entry;
+            if (!_entries.TryGetValue(key, out entry)) return;
+
+            entry.Active = active;
             UpdateTarget();
         }
 
@@ -55,11 +57,20 @@ namespace HnzCoopSeason.HudUtils
 
         void UpdateTarget()
         {
-            _targetKey = _entries
-                .Where(p => p.Value.Active && p.Value.Enabled)
-                .OrderByDescending(p => p.Value.Order)
-                .FirstOrDefault()
-                .Key;
+            string best = null;
+            var bestOrder = 0;
+
+            foreach (var pair in _entries)
+            {
+                var entry = pair.Value;
+                if (!entry.Active || !entry.Enabled) continue;
+                if (best != null && entry.Order <= bestOrder) continue;
+
+                best = pair.Key;
+                bestOrder = entry.Order;
+            }
+
+            _targetKey = best;
         }
 
         sealed class Entry

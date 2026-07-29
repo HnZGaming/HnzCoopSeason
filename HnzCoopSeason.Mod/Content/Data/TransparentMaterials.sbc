@@ -16,8 +16,8 @@
             <UseAtlas>false</UseAtlas>
             <NeedSort>true</NeedSort>
             <UVOffset>
-                <X>1</X>
-                <Y>1</Y>
+                <X>0</X>
+                <Y>0</Y>
             </UVOffset>
             <UVSize>
                 <X>1</X>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HnzUtils;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRage.Utils;
@@ -11,9 +12,10 @@ namespace HnzCoopSeason.POI
     /// </summary>
     public sealed class GpsVisibilityStore
     {
-        const string FileName = "HnzCoopSeason.GpsVisibility.xml";
+        const string FileNamePrefix = "HnzCoopSeason.GpsVisibility";
 
         readonly HashSet<string> _hidden = new HashSet<string>();
+        string _fileName;
 
         #region Query
 
@@ -92,15 +94,27 @@ namespace HnzCoopSeason.POI
 
         #region Storage
 
+        /// <summary>Local storage is shared by every world, and poi ids repeat, so the file is per world.</summary>
+        static string GetFileName()
+        {
+            var multiplayer = MyAPIGateway.Multiplayer;
+            var scope = multiplayer != null && !multiplayer.IsServer
+                ? "server-" + multiplayer.ServerId
+                : "local-" + MyAPIGateway.Session.Name;
+
+            return $"{FileNamePrefix}.{VRageUtils.StableKey(scope):X4}.xml";
+        }
+
         public void Load()
         {
             _hidden.Clear();
+            _fileName = GetFileName();
 
             try
             {
-                if (!MyAPIGateway.Utilities.FileExistsInLocalStorage(FileName, typeof(GpsVisibilityStore))) return;
+                if (!MyAPIGateway.Utilities.FileExistsInLocalStorage(_fileName, typeof(GpsVisibilityStore))) return;
 
-                using (var reader = MyAPIGateway.Utilities.ReadFileInLocalStorage(FileName, typeof(GpsVisibilityStore)))
+                using (var reader = MyAPIGateway.Utilities.ReadFileInLocalStorage(_fileName, typeof(GpsVisibilityStore)))
                 {
                     var payload = MyAPIGateway.Utilities.SerializeFromXML<Payload>(reader.ReadToEnd());
                     if (payload?.HiddenMarkers == null) return;
@@ -119,6 +133,8 @@ namespace HnzCoopSeason.POI
 
         void Save()
         {
+            if (_fileName == null) return;
+
             try
             {
                 var payload = new Payload();
@@ -127,7 +143,7 @@ namespace HnzCoopSeason.POI
                     payload.HiddenMarkers.Add(id);
                 }
 
-                using (var writer = MyAPIGateway.Utilities.WriteFileInLocalStorage(FileName, typeof(GpsVisibilityStore)))
+                using (var writer = MyAPIGateway.Utilities.WriteFileInLocalStorage(_fileName, typeof(GpsVisibilityStore)))
                 {
                     writer.Write(MyAPIGateway.Utilities.SerializeToXML(payload));
                 }

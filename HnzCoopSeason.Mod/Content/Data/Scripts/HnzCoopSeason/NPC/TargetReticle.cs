@@ -85,7 +85,12 @@ namespace HnzCoopSeason.NPC
 
                 if (grid == null || grid.Closed || grid.MarkedForClose)
                 {
-                    Targets.RemoveAt(i);
+                    if (grid != null)
+                    {
+                        target.Grid = null;
+                        Targets[i] = target;
+                    }
+
                     continue;
                 }
 
@@ -139,6 +144,7 @@ namespace HnzCoopSeason.NPC
             var camera = MyAPIGateway.Session.Camera;
             var config = MyAPIGateway.Session.Config;
             var visible = _slot < Targets.Count
+                          && Targets[_slot].Grid != null // cleared by Update() when the grid closed
                           && camera != null
                           && !config.MinimalHud
                           && !MyAPIGateway.Gui.IsCursorVisible;

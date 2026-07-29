@@ -24,7 +24,8 @@ namespace HnzCoopSeason.Orks
         IMyCubeGrid _mainGrid;
         PoiState _poiState;
         bool _disarmNextSpawn;
-        int BossGpsId => $"{nameof(PoiOrk)}-boss-{_poiId}".GetHashCode();
+        // two 16-bit StableKeys packed into 32 bits; GetHashCode() reseeds per process on .NET 10
+        long BossGpsId => ((long)VRageUtils.StableKey(nameof(PoiOrk)) << 16) | VRageUtils.StableKey($"boss-{_poiId}");
 
         public bool HasMainGrid => _mainGrid != null && !_mainGrid.Closed;
         public long MainGridId => HasMainGrid ? _mainGrid.EntityId : 0;

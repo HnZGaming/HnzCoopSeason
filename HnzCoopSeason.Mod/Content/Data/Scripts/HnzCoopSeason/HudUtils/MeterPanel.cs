@@ -20,6 +20,7 @@ namespace HnzCoopSeason.HudUtils
         const float InfoIconNudge = 0; // badge sits on the title's centre line
         const float MinimalRailPadding = 5;
         const float TitleValueGap = 12;
+        const int MaxTitleProbes = 8; // each probe rebuilds the title's text board
 
         internal static readonly Color VanillaCyan = new Color(187, 233, 246);
         internal static readonly Color BackColor = new Color(33, 44, 51);
@@ -206,15 +207,23 @@ namespace HnzCoopSeason.HudUtils
             _titleLabel.Text = text;
             if (budget <= 0 || _titleLabel.Width <= budget) return;
 
-            // proportional first guess, then shave until it fits
+            // every probe re-parses the text board, so guess the length proportionally
             var keep = Math.Max(1, (int)(text.Length * budget / _titleLabel.Width) - 1);
-            while (keep > 1)
+            for (var probe = 0; probe < MaxTitleProbes && keep > 1; probe++)
             {
-                _titleLabel.Text = text.Substring(0, keep).TrimEnd() + "...";
+                _titleLabel.Text = Ellipsize(text, keep);
                 if (_titleLabel.Width <= budget) return;
 
-                keep--;
+                var next = (int)(keep * budget / _titleLabel.Width);
+                keep = next < keep ? Math.Max(1, next) : keep - 1;
             }
+
+            _titleLabel.Text = Ellipsize(text, keep);
+        }
+
+        static string Ellipsize(string text, int keep)
+        {
+            return text.Substring(0, keep).TrimEnd() + "...";
         }
 
         void SetContentVisible(bool visible)

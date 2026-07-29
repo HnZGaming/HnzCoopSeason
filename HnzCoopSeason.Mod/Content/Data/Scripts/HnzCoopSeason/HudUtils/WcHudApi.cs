@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Sandbox.ModAPI;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
+using VRage.Utils;
 
 namespace HnzCoopSeason.HudUtils
 {
@@ -30,9 +31,12 @@ namespace HnzCoopSeason.HudUtils
             if (endpoints == null) return;
 
             Delegate del;
-            if (endpoints.TryGetValue("GetAiFocusBase", out del))
+            if (!endpoints.TryGetValue("GetAiFocusBase", out del)) return;
+            _getAiFocus = del as Func<MyEntity, int, MyEntity>;
+            
+            if (_getAiFocus == null)
             {
-                _getAiFocus = (Func<MyEntity, int, MyEntity>)del;
+                MyLog.Default.Warning($"[HnzCoopSeason] unexpected WeaponCore GetAiFocusBase signature: {del?.GetType()}");
             }
         }
 

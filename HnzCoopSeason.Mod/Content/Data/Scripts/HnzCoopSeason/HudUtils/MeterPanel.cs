@@ -2,6 +2,7 @@ using System;
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
+using Sandbox.ModAPI;
 using VRageMath;
 
 namespace HnzCoopSeason.HudUtils
@@ -87,8 +88,8 @@ namespace HnzCoopSeason.HudUtils
         protected override void Layout()
         {
             // hide whenever the vanilla hud is hidden
-            var config = Sandbox.ModAPI.MyAPIGateway.Session.Config;
-            var hudVisible = !config.MinimalHud && !Sandbox.ModAPI.MyAPIGateway.Gui.IsCursorVisible;
+            var config = MyAPIGateway.Session.Config;
+            var hudVisible = !config.MinimalHud && !MyAPIGateway.Gui.IsCursorVisible;
             var state = hudVisible ? ScreenTopHud.Instance.Current : null;
             SetContentVisible(state != null);
             if (state == null) return;

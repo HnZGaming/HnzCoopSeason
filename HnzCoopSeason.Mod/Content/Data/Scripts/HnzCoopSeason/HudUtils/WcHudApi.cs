@@ -33,7 +33,7 @@ namespace HnzCoopSeason.HudUtils
             Delegate del;
             if (!endpoints.TryGetValue("GetAiFocusBase", out del)) return;
             _getAiFocus = del as Func<MyEntity, int, MyEntity>;
-            
+
             if (_getAiFocus == null)
             {
                 MyLog.Default.Warning($"[HnzCoopSeason] unexpected WeaponCore GetAiFocusBase signature: {del?.GetType()}");

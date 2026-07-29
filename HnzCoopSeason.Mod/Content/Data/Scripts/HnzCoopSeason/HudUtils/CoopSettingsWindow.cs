@@ -2,6 +2,7 @@
 using RichHudFramework.UI;
 using RichHudFramework.UI.Client;
 using RichHudFramework.UI.Rendering;
+using Sandbox.ModAPI;
 using VRageMath;
 
 namespace HnzCoopSeason.HudUtils
@@ -494,7 +495,7 @@ namespace HnzCoopSeason.HudUtils
         void LayoutPlate(float contentHeight)
         {
             // alpha follows the game's HUD background opacity, like the meter plate
-            var opacity = MathHelper.Clamp(Sandbox.ModAPI.MyAPIGateway.Session.Config.HUDBkOpacity, 0f, 1f);
+            var opacity = MathHelper.Clamp(MyAPIGateway.Session.Config.HUDBkOpacity, 0f, 1f);
             var plateColor = new Color(MeterPanel.BackColor.R, MeterPanel.BackColor.G, MeterPanel.BackColor.B, (byte)(opacity * 255));
 
             foreach (var strip in _plateStrips)

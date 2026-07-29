@@ -25,7 +25,8 @@ namespace HnzCoopSeason.Orks
         PoiState _poiState;
         bool _disarmNextSpawn;
         // two 16-bit StableKeys packed into 32 bits; GetHashCode() reseeds per process on .NET 10
-        long BossGpsId => ((long)VRageUtils.StableKey(nameof(PoiOrk)) << 16) | VRageUtils.StableKey($"boss-{_poiId}");
+        long BossGpsId => ((long)VRageUtils.StableKey($"{nameof(PoiOrk)}-boss-hi-{_poiId}") << 16)
+                          | VRageUtils.StableKey($"{nameof(PoiOrk)}-boss-lo-{_poiId}");
 
         public bool HasMainGrid => _mainGrid != null && !_mainGrid.Closed;
         public long MainGridId => HasMainGrid ? _mainGrid.EntityId : 0;

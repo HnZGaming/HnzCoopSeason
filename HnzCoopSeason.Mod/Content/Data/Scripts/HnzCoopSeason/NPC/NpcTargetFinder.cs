@@ -29,9 +29,9 @@ namespace HnzCoopSeason.NPC
         static readonly Dictionary<long, CachedContext> ContextCache = new Dictionary<long, CachedContext>();
         static readonly List<TargetReticle.Target> ReticleTargets = new List<TargetReticle.Target>(TargetReticle.PoolSize);
 
-        static readonly Pool<SortedList<double, Analysis>> GridSearchPool =
-            new Pool<SortedList<double, Analysis>>(
-                () => new SortedList<double, Analysis>(),
+        static readonly Pool<List<Candidate>> GridSearchPool =
+            new Pool<List<Candidate>>(
+                () => new List<Candidate>(),
                 l => l.Clear());
 
 
@@ -51,6 +51,13 @@ namespace HnzCoopSeason.NPC
             public GridOwnerType Owner;
             public int SpawnGroupIndex;
             public string FactionTag;
+        }
+
+        struct Candidate
+        {
+            public double Weight; // aim priority, lowest first
+            public int Order;
+            public Analysis Analysis;
         }
 
         struct CachedContext
@@ -116,7 +123,7 @@ namespace HnzCoopSeason.NPC
         }
 
         /// <summary>Queries grids in the view cone, keyed by aim priority (lowest first).</summary>
-        static void CollectCandidates(IMyCamera camera, Vector3D characterPosition, SortedList<double, Analysis> grids)
+        static void CollectCandidates(IMyCamera camera, Vector3D characterPosition, List<Candidate> grids)
         {
             var coneRadians = MathHelper.ToRadians(MathHelper.Clamp(CoopHud.ReticleFov, 1f, 80f));
             var coneCosine = Math.Cos(coneRadians);
@@ -156,10 +163,16 @@ namespace HnzCoopSeason.NPC
                 if (IsBossOrk(ref analysis) && IsIntactConstruct(grid)) TryAddReticle(ref analysis, gridPosition);
                 if (!obbHit.HasValue && dot < coneCosine && !enclosing) continue;
 
-                grids[RankWeight(obbHit.HasValue, aimDistance, enclosing, offAxis)] = analysis;
+                grids.Add(new Candidate
+                {
+                    Weight = RankWeight(obbHit.HasValue, aimDistance, enclosing, offAxis),
+                    Order = grids.Count,
+                    Analysis = analysis,
+                });
             }
 
             ListPool<MyEntity>.Instance.Release(entities);
+            grids.Sort((a, b) => a.Weight != b.Weight ? a.Weight.CompareTo(b.Weight) : a.Order.CompareTo(b.Order));
         }
 
         /// <summary>Coarse OBB query of everything roughly in front of the camera</summary>
@@ -186,15 +199,16 @@ namespace HnzCoopSeason.NPC
         }
 
         /// <summary>Walks candidates best-first and returns the first with line of sight</summary>
-        static Analysis SelectTarget(SortedList<double, Analysis> grids, IMyCamera camera, Vector3D characterPosition)
+        static Analysis SelectTarget(List<Candidate> grids, IMyCamera camera, Vector3D characterPosition)
         {
             var nearestToCrosshair = default(Analysis);
             var losBudget = MaxLineOfSightChecks;
             var ranOutOfChecks = false;
 
-            foreach (var candidate in grids.Values)
+            foreach (var candidate in grids)
             {
-                if (nearestToCrosshair.Grid == null) nearestToCrosshair = candidate;
+                var analysis = candidate.Analysis;
+                if (nearestToCrosshair.Grid == null) nearestToCrosshair = analysis;
 
                 if (losBudget-- <= 0)
                 {
@@ -202,9 +216,9 @@ namespace HnzCoopSeason.NPC
                     break;
                 }
 
-                if (!HasLineOfSight(candidate.Grid, camera.Position, characterPosition)) continue;
+                if (!HasLineOfSight(analysis.Grid, camera.Position, characterPosition)) continue;
 
-                return candidate;
+                return analysis;
             }
 
             // fall back when the ray budget ran out

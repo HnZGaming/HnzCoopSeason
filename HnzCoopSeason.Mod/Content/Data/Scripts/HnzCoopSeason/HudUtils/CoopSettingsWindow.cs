@@ -76,6 +76,11 @@ namespace HnzCoopSeason.HudUtils
         float _lastReticleDistValue;
         int _reticleDistSettleFrames;
 
+        int _shownSlider = int.MinValue;
+        int _shownFov = int.MinValue;
+        int _shownBlocks = int.MinValue;
+        int _shownReticleDist = int.MinValue;
+
         public CoopSettingsWindow(HudParentBase parent) : base(parent)
         {
             _plateStrips = new TexturedBox[3];
@@ -294,10 +299,10 @@ namespace HnzCoopSeason.HudUtils
 
             if (changed) CoopHud.ApplyConfigNow();
 
-            _sliderValue.Text = $"{(int)_slider.Current}px";
-            _fovValue.Text = $"{(int)_fovSlider.Current}°";
-            _blocksValue.Text = (int)_blocksSlider.Current == 0 ? "off" : $"{(int)_blocksSlider.Current} blocks";
-            _reticleDistValue.Text = (int)_reticleDistSlider.Current == 0 ? "off" : $"{(int)_reticleDistSlider.Current}m";
+            SetValueText(_sliderValue, (int)_slider.Current, ref _shownSlider, "px");
+            SetValueText(_fovValue, (int)_fovSlider.Current, ref _shownFov, "°");
+            SetValueText(_blocksValue, (int)_blocksSlider.Current, ref _shownBlocks, " blocks", "off");
+            SetValueText(_reticleDistValue, (int)_reticleDistSlider.Current, ref _shownReticleDist, "m", "off");
 
             var left = -WindowWidth / 2 + PaddingX;
             var right = WindowWidth / 2 - PaddingX;
@@ -490,6 +495,15 @@ namespace HnzCoopSeason.HudUtils
 
             target = value;
             return true;
+        }
+
+        /// <summary>Assigning Text rebuilds the label's text board, and Layout runs every frame.</summary>
+        static void SetValueText(Label label, int value, ref int shown, string suffix, string zeroText = null)
+        {
+            if (value == shown) return;
+
+            shown = value;
+            label.Text = value == 0 && zeroText != null ? zeroText : value + suffix;
         }
 
         void LayoutPlate(float contentHeight)
